@@ -10,12 +10,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs';
-
+import { RouterLink } from '@angular/router';
+import { environment } from '../../../../../environments/environments.js';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [
+  imports: [ RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -26,6 +27,8 @@ import { AuthService } from '../../../../core/services/auth.service';
   styleUrl: './login.scss',
 })
 export class Login {
+  // El backend inicia el proceso de autorización con Spotify.
+readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
   private readonly formBuilder = inject(FormBuilder);
   readonly auth = inject(AuthService);
 

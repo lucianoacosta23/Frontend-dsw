@@ -60,3 +60,37 @@ button {
     max-width: 30rem;
   }
 }
+
+/* Separa las alternativas del formulario principal. */
+.login-alternatives {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+  text-align: center;
+}
+
+.login-alternatives p {
+  margin: 0;
+}
+
+.login-alternatives a {
+  color: #3659a2;
+}
+
+.divider {
+  color: #666;
+}
+
+.spotify-button {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #1db954;
+  color: #10131a !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.spotify-button:hover {
+  filter: brightness(1.08);
+}

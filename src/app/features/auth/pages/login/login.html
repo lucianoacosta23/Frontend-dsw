@@ -7,6 +7,19 @@
 
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="submit()">
+        <!-- Ofrece registro y acceso con Spotify debajo del login por email. -->
+<div class="login-alternatives">
+  <p>
+    ¿Todavía no tenés cuenta?
+    <a routerLink="/register" queryParamsHandling="preserve">Crear cuenta</a>
+  </p>
+
+  <span class="divider">o</span>
+
+  <a class="spotify-button" [href]="spotifyLoginUrl">
+    Continuar con Spotify
+  </a>
+</div>
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
           <input
