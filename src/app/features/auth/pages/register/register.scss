@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.register-page {
+  box-sizing: border-box;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 1rem;
+  background: #10131a;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 30rem;
+  padding: 1.25rem;
+}
+
+mat-card-header {
+  margin-bottom: 1.25rem;
+}
+
+form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+mat-form-field,
+button {
+  width: 100%;
+}
+
+.feedback {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.success {
+  color: #146c43;
+}
+
+.account-link {
+  margin: 1rem 0 0;
+  text-align: center;
+}
+
+/* En pantallas medianas dejamos más espacio alrededor de la tarjeta. */
+@media (min-width: 600px) {
+  .register-page {
+    padding: 2rem;
+  }
+
+  .register-card {
+    padding: 1.75rem;
+  }
+}

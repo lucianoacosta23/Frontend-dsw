@@ -1,0 +1,253 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: #10131a;
+  color: #f5f5f7;
+}
+
+.home-page {
+  min-height: 100dvh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #292d37;
+}
+
+.brand {
+  color: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+nav,
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+nav a,
+.hero-actions a {
+  font-weight: 650;
+  text-decoration: none;
+}
+
+nav a,
+.section-heading > a {
+  color: #c9cbd2;
+}
+
+.nav-button,
+.primary-button,
+.spotify-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.55rem;
+}
+
+.nav-button,
+.primary-button {
+  background: #5b5ce2;
+  color: white;
+}
+
+.spotify-button {
+  border: 1px solid #484d5a;
+  color: white;
+}
+
+.hero {
+  max-width: 58rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 3rem;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #9c9fe9;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.1rem, 8vw, 4rem);
+  line-height: 1.08;
+}
+
+.intro {
+  max-width: 38rem;
+  margin: 1rem auto 1.5rem;
+  color: #b7bac5;
+  font-size: 1.05rem;
+}
+
+.hero-actions {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.popular {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 3rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.album-grid {
+  display: grid;
+
+  /* En celulares usamos dos columnas para que las tapas sigan siendo legibles. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.75rem;
+}
+
+.album-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  border: 1px solid #292d37;
+  border-radius: 0.75rem;
+  background: #181b23;
+}
+
+.cover-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  background: #242834;
+}
+
+.cover-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #8b8fa2;
+  font-size: 4rem;
+}
+
+.rank {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.4rem;
+  background: #10131adf;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.album-info {
+  padding: 0.75rem;
+}
+
+.album-info h3,
+.artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.album-info h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.artist {
+  margin: 0.35rem 0 0.7rem;
+  color: #b7bac5;
+  font-size: 0.85rem;
+}
+
+.album-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.35rem;
+  color: #9297a6;
+  font-size: 0.75rem;
+}
+
+.status {
+  padding: 2rem 1rem;
+  color: #c5c8d1;
+  text-align: center;
+}
+
+.error {
+  color: #ffb4ab;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+a:hover,
+button:hover {
+  filter: brightness(1.12);
+}
+
+/* SM: tablets pequeñas, tres álbumes por fila. */
+@media (min-width: 600px) {
+  .topbar {
+    padding-inline: 2rem;
+  }
+
+  .hero {
+    padding-block: 4.5rem 4rem;
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .album-info {
+    padding: 1rem;
+  }
+}
+
+/* LG: pantallas grandes, cinco álbumes por fila. */
+@media (min-width: 960px) {
+  .topbar {
+    padding-inline: max(2rem, calc((100vw - 76rem) / 2));
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

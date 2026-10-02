@@ -1,0 +1,99 @@
+<main class="register-page">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>Crear cuenta</mat-card-title>
+      <mat-card-subtitle>Sumate a Jukeboxd</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Cada control está conectado al formulario reactivo del componente. -->
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre de usuario</mat-label>
+          <input
+            matInput
+            autocomplete="username"
+            formControlName="username"
+          />
+          @if (form.controls.username.hasError('required')) {
+            <mat-error>Ingresá un nombre de usuario.</mat-error>
+          } @else if (form.controls.username.hasError('maxlength')) {
+            <mat-error>Usá hasta 255 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre completo</mat-label>
+          <input
+            matInput
+            autocomplete="name"
+            formControlName="fullName"
+          />
+          @if (form.controls.fullName.hasError('required')) {
+            <mat-error>Ingresá tu nombre.</mat-error>
+          } @else if (form.controls.fullName.hasError('maxlength')) {
+            <mat-error>Usá hasta 255 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            autocomplete="email"
+            formControlName="email"
+          />
+          @if (form.controls.email.hasError('required')) {
+            <mat-error>Ingresá tu email.</mat-error>
+          } @else if (form.controls.email.hasError('email')) {
+            <mat-error>Ingresá un email válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            type="password"
+            autocomplete="new-password"
+            formControlName="password"
+          />
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>Ingresá una contraseña.</mat-error>
+          } @else if (form.controls.password.hasError('minlength')) {
+            <mat-error>Debe tener al menos 8 caracteres.</mat-error>
+          } @else if (form.controls.password.hasError('maxlength')) {
+            <mat-error>Debe tener hasta 128 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- El backend devuelve el detalle, por ejemplo, si el email ya existe. -->
+        @if (errorMessage(); as message) {
+          <p class="feedback error" role="alert">{{ message }}</p>
+        }
+
+        @if (successMessage(); as message) {
+          <p class="feedback success" role="status">{{ message }}</p>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="form.invalid || loading()"
+        >
+          {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+        </button>
+      </form>
+
+      <p class="account-link">
+        ¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a>
+      </p>
+
+      <p class="account-link">
+        <a routerLink="/">Volver a la portada</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+</main>
