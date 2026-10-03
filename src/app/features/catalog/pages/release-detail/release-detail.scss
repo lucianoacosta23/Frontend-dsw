@@ -1,0 +1,133 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #10131a;
+  color: #f5f5f7;
+}
+
+.detail-page {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.cover {
+  width: min(100%, 24rem);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #242834;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #8b8fa2;
+  font-size: 5rem;
+}
+
+.release-info,
+.review-panel {
+  padding: 1.25rem;
+  border: 1px solid #292d37;
+  border-radius: 0.75rem;
+  background: #181b23;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #9c9fe9;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1.1;
+}
+
+.artists {
+  margin: 0.75rem 0;
+  color: #c9cbd2;
+}
+
+.description {
+  margin-top: 1.5rem;
+  color: #b7bac5;
+  line-height: 1.65;
+}
+
+.review-panel h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.review-panel p {
+  color: #b7bac5;
+  line-height: 1.5;
+}
+
+.status {
+  padding: 2rem 1rem;
+  color: #c5c8d1;
+  text-align: center;
+}
+
+.error {
+  color: #ffb4ab;
+}
+
+button {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #484d5a;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* En pantallas medianas, portada y descripción comparten la primera fila. */
+@media (min-width: 700px) {
+  .detail-page {
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .detail-layout {
+    grid-template-columns: minmax(12rem, 17rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+  }
+
+  .review-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+/* En pantallas grandes, el panel queda a la derecha del detalle. */
+@media (min-width: 1000px) {
+  .detail-layout {
+    grid-template-columns: minmax(14rem, 19rem) minmax(0, 1fr) minmax(15rem, 18rem);
+  }
+
+  .review-panel {
+    grid-column: auto;
+  }
+}

@@ -1,0 +1,55 @@
+<main class="detail-page">
+  @if (loading()) {
+    <p class="status" role="status">Cargando lanzamiento…</p>
+  } @else if (errorMessage(); as message) {
+    <section class="status error" role="alert">
+      <p>{{ message }}</p>
+      <button type="button" (click)="loadRelease()">Volver a intentar</button>
+    </section>
+  } @else if (release(); as item) {
+    <!-- Encabezado con portada y datos principales del lanzamiento. -->
+    <section class="detail-layout">
+      <div class="cover">
+        @if (item.imageUrl) {
+          <img [src]="item.imageUrl" [alt]="'Portada de ' + item.name" />
+        } @else {
+          <div class="cover-placeholder" aria-label="Portada no disponible">♪</div>
+        }
+      </div>
+
+      <div class="release-info">
+        <p class="eyebrow">{{ item.type }} · {{ item.releaseDate.slice(0, 4) }}</p>
+        <h1>{{ item.name }}</h1>
+
+        <p class="artists">
+          @for (artist of item.artists; track artist.id; let last = $last) {
+            {{ artist.name }}{{ last ? '' : ', ' }}
+          }
+        </p>
+
+        @if (item.description) {
+          <p class="description">{{ item.description }}</p>
+        }
+      </div>
+
+      <!-- El formulario envía una reseña asociada a este lanzamiento. -->
+      <aside class="review-panel" aria-label="Tu reseña">
+        <h2>Tu puntuación y reseña</h2>
+
+        <app-review-form
+          [target]="{ type: 'release', id: item.id }"
+          [submitting]="reviewSubmitting()"
+          (submitReview)="createReview($event)"
+        />
+
+        @if (reviewMessage(); as message) {
+          <p role="status">{{ message }}</p>
+        }
+
+        @if (reviewError(); as message) {
+          <p class="error" role="alert">{{ message }}</p>
+        }
+      </aside>
+    </section>
+  }
+</main>
