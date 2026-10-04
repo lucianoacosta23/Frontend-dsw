@@ -1,0 +1,213 @@
+/* Vista de detalle: primero se adapta a pantallas chicas. */
+.detail-page {
+  width: min(100% - 2rem, 1200px);
+  margin: 2rem auto 4rem;
+  color: #f3f4f6;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.cover {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #20232d;
+  aspect-ratio: 1;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #a5a8c8;
+  font-size: 4rem;
+}
+
+.track-info,
+.review-panel {
+  padding: 1.25rem;
+  border: 1px solid #343844;
+  border-radius: 0.75rem;
+  background: #171a22;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #a5a8ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.track-info h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  line-height: 1.1;
+}
+
+.artists {
+  margin: 0.75rem 0 1.5rem;
+  color: #c3c6d1;
+}
+
+.track-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.track-meta dt {
+  color: #a5a8b5;
+  font-size: 0.8rem;
+}
+
+.track-meta dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.review-panel h2,
+.reviews h2 {
+  margin-top: 0;
+}
+
+.review-panel p {
+  line-height: 1.5;
+}
+
+.success-message {
+  color: #9de2ae;
+}
+
+.error-message,
+.status.error {
+  color: #ff8d8d;
+}
+
+.reviews {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #343844;
+}
+
+.reviews-heading {
+  margin-bottom: 1rem;
+}
+
+.reviews-heading h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.status {
+  padding: 1.5rem 1rem;
+  color: #c3c6d1;
+  text-align: center;
+}
+
+.review-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.review-card {
+  padding: 1rem;
+  border: 1px solid #343844;
+  border-radius: 0.75rem;
+  background: #171a22;
+}
+
+.review-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.review-author,
+.review-rating,
+.review-likes {
+  margin: 0;
+}
+
+.review-author {
+  color: #c3c6d1;
+}
+
+.review-author strong {
+  color: #f3f4f6;
+}
+
+.review-rating {
+  color: #f4d477;
+  font-weight: 700;
+}
+
+.review-text {
+  margin: 1rem 0;
+  color: #e2e3e8;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.review-text-empty {
+  color: #a5a8b5;
+  font-style: italic;
+}
+
+.review-likes {
+  color: #a5a8b5;
+  font-size: 0.9rem;
+}
+
+.text-button {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: #b8baff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* En tablets, la portada comparte fila con la información. */
+@media (min-width: 768px) {
+  .detail-layout {
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+
+  .cover {
+    width: 100%;
+  }
+
+  .review-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+/* En pantallas grandes, el panel queda a la derecha. */
+@media (min-width: 1024px) {
+  .detail-layout {
+    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.5fr) minmax(240px, 0.9fr);
+    gap: 2rem;
+  }
+
+  .review-panel {
+    grid-column: auto;
+  }
+}

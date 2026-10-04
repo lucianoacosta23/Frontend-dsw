@@ -1,0 +1,127 @@
+<main class="detail-page">
+  @if (loading()) {
+    <p class="status" role="status">Cargando pista…</p>
+  } @else if (errorMessage(); as message) {
+    <div class="status error" role="alert">
+      <p>{{ message }}</p>
+      <button type="button" class="text-button" (click)="loadTrack()">
+        Volver a intentar
+      </button>
+    </div>
+  } @else if (track(); as item) {
+    <section class="detail-layout" aria-labelledby="track-title">
+      <!-- La portada de la pista se toma del lanzamiento al que pertenece. -->
+      <div class="cover">
+        @if (item.release.imageUrl) {
+          <img
+            [src]="item.release.imageUrl"
+            [alt]="'Portada de ' + item.release.name"
+          />
+        } @else {
+          <div class="cover-placeholder" aria-label="Portada no disponible">
+            ♪
+          </div>
+        }
+      </div>
+
+      <!-- Información principal de la pista y su lanzamiento. -->
+      <div class="track-info">
+        <p class="eyebrow">Pista de {{ item.release.name }}</p>
+        <h1 id="track-title">{{ item.name }}</h1>
+
+        <p class="artists">
+          @for (artist of item.artists; track artist.id; let last = $last) {
+            <span>{{ artist.name }}{{ last ? '' : ', ' }}</span>
+          }
+        </p>
+
+        <dl class="track-meta">
+          @if (item.release.releaseDate) {
+            <div>
+              <dt>Fecha de lanzamiento</dt>
+              <dd>{{ item.release.releaseDate }}</dd>
+            </div>
+          }
+          <div>
+            <dt>Duración</dt>
+            <dd>{{ item.durationMs }} ms</dd>
+          </div>
+          <div>
+            <dt>Contenido explícito</dt>
+            <dd>{{ item.explicit ? 'Sí' : 'No' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Formulario para reseñar esta pista. -->
+      <aside class="review-panel" aria-label="Tu reseña">
+        <h2>Tu reseña</h2>
+
+        <app-review-form
+          [target]="{ type: 'track', id: item.id }"
+          [submitting]="reviewSubmitting()"
+          (submitReview)="createReview($event)"
+        />
+
+        @if (reviewMessage(); as message) {
+          <p class="success-message" role="status">{{ message }}</p>
+        }
+
+        @if (reviewError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
+        }
+      </aside>
+    </section>
+
+    <!-- Reseñas que el backend devuelve ordenadas por popularidad. -->
+    <section class="reviews" aria-labelledby="reviews-title">
+      <div class="reviews-heading">
+        <div>
+          <p class="eyebrow">Lo que opina la comunidad</p>
+          <h2 id="reviews-title">Reseñas populares</h2>
+        </div>
+      </div>
+
+      @if (reviewsLoading()) {
+        <p class="status" role="status">Cargando reseñas…</p>
+      } @else if (reviewsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button
+            type="button"
+            class="text-button"
+            (click)="loadPopularReviews(item.id)"
+          >
+            Volver a intentar
+          </button>
+        </div>
+      } @else if (reviews().length === 0) {
+        <p class="status">Todavía no hay reseñas para esta pista.</p>
+      } @else {
+        <div class="review-list">
+          @for (review of reviews(); track review.id) {
+            <article class="review-card">
+              <div class="review-card-heading">
+                <p class="review-author">
+                  Reseña de <strong>{{ review.author.username }}</strong>
+                </p>
+                <p class="review-rating">★ {{ review.rating }} / 5</p>
+              </div>
+
+              @if (review.text) {
+                <p class="review-text">{{ review.text }}</p>
+              } @else {
+                <p class="review-text review-text-empty">Solo puntuación.</p>
+              }
+
+              <p class="review-likes">
+                {{ review.likeCount }}
+                {{ review.likeCount === 1 ? 'like' : 'likes' }}
+              </p>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</main>

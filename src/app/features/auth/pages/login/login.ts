@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environments.js';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -31,6 +31,9 @@ export class Login {
 readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
   private readonly formBuilder = inject(FormBuilder);
   readonly auth = inject(AuthService);
+
+private readonly route = inject(ActivatedRoute);
+private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -56,13 +59,25 @@ readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: ({ data }) => {
-          this.successMessage.set(`¡Bienvenido, ${data.fullName}!`);
-        },
+  this.successMessage.set(`¡Bienvenido, ${data.fullName}!`);
+  void this.router.navigateByUrl(this.getReturnUrl());
+},
         error: (error: unknown) => {
           this.errorMessage.set(this.getErrorMessage(error));
         },
       });
   }
+
+  // Recupera el destino pendiente o vuelve a la portada si no hay uno válido.
+private getReturnUrl(): string {
+  const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+  if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+    return '/';
+  }
+
+  return returnUrl;
+}
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {

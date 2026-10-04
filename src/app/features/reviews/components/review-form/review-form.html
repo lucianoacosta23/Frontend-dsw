@@ -1,0 +1,23 @@
+<form class="review-form" (ngSubmit)="submit()">
+  <label for="review-rating">Tu puntuación</label>
+  <select id="review-rating" name="rating" [(ngModel)]="rating">
+    @for (value of ratings; track value) {
+      <option [ngValue]="value">{{ value }}</option>
+    }
+  </select>
+
+  <label for="review-text">Tu reseña</label>
+  <textarea
+    id="review-text"
+    name="text"
+    [(ngModel)]="text"
+    rows="5"
+    maxlength="5000"
+    required
+    placeholder="¿Qué te pareció?"
+  ></textarea>
+
+  <button type="submit" [disabled]="submitting">
+    {{ submitting ? 'Publicando…' : 'Publicar reseña' }}
+  </button>
+</form>

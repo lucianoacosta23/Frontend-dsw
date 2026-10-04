@@ -94,4 +94,70 @@
       </div>
     }
   </section>
+  <!-- Ranking de pistas reseñadas, independiente del ranking de álbumes. -->
+<section class="popular" aria-labelledby="popular-tracks-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Canciones que más se reseñan</p>
+      <h2 id="popular-tracks-title">Pistas populares</h2>
+    </div>
+  </div>
+
+  @if (tracksLoading()) {
+    <p class="status" role="status">Cargando pistas…</p>
+  } @else if (tracksErrorMessage(); as message) {
+    <div class="status error" role="alert">
+      <p>{{ message }}</p>
+      <button
+        type="button"
+        class="text-button"
+        (click)="loadPopularTracks()"
+      >
+        Volver a intentar
+      </button>
+    </div>
+  } @else if (tracks().length === 0) {
+    <p class="status">Todavía no hay pistas reseñadas.</p>
+  } @else {
+    <div class="album-grid">
+      @for (item of tracks(); track item.track.id; let position = $index) {
+        <a
+          class="album-card"
+          [routerLink]="['/login']"
+          [queryParams]="{ returnUrl: '/tracks/' + item.track.id }"
+          [attr.aria-label]="'Iniciar sesión para ver ' + item.track.name"
+        >
+          <div class="cover-wrap">
+            @if (item.track.release.imageUrl) {
+              <img
+                [src]="item.track.release.imageUrl"
+                [alt]="'Portada de ' + item.track.release.name"
+                loading="lazy"
+              />
+            } @else {
+              <div class="cover-placeholder" aria-label="Portada no disponible">
+                ♪
+              </div>
+            }
+
+            <span class="rank">#{{ position + 1 }}</span>
+          </div>
+
+          <div class="album-info">
+            <h3>{{ item.track.name }}</h3>
+            <p class="artist">{{ artistsLabel(item.track) }}</p>
+
+            <div class="album-meta">
+              <span>{{ item.track.release.name }}</span>
+              <span>
+                {{ item.reviewCount }}
+                {{ item.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+              </span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>
 </main>
