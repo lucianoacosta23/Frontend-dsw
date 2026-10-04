@@ -6,6 +6,15 @@ export interface CatalogArtist {
   spotifyId: string | null;
 }
 
+// Datos públicos que muestra el perfil de un artista.
+export interface ArtistDetail {
+  id: number;
+  name: string;
+  biography: string | null;
+  imageUrl: string | null;
+  spotifyId: string | null;
+}
+
 // Datos del lanzamiento que muestra la pantalla de detalle.
 export interface ReleaseDetail {
   id: number;

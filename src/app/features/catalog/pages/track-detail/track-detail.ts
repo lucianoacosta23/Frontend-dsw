@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { CatalogService } from '../../../../core/services/catalog.service';
@@ -11,9 +11,10 @@ import type {
   ReviewListItem,
 } from '../../../../models/review.js';
 import { ReviewForm } from '../../../reviews/components/review-form/review-form';
+import { ReviewCard } from '../../../reviews/components/review-card/review-card';
 
 @Component({
-  imports: [ReviewForm],
+  imports: [ReviewForm, ReviewCard, RouterLink],
   selector: 'app-track-detail',
   styleUrl: './track-detail.scss',
   templateUrl: './track-detail.html',

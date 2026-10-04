@@ -211,3 +211,21 @@
     grid-column: auto;
   }
 }
+.artist-link {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #484d5a;
+  border-radius: 0.4rem;
+  color: #c3c6ff;
+  text-decoration: none;
+}
+
+.artist-link:hover {
+  border-color: #a5a8ff;
+  background: #242834;
+}
+
+.artist-link:focus-visible {
+  outline: 2px solid #a5a8ff;
+  outline-offset: 2px;
+}

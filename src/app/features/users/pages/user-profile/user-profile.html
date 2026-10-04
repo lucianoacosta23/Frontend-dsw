@@ -1,0 +1,31 @@
+<main class="user-page">
+  <a class="back-link" routerLink="/">Volver a la portada</a>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando perfil…</p>
+  } @else if (errorMessage(); as message) {
+    <section class="status error" role="alert">
+      <p>{{ message }}</p>
+
+      @if (user() === null && message.includes('Iniciá sesión')) {
+        <a
+          class="profile-button"
+          [routerLink]="['/login']"
+          [queryParams]="{ returnUrl: '/users/' + username() }"
+        >
+          Iniciar sesión
+        </a>
+      } @else {
+        <button type="button" (click)="loadProfile()">
+          Volver a intentar
+        </button>
+      }
+    </section>
+  } @else if (user(); as profile) {
+    <article class="profile-card">
+      <p class="eyebrow">Perfil de usuario</p>
+      <h1>{{ profile.fullName }}</h1>
+      <p class="username">@{{ profile.username }}</p>
+    </article>
+  }
+</main>

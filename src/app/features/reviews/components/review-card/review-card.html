@@ -1,0 +1,183 @@
+<article class="review-card">
+  <div class="review-card-heading">
+    <p class="review-author">
+      Reseña de
+      <a
+        class="review-author-link"
+        [routerLink]="['/users', review.author.username]"
+      >
+        {{ review.author.username }}
+      </a>
+    </p>
+
+    <p class="review-rating">★ {{ review.rating }} / 5</p>
+  </div>
+
+  @if (review.text) {
+    <p class="review-text">{{ review.text }}</p>
+  } @else {
+    <p class="review-text review-text-empty">Solo puntuación.</p>
+  }
+
+  <div class="review-actions">
+    <button
+      type="button"
+      class="like-button"
+      [class.is-liked]="liked()"
+      [attr.aria-pressed]="liked()"
+      [disabled]="likeLoading()"
+      (click)="toggleLike()"
+    >
+      {{ liked() ? 'Quitar like' : 'Me gusta' }} · {{ likeCount() }}
+    </button>
+
+    <button
+      type="button"
+      class="comments-button"
+      [attr.aria-expanded]="commentsOpen()"
+      (click)="toggleComments()"
+    >
+      {{ commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios' }}
+      @if (commentsLoaded()) {
+        · {{ commentsTotal() }}
+      }
+    </button>
+  </div>
+
+  @if (likeError(); as message) {
+    <p class="action-error" role="alert">{{ message }}</p>
+  }
+
+  @if (commentsOpen()) {
+    <section class="comments" aria-label="Comentarios de la reseña">
+      @if (commentsLoading()) {
+        <p role="status">Cargando comentarios…</p>
+      } @else if (commentsError(); as message) {
+        <p class="action-error" role="alert">{{ message }}</p>
+        <button type="button" class="text-button" (click)="loadComments()">
+          Volver a intentar
+        </button>
+      } @else if (comments().length === 0) {
+        <p class="empty-comments">Todavía no hay comentarios. ¡Sé el primero!</p>
+      } @else {
+        <div class="comment-list">
+          @for (comment of comments(); track comment.id) {
+            <article class="comment">
+  <p class="comment-author">
+    <a [routerLink]="['/users', comment.author.username]">
+      {{ comment.author.username }}
+    </a>
+  </p>
+
+  <p class="comment-text">{{ comment.text }}</p>
+
+  <div class="comment-actions">
+    <button
+      type="button"
+      class="text-button"
+      [attr.aria-expanded]="isReplyFormOpen(comment.id)"
+      (click)="toggleReplyForm(comment.id)"
+    >
+      {{ isReplyFormOpen(comment.id) ? 'Cancelar respuesta' : 'Responder' }}
+    </button>
+
+    <button
+      type="button"
+      class="text-button"
+      [attr.aria-expanded]="isRepliesOpen(comment.id)"
+      (click)="toggleReplies(comment.id)"
+    >
+      {{ isRepliesOpen(comment.id) ? 'Ocultar respuestas' : 'Ver respuestas' }}
+      @if (repliesCountFor(comment.id) > 0) {
+        · {{ repliesCountFor(comment.id) }}
+      }
+    </button>
+  </div>
+
+  @if (isReplyFormOpen(comment.id)) {
+    <form class="reply-form" (ngSubmit)="submitReply(comment)">
+      <label [for]="'reply-' + comment.id">
+        Responder a {{ comment.author.username }}
+      </label>
+
+      <textarea
+        [id]="'reply-' + comment.id"
+        [name]="'replyText-' + comment.id"
+        [ngModel]="replyTextFor(comment.id)"
+        (ngModelChange)="setById(replyText, comment.id, $event)"
+        maxlength="2000"
+        required
+        rows="2"
+        placeholder="Escribí tu respuesta…"
+      ></textarea>
+
+      @if (replyError()[comment.id]; as message) {
+        <p class="action-error" role="alert">{{ message }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="replySubmitting()[comment.id] || repliesLoading()[comment.id]"
+      >
+        {{ replySubmitting()[comment.id] ? 'Publicando…' : 'Responder' }}
+      </button>
+    </form>
+  }
+
+  @if (isRepliesOpen(comment.id)) {
+    <div class="reply-list">
+      @if (repliesLoading()[comment.id]) {
+        <p role="status">Cargando respuestas…</p>
+      } @else if (repliesError()[comment.id]; as message) {
+        <p class="action-error" role="alert">{{ message }}</p>
+        <button
+          type="button"
+          class="text-button"
+          (click)="loadReplies(comment.id)"
+        >
+          Volver a intentar
+        </button>
+      } @else if (repliesFor(comment.id).length === 0) {
+        <p class="empty-comments">Todavía no hay respuestas.</p>
+      } @else {
+        @for (reply of repliesFor(comment.id); track reply.id) {
+          <article class="comment reply-comment">
+            <p class="comment-author">
+              <a [routerLink]="['/users', reply.author.username]">
+                {{ reply.author.username }}
+              </a>
+            </p>
+            <p class="comment-text">{{ reply.text }}</p>
+          </article>
+        }
+      }
+    </div>
+  }
+</article>
+          }
+        </div>
+      }
+
+      <form class="comment-form" (ngSubmit)="submitComment()">
+        <label [for]="'comment-' + review.id">Agregar un comentario</label>
+        <textarea
+          [id]="'comment-' + review.id"
+          name="commentText"
+          [(ngModel)]="commentText"
+          maxlength="2000"
+          required
+          rows="3"
+          placeholder="Escribí tu comentario…"
+        ></textarea>
+
+        @if (commentError(); as message) {
+          <p class="action-error" role="alert">{{ message }}</p>
+        }
+
+        <button type="submit" [disabled]="commentSubmitting()">
+          {{ commentSubmitting() ? 'Publicando…' : 'Comentar' }}
+        </button>
+      </form>
+    </section>
+  }
+</article>
