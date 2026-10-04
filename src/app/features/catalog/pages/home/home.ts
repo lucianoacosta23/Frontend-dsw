@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environments.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { PopularAlbum } from '../../../../models/popular-album.js';
-
+import type { PopularTrackItem } from '../../../../models/popular-tracks.js';
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
@@ -20,12 +20,33 @@ readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
   readonly albums = signal<PopularAlbum[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  // Estado independiente para el ranking de pistas.
+readonly tracks = signal<PopularTrackItem[]>([]);
+readonly tracksLoading = signal(true);
+readonly tracksErrorMessage = signal<string | null>(null);
 
   // Al entrar a la portada, cargamos el ranking público.
   ngOnInit(): void {
     this.loadPopularAlbums();
+    this.loadPopularTracks();
   }
+// Pide las pistas más reseñadas y actualiza su estado de pantalla.
+loadPopularTracks(): void {
+  this.tracksLoading.set(true);
+  this.tracksErrorMessage.set(null);
 
+  this.catalog
+    .getPopularTracks(10)
+    .pipe(finalize(() => this.tracksLoading.set(false)))
+    .subscribe({
+      next: response => this.tracks.set(response.data),
+      error: (error: unknown) => {
+        this.tracksErrorMessage.set(
+          this.getErrorMessage(error, 'las pistas populares'),
+        );
+      },
+    });
+}
   // Pide los diez álbumes más reseñados y actualiza el estado de la pantalla.
   loadPopularAlbums(): void {
     this.loading.set(true);
@@ -37,27 +58,28 @@ readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
       .subscribe({
         next: response => this.albums.set(response.data),
         error: (error: unknown) => {
-          this.errorMessage.set(this.getErrorMessage(error));
+          this.errorMessage.set(
+  this.getErrorMessage(error, 'los álbumes populares'),
+);;
         },
       });
   }
 
   // Junta los artistas para mostrarlos en una sola línea.
-  artistsLabel(album: PopularAlbum): string {
-    return album.artists.map(artist => artist.name).join(', ') || 'Artista desconocido';
-  }
+ artistsLabel(item: { artists: { name: string }[] }): string {
+  return item.artists.map(artist => artist.name).join(', ') || 'Artista desconocido';
+}
 
   // El año se puede mostrar tomando los primeros cuatro caracteres de la fecha.
   releaseYear(album: PopularAlbum): string {
     return album.releaseDate.slice(0, 4);
   }
 
-  // Traduce errores técnicos a un mensaje entendible para quien usa la app.
-  private getErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse && error.status === 0) {
-      return 'No pudimos conectar con el catálogo. Revisá que el backend esté iniciado.';
-    }
-
-    return 'No pudimos cargar los álbumes populares. Intentá nuevamente.';
+  private getErrorMessage(error: unknown, content: string): string {
+  if (error instanceof HttpErrorResponse && error.status === 0) {
+    return 'No pudimos conectar con el catálogo. Revisá que el backend esté iniciado.';
   }
+
+  return `No pudimos cargar ${content}. Intentá nuevamente.`;
+}
 }

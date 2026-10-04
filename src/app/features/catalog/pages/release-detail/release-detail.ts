@@ -3,11 +3,14 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ReviewService } from '../../../../core/services/review.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
-import { ReviewForm } from '../../../reviews/components/review-form/review-form';
-import type { CreateReviewRequest } from '../../../../models/review.js';
+import { ReviewService } from '../../../../core/services/review.service';
 import type { ReleaseDetail as ReleaseDetailData } from '../../../../models/catalog-details.js';
+import type {
+  CreateReviewRequest,
+  ReviewListItem,
+} from '../../../../models/review.js';
+import { ReviewForm } from '../../../reviews/components/review-form/review-form';
 
 @Component({
   imports: [ReviewForm],
@@ -23,6 +26,10 @@ export class ReleaseDetail implements OnInit {
   readonly release = signal<ReleaseDetailData | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+
+  readonly reviews = signal<ReviewListItem[]>([]);
+  readonly reviewsLoading = signal(false);
+  readonly reviewsError = signal<string | null>(null);
 
   readonly reviewSubmitting = signal(false);
   readonly reviewMessage = signal('');
@@ -49,9 +56,30 @@ export class ReleaseDetail implements OnInit {
       .getReleaseById(Number(rawId))
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: response => this.release.set(response.data),
+        next: response => {
+          this.release.set(response.data);
+          this.loadPopularReviews(response.data.id);
+        },
         error: (error: unknown) => {
           this.errorMessage.set(this.getErrorMessage(error));
+        },
+      });
+  }
+
+  // Pide al backend las reseñas del lanzamiento ordenadas por popularidad.
+  loadPopularReviews(releaseId: number): void {
+    this.reviewsLoading.set(true);
+    this.reviewsError.set(null);
+
+    this.reviewService
+      .getPopularReviews('release', releaseId)
+      .pipe(finalize(() => this.reviewsLoading.set(false)))
+      .subscribe({
+        next: response => {
+          this.reviews.set(response.data);
+        },
+        error: () => {
+          this.reviewsError.set('No pudimos cargar las reseñas.');
         },
       });
   }
@@ -68,6 +96,11 @@ export class ReleaseDetail implements OnInit {
           response.message || 'Reseña publicada correctamente.',
         );
         this.reviewSubmitting.set(false);
+
+        const releaseId = this.release()?.id;
+        if (releaseId !== undefined) {
+          this.loadPopularReviews(releaseId);
+        }
       },
       error: (error: unknown) => {
         this.reviewError.set(this.getReviewErrorMessage(error));

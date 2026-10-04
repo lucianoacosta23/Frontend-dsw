@@ -13,3 +13,31 @@ export interface ReviewApiResponse {
   message: string;
   data: unknown;
 }
+export type ReviewSort = 'newest' | 'popular';
+
+export interface ReviewListItem {
+  id: number;
+  author: {
+    id: number;
+    username: string;
+  };
+  releaseId: number | null;
+  trackId: number | null;
+  text: string | null;
+  rating: number;
+  likeCount: number;
+  createdAt: string;
+  editedAt: string | null;
+}
+
+export interface ReviewListResponse {
+  message: string;
+  data: ReviewListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  sort: ReviewSort;
+}

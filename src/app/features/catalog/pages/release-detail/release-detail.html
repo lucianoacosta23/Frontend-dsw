@@ -7,13 +7,15 @@
       <button type="button" (click)="loadRelease()">Volver a intentar</button>
     </section>
   } @else if (release(); as item) {
-    <!-- Encabezado con portada y datos principales del lanzamiento. -->
     <section class="detail-layout">
+      <!-- Portada y datos principales del lanzamiento. -->
       <div class="cover">
         @if (item.imageUrl) {
           <img [src]="item.imageUrl" [alt]="'Portada de ' + item.name" />
         } @else {
-          <div class="cover-placeholder" aria-label="Portada no disponible">♪</div>
+          <div class="cover-placeholder" aria-label="Portada no disponible">
+            ♪
+          </div>
         }
       </div>
 
@@ -32,7 +34,7 @@
         }
       </div>
 
-      <!-- El formulario envía una reseña asociada a este lanzamiento. -->
+      <!-- Formulario para reseñar este lanzamiento. -->
       <aside class="review-panel" aria-label="Tu reseña">
         <h2>Tu puntuación y reseña</h2>
 
@@ -43,13 +45,64 @@
         />
 
         @if (reviewMessage(); as message) {
-          <p role="status">{{ message }}</p>
+          <p class="success-message" role="status">{{ message }}</p>
         }
 
         @if (reviewError(); as message) {
-          <p class="error" role="alert">{{ message }}</p>
+          <p class="error-message" role="alert">{{ message }}</p>
         }
       </aside>
+    </section>
+
+    <!-- Reseñas que el backend devuelve ordenadas por popularidad. -->
+    <section class="reviews" aria-labelledby="reviews-title">
+      <div class="reviews-heading">
+        <div>
+          <p class="eyebrow">Lo que opina la comunidad</p>
+          <h2 id="reviews-title">Reseñas populares</h2>
+        </div>
+      </div>
+
+      @if (reviewsLoading()) {
+        <p class="status" role="status">Cargando reseñas…</p>
+      } @else if (reviewsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button
+            type="button"
+            class="text-button"
+            (click)="loadPopularReviews(item.id)"
+          >
+            Volver a intentar
+          </button>
+        </div>
+      } @else if (reviews().length === 0) {
+        <p class="status">Todavía no hay reseñas para este lanzamiento.</p>
+      } @else {
+        <div class="review-list">
+          @for (review of reviews(); track review.id) {
+            <article class="review-card">
+              <div class="review-card-heading">
+                <p class="review-author">
+                  Reseña de <strong>{{ review.author.username }}</strong>
+                </p>
+                <p class="review-rating">★ {{ review.rating }} / 5</p>
+              </div>
+
+              @if (review.text) {
+                <p class="review-text">{{ review.text }}</p>
+              } @else {
+                <p class="review-text review-text-empty">Solo puntuación.</p>
+              }
+
+              <p class="review-likes">
+                {{ review.likeCount }}
+                {{ review.likeCount === 1 ? 'like' : 'likes' }}
+              </p>
+            </article>
+          }
+        </div>
+      }
     </section>
   }
 </main>
