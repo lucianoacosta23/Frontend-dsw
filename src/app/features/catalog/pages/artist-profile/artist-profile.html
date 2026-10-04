@@ -1,0 +1,33 @@
+<main class="artist-page">
+  <a class="back-link" routerLink="/">Volver a la portada</a>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando perfil del artista…</p>
+  } @else if (errorMessage(); as message) {
+    <section class="status error" role="alert">
+      <p>{{ message }}</p>
+      <button type="button" (click)="loadArtist()">Volver a intentar</button>
+    </section>
+  } @else if (artist(); as item) {
+    <article class="artist-card">
+      @if (item.imageUrl) {
+        <img class="artist-image" [src]="item.imageUrl" [alt]="item.name" />
+      } @else {
+        <div class="artist-placeholder" aria-label="Imagen no disponible">
+          ♪
+        </div>
+      }
+
+      <div class="artist-info">
+        <p class="eyebrow">Perfil de artista</p>
+        <h1>{{ item.name }}</h1>
+
+        @if (item.biography) {
+          <p class="biography">{{ item.biography }}</p>
+        } @else {
+          <p class="biography empty">Todavía no hay una biografía disponible.</p>
+        }
+      </div>
+    </article>
+  }
+</main>

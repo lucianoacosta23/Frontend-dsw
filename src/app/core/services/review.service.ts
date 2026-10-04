@@ -5,6 +5,7 @@ import type {
   CreateReviewRequest,
   ReviewApiResponse,
   ReviewListResponse,
+  ReviewLikeResponse,
 } from '../../models/review.js';
 import { environment } from '../../../environments/environments.js';
 
@@ -46,4 +47,26 @@ getPopularReviews(
       },
     );
   }
+  // Registra un like del usuario de la sesión.
+likeReview(reviewId: number): Observable<ReviewLikeResponse> {
+  return this.http.put<ReviewLikeResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}/like`,
+    {},
+    {
+      withCredentials: true,
+      headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
+
+// Quita el like del usuario de la sesión.
+unlikeReview(reviewId: number): Observable<ReviewLikeResponse> {
+  return this.http.delete<ReviewLikeResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}/like`,
+    {
+      withCredentials: true,
+      headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
 }

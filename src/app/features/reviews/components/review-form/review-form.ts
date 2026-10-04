@@ -29,15 +29,13 @@ export class ReviewForm {
   submit(): void {
     const reviewText = this.text.trim();
 
-    if (!reviewText) return;
-
     const request: CreateReviewRequest = {
-      ...(this.target.type === 'release'
-        ? { releaseId: this.target.id }
-        : { trackId: this.target.id }),
-      rating: Number(this.rating),
-      text: reviewText,
-    };
+  ...(this.target.type === 'release'
+    ? { releaseId: this.target.id }
+    : { trackId: this.target.id }),
+  rating: Number(this.rating),
+  ...(reviewText ? { text: reviewText } : {}),
+};
 
     this.submitReview.emit(request);
   }

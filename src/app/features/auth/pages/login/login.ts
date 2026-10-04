@@ -28,7 +28,10 @@ import { AuthService } from '../../../../core/services/auth.service';
 })
 export class Login {
   // El backend inicia el proceso de autorización con Spotify.
-readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
+get spotifyLoginUrl(): string {
+  const returnUrl = this.getReturnUrl();
+  return `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+};
   private readonly formBuilder = inject(FormBuilder);
   readonly auth = inject(AuthService);
 

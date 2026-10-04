@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import type {
+  ArtistDetail,
   CatalogDetailResponse,
   ReleaseDetail,
   TrackDetail,
@@ -41,4 +42,12 @@ getTrackById(id: number): Observable<CatalogDetailResponse<TrackDetail>> {
     `${environment.apiBaseUrl}/tracks/${id}`,
   );
 }
+
+// Carga el perfil de un artista por su ID.
+getArtistById(id: number): Observable<CatalogDetailResponse<ArtistDetail>> {
+  return this.http.get<CatalogDetailResponse<ArtistDetail>>(
+    `${environment.apiBaseUrl}/artists/${id}`,
+  );
+}
+
 }

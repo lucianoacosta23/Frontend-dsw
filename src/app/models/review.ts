@@ -6,7 +6,7 @@ export type ReviewTarget =
 // El request incluye el ID del elemento y una puntuación de 0.5 a 5.
 export type CreateReviewRequest = {
   rating: number;
-  text: string;
+  text?: string;
 } & ({ releaseId: number; trackId?: never } | { trackId: number; releaseId?: never });
 
 export interface ReviewApiResponse {
@@ -26,6 +26,7 @@ export interface ReviewListItem {
   text: string | null;
   rating: number;
   likeCount: number;
+  likedByMe: boolean;
   createdAt: string;
   editedAt: string | null;
 }
@@ -40,4 +41,13 @@ export interface ReviewListResponse {
     totalPages: number;
   };
   sort: ReviewSort;
+}
+export interface ReviewLikeResponse {
+  message: string;
+  data: {
+    reviewId: number;
+    liked: boolean;
+    likeCount: number;
+    createdAt?: string;
+  };
 }

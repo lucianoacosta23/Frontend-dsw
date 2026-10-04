@@ -24,10 +24,15 @@
         <h1>{{ item.name }}</h1>
 
         <p class="artists">
-          @for (artist of item.artists; track artist.id; let last = $last) {
-            {{ artist.name }}{{ last ? '' : ', ' }}
-          }
-        </p>
+  @for (artist of item.artists; track artist.id; let last = $last) {
+    <a class="artist-link" [routerLink]="['/artists', artist.id]">
+      {{ artist.name }}
+    </a>
+    @if (!last) {
+      <span>, </span>
+    }
+  }
+</p>
 
         @if (item.description) {
           <p class="description">{{ item.description }}</p>
@@ -81,25 +86,7 @@
       } @else {
         <div class="review-list">
           @for (review of reviews(); track review.id) {
-            <article class="review-card">
-              <div class="review-card-heading">
-                <p class="review-author">
-                  Reseña de <strong>{{ review.author.username }}</strong>
-                </p>
-                <p class="review-rating">★ {{ review.rating }} / 5</p>
-              </div>
-
-              @if (review.text) {
-                <p class="review-text">{{ review.text }}</p>
-              } @else {
-                <p class="review-text review-text-empty">Solo puntuación.</p>
-              }
-
-              <p class="review-likes">
-                {{ review.likeCount }}
-                {{ review.likeCount === 1 ? 'like' : 'likes' }}
-              </p>
-            </article>
+            <app-review-card [review]="review" />
           }
         </div>
       }
