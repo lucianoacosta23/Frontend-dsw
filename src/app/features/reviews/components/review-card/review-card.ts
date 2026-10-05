@@ -11,6 +11,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { ReportService } from '../../../../core/services/report.service.js';
+import type { CreateReportRequest, ReportReason } from '../../../../models/report.js';
+
 import { CommentService } from '../../../../core/services/comments-service.js';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { CommentItem } from '../../../../models/comment.js';
@@ -27,6 +30,7 @@ export class ReviewCard implements OnChanges {
 
   private readonly reviewService = inject(ReviewService);
   private readonly commentService = inject(CommentService);
+  private readonly reportService = inject(ReportService);
 
   readonly liked = signal(false);
   readonly likeCount = signal(0);
@@ -56,6 +60,24 @@ export class ReviewCard implements OnChanges {
   readonly replyText = signal<Record<number, string>>({});
   readonly replySubmitting = signal<Record<number, boolean>>({});
   readonly replyError = signal<Record<number, string | null>>({});
+
+  // El reporte se envía por separado de los likes y comentarios.
+  readonly reportOpen = signal(false);
+  readonly reportSubmitting = signal(false);
+  readonly reportSent = signal(false);
+  readonly reportError = signal<string | null>(null);
+  readonly reportSuccess = signal<string | null>(null);
+  reportReason: ReportReason = 'SPAM';
+  reportDetails = '';
+
+  readonly reportReasons: ReadonlyArray<{ value: ReportReason; label: string }> = [
+    { value: 'SPAM', label: 'Spam' },
+    { value: 'HARASSMENT', label: 'Acoso' },
+    { value: 'HATE_SPEECH', label: 'Discurso de odio' },
+    { value: 'INAPPROPRIATE_CONTENT', label: 'Contenido inapropiado' },
+    { value: 'SPOILER', label: 'Spoiler' },
+    { value: 'OTHER', label: 'Otro motivo' },
+  ];
 
   // Copia a la tarjeta el estado inicial recibido del backend.
   ngOnChanges(): void {
@@ -255,6 +277,57 @@ export class ReviewCard implements OnChanges {
 
   replyTextFor(commentId: number): string {
     return this.replyText()[commentId] ?? '';
+  }
+
+  toggleReport(): void {
+    if (this.reportSubmitting() || this.reportSent()) return;
+    this.reportOpen.update(open => !open);
+    this.reportError.set(null);
+  }
+
+  submitReport(): void {
+    if (this.reportSubmitting() || this.reportSent()) return;
+
+    const details = this.reportDetails.trim();
+
+    if (this.reportReason === 'OTHER' && !details) {
+      this.reportError.set('Explicá el motivo del reporte cuando elegís Otro motivo.');
+      return;
+    }
+
+    if (Array.from(details).length > 500 || details.includes('\0')) {
+      this.reportError.set('La descripción puede tener hasta 500 caracteres y no contener caracteres NUL.');
+      return;
+    }
+
+    const input: CreateReportRequest = {
+      reason: this.reportReason,
+      // Una descripción vacía se omite: el backend la guarda como null.
+      ...(details ? { details } : {}),
+    };
+
+    this.reportSubmitting.set(true);
+    this.reportError.set(null);
+
+    this.reportService
+      .createReviewReport(this.review.id, input)
+      .pipe(finalize(() => this.reportSubmitting.set(false)))
+      .subscribe({
+        next: () => {
+          this.reportSent.set(true);
+          this.reportOpen.set(false);
+          this.reportDetails = '';
+          this.reportSuccess.set('Reporte enviado. Un administrador lo revisará.');
+        },
+        error: (error: unknown) => {
+          this.reportError.set(this.getErrorMessage(error, 'reportar la reseña'));
+        },
+      });
+  }
+
+  // Permite actualizar el texto desde el HTML sin exponer el método interno.
+  setReplyText(commentId: number, text: string): void {
+    this.setById(this.replyText, commentId, text);
   }
 
   private setById<T>(

@@ -42,10 +42,72 @@
         · {{ commentsTotal() }}
       }
     </button>
+
+    <button
+      type="button"
+      class="report-button"
+      [attr.aria-expanded]="reportOpen()"
+      [attr.aria-controls]="'report-form-' + review.id"
+      [disabled]="reportSubmitting() || reportSent()"
+      (click)="toggleReport()"
+    >
+      {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
+    </button>
   </div>
 
   @if (likeError(); as message) {
     <p class="action-error" role="alert">{{ message }}</p>
+  }
+
+  @if (reportSuccess(); as message) {
+    <p class="report-success" role="status">{{ message }}</p>
+  }
+
+  @if (reportOpen()) {
+    <section class="report-section" [attr.aria-labelledby]="'report-title-' + review.id">
+      <h3 [id]="'report-title-' + review.id">Reportar reseña</h3>
+      <form
+        class="report-form"
+        [id]="'report-form-' + review.id"
+        (ngSubmit)="submitReport()"
+      >
+        <label [for]="'report-reason-' + review.id">Motivo</label>
+        <select
+          [id]="'report-reason-' + review.id"
+          name="reportReason"
+          [(ngModel)]="reportReason"
+          [disabled]="reportSubmitting()"
+          required
+        >
+          @for (reason of reportReasons; track reason.value) {
+            <option [value]="reason.value">{{ reason.label }}</option>
+          }
+        </select>
+
+        <label [for]="'report-details-' + review.id">
+          Descripción {{ reportReason === 'OTHER' ? '(obligatoria)' : '(opcional)' }}
+        </label>
+        <textarea
+          [id]="'report-details-' + review.id"
+          name="reportDetails"
+          [(ngModel)]="reportDetails"
+          [required]="reportReason === 'OTHER'"
+          [disabled]="reportSubmitting()"
+          maxlength="500"
+          rows="3"
+          placeholder="Contanos por qué reportás esta reseña…"
+        ></textarea>
+        <p class="report-hint">Hasta 500 caracteres.</p>
+
+        @if (reportError(); as message) {
+          <p class="action-error" role="alert">{{ message }}</p>
+        }
+
+        <button type="submit" [disabled]="reportSubmitting()">
+          {{ reportSubmitting() ? 'Enviando…' : 'Enviar reporte' }}
+        </button>
+      </form>
+    </section>
   }
 
   @if (commentsOpen()) {
@@ -92,6 +154,17 @@
         · {{ repliesCountFor(comment.id) }}
       }
     </button>
+
+    <button
+      type="button"
+      class="report-button"
+      [attr.aria-expanded]="reportOpen()"
+      [attr.aria-controls]="'report-form-' + review.id"
+      [disabled]="reportSubmitting() || reportSent()"
+      (click)="toggleReport()"
+    >
+      {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
+    </button>
   </div>
 
   @if (isReplyFormOpen(comment.id)) {
@@ -104,7 +177,7 @@
         [id]="'reply-' + comment.id"
         [name]="'replyText-' + comment.id"
         [ngModel]="replyTextFor(comment.id)"
-        (ngModelChange)="setById(replyText, comment.id, $event)"
+        (ngModelChange)="setReplyText(comment.id, $event)"
         maxlength="2000"
         required
         rows="2"

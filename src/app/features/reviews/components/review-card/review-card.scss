@@ -180,3 +180,101 @@
   color: #b8baff;
   text-decoration: underline;
 }
+
+// Formularios de reporte y respuestas a comentarios.
+.report-button,
+.report-form button,
+.reply-form button {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #484d5a;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #c3c6d1;
+  font: inherit;
+  cursor: pointer;
+}
+
+.report-button:hover,
+.report-form button:hover,
+.reply-form button:hover {
+  border-color: #a5a8ff;
+  color: #c3c6ff;
+}
+
+.report-button:disabled,
+.report-form button:disabled,
+.reply-form button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.report-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #343844;
+}
+
+.report-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.report-form,
+.reply-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.report-form textarea,
+.report-form select,
+.reply-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.65rem;
+  border: 1px solid #484d5a;
+  border-radius: 0.5rem;
+  background: #10131a;
+  color: #f3f4f6;
+  font: inherit;
+}
+
+.report-form textarea,
+.reply-form textarea {
+  resize: vertical;
+}
+
+.report-form :is(textarea, select, button):focus-visible,
+.report-button:focus-visible,
+.reply-form :is(textarea, button):focus-visible {
+  outline: 2px solid #a5a8ff;
+  outline-offset: 2px;
+}
+
+.report-success {
+  color: #8fd4a8;
+}
+
+.report-hint {
+  margin: 0;
+  color: #a5a8b5;
+  font-size: 0.85rem;
+}
+
+.comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.reply-form {
+  margin-top: 0.75rem;
+}
+
+.reply-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid #484d5a;
+}
