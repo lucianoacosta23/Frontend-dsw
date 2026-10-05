@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-
+import { RatingStats } from '../../../reviews/components/rating-stats/rating-stats.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { TrackDetail as TrackDetailData } from '../../../../models/catalog-details.js';
@@ -14,7 +14,7 @@ import { ReviewForm } from '../../../reviews/components/review-form/review-form'
 import { ReviewCard } from '../../../reviews/components/review-card/review-card';
 
 @Component({
-  imports: [ReviewForm, ReviewCard, RouterLink],
+  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats],
   selector: 'app-track-detail',
   styleUrl: './track-detail.scss',
   templateUrl: './track-detail.html',
@@ -36,6 +36,7 @@ export class TrackDetail implements OnInit {
   readonly reviewMessage = signal('');
   readonly reviewError = signal('');
 
+readonly ratingStatsRefreshKey = signal(0);
   ngOnInit(): void {
     this.loadTrack();
   }
@@ -101,6 +102,7 @@ export class TrackDetail implements OnInit {
         const trackId = this.track()?.id;
         if (trackId !== undefined) {
           this.loadPopularReviews(trackId);
+          this.ratingStatsRefreshKey.update(value => value + 1);
         }
       },
       error: (error: unknown) => {

@@ -1,0 +1,65 @@
+<section class="rating-stats" aria-label="Estadísticas de puntuaciones">
+  <header class="stats-heading">
+    <h3>Puntuaciones</h3>
+
+    @if (stats(); as data) {
+      <span>
+        {{ data.totalRatings }}
+        {{ data.totalRatings === 1 ? 'puntuación' : 'puntuaciones' }}
+      </span>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando puntuaciones…</p>
+  } @else if (errorMessage(); as message) {
+    <div class="status" role="alert">
+      <p>{{ message }}</p>
+      <button type="button" (click)="loadStats()">
+        Volver a intentar
+      </button>
+    </div>
+  } @else if (stats(); as data) {
+    @if (data.totalRatings === 0) {
+      <p class="status">Todavía no hay puntuaciones.</p>
+    } @else {
+      <div class="stats-content">
+        <!-- Cada columna representa un puntaje entre 0,5 y 5. -->
+        <div
+          class="histogram"
+          role="list"
+          aria-label="Cantidad de reseñas por puntuación"
+        >
+          @for (item of data.distribution; track item.rating) {
+            <div
+              class="histogram-column"
+              role="listitem"
+              [attr.aria-label]="
+                item.rating + ' de 5: ' + item.count + ' reseñas'
+              "
+              [attr.title]="
+                item.rating + ' de 5: ' + item.count + ' reseñas'
+              "
+            >
+              <div class="bar-space">
+                <div
+                  class="bar"
+                  [style.height.%]="item.count / maxCount() * 100"
+                ></div>
+              </div>
+
+              <span class="bar-label">{{ item.rating }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- El promedio se calcula en el backend con todas las reseñas. -->
+        <div class="average">
+          <strong>{{ data.averageRating | number:'1.1-1' }}</strong>
+          <span>de 5</span>
+          <span class="average-star" aria-hidden="true">★</span>
+        </div>
+      </div>
+    }
+  }
+</section>

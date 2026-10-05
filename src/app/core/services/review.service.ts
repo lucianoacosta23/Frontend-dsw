@@ -8,6 +8,7 @@ import type {
   ReviewLikeResponse,
 } from '../../models/review.js';
 import { environment } from '../../../environments/environments.js';
+import type { RatingStatsResponse } from '../../models/rating-stats.js';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
@@ -34,6 +35,24 @@ getPopularReviews(
     { params, withCredentials: true },
   );
 }
+
+  // Consulta el promedio y la distribución sin limitarse
+  // a las diez reseñas populares que mostramos en pantalla.
+  getRatingStats(
+    targetType: 'release' | 'track',
+    targetId: number,
+  ): Observable<RatingStatsResponse> {
+    const params = new HttpParams().set(
+      targetType === 'release' ? 'releaseId' : 'trackId',
+      targetId,
+    );
+
+    // Es una consulta pública: no necesita el header de mutaciones.
+    return this.http.get<RatingStatsResponse>(
+      `${environment.apiBaseUrl}/reviews/stats`,
+      { params },
+    );
+  }
 
   createReview(
     request: CreateReviewRequest,
