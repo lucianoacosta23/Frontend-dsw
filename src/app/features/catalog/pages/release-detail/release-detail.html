@@ -56,6 +56,10 @@
         @if (reviewError(); as message) {
           <p class="error-message" role="alert">{{ message }}</p>
         }
+                <app-rating-stats
+          [target]="{ type: 'release', id: item.id }"
+          [refreshKey]="ratingStatsRefreshKey()"
+        />
       </aside>
     </section>
 

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-
+import { RatingStats } from '../../../reviews/components/rating-stats/rating-stats.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { ReleaseDetail as ReleaseDetailData } from '../../../../models/catalog-details.js';
@@ -14,7 +14,7 @@ import { ReviewForm } from '../../../reviews/components/review-form/review-form'
 import { ReviewCard } from '../../../reviews/components/review-card/review-card';
 
 @Component({
-  imports: [ReviewForm, ReviewCard, RouterLink],
+  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats],
   selector: 'app-release-detail',
   styleUrl: './release-detail.scss',
   templateUrl: './release-detail.html',
@@ -35,7 +35,7 @@ export class ReleaseDetail implements OnInit {
   readonly reviewSubmitting = signal(false);
   readonly reviewMessage = signal('');
   readonly reviewError = signal('');
-
+readonly ratingStatsRefreshKey = signal(0);
   ngOnInit(): void {
     this.loadRelease();
   }
@@ -101,6 +101,7 @@ export class ReleaseDetail implements OnInit {
         const releaseId = this.release()?.id;
         if (releaseId !== undefined) {
           this.loadPopularReviews(releaseId);
+          this.ratingStatsRefreshKey.update(value => value + 1);
         }
       },
       error: (error: unknown) => {
