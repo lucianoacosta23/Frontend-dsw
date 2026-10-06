@@ -1,0 +1,53 @@
+// Fixed warm ambient treatment, scoped to the existing home component.
+app-home {
+  .home-page {
+    min-height: 100dvh;
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse at 76% 13%, #b8803d19, transparent 38%),
+      radial-gradient(ellipse at 12% 22%, #b875671c, transparent 37%);
+  }
+  .home-page::before,
+  .hero::before,
+  .hero::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .home-page::before {
+    inset: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+  }
+  .hero::before {
+    width: min(40vw, 450px);
+    height: 380px;
+    right: 2%;
+    top: 45px;
+    border: 22px solid #b87567;
+    border-bottom: 0;
+    border-radius: 280px 280px 0 0;
+    opacity: 0.22;
+    filter: blur(13px);
+    transform: rotate(-9deg);
+    box-shadow:
+      inset 0 0 0 18px #ba803a,
+      0 0 60px #b87567;
+  }
+  .hero::after {
+    inset: 0 -1rem;
+    background: radial-gradient(ellipse at 50% 100%, var(--jb-bg), transparent 75%);
+  }
+  @media (max-width: 599px) {
+    .hero::before {
+      width: 65%;
+      right: 5%;
+      top: 60px;
+      height: 280px;
+      opacity: 0.15;
+    }
+  }
+}
+

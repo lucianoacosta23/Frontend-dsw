@@ -1,0 +1,96 @@
+<div
+  class="carousel"
+  role="region"
+  aria-label="Álbumes populares"
+  aria-roledescription="carrusel"
+  (mouseenter)="hover(true)"
+  (mouseleave)="hover(false)"
+  (focusin)="focus()"
+  (focusout)="blur($event)"
+>
+  <div class="controls">
+    <p>Los discos más reseñados en Jukeboxd.</p>
+    <div class="buttons">
+      <button
+        type="button"
+        (click)="toggle()"
+        [disabled]="reduced() || !overflow()"
+        [attr.aria-label]="
+          reduced()
+            ? 'Movimiento reducido activado'
+            : paused()
+              ? 'Reanudar movimiento automático'
+              : 'Pausar movimiento automático'
+        "
+      >
+        {{ paused() || reduced() ? '▶' : 'Ⅱ' }}
+      </button>
+      <button
+        type="button"
+        (click)="move(-1)"
+        [disabled]="!overflow()"
+        aria-label="Álbumes anteriores"
+      >
+        ←
+      </button>
+      <button
+        type="button"
+        (click)="move(1)"
+        [disabled]="!overflow()"
+        aria-label="Álbumes siguientes"
+      >
+        →
+      </button>
+    </div>
+  </div>
+  <div #rail class="rail" (pointerdown)="pause()" (wheel)="pause()">
+    <div class="track">
+      <div #originals class="group" role="list">
+        @for (album of albums; track album.id; let position = $index) {
+          <div class="item" role="listitem">
+            <a
+              class="card"
+              [routerLink]="['/login']"
+              [queryParams]="{ returnUrl: '/releases/' + album.id }"
+              [attr.aria-label]="'Iniciar sesión para ver ' + album.name"
+            >
+              <ng-container
+                [ngTemplateOutlet]="content"
+                [ngTemplateOutletContext]="{ $implicit: album, position }"
+              />
+            </a>
+          </div>
+        }
+      </div>
+      @if (overflow()) {
+        <div class="group copy" aria-hidden="true" inert>
+          @for (album of albums; track album.id; let position = $index) {
+            <div class="item">
+              <div class="card">
+                <ng-container
+                  [ngTemplateOutlet]="content"
+                  [ngTemplateOutletContext]="{ $implicit: album, position }"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+  <p class="hint">
+    Ranking histórico por cantidad de reseñas. Deslizá o usá las flechas para explorar.
+  </p>
+</div>
+<ng-template #content let-album let-position="position">
+  <div class="art">
+    <app-release-cover [src]="album.imageUrl" [alt]="'Portada de ' + album.name" />
+    <span class="rank">#{{ position + 1 }}</span>
+  </div>
+  <h3>{{ album.name }}</h3>
+  <p class="artist">{{ artists(album) }}</p>
+  <p class="meta">
+    <span>{{ album.releaseDate.slice(0, 4) }}</span
+    ><span>{{ album.reviewCount }} {{ album.reviewCount === 1 ? 'reseña' : 'reseñas' }}</span>
+  </p>
+</ng-template>

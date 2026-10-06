@@ -9,7 +9,7 @@
   min-height: 100dvh;
   place-items: center;
   padding: 1rem;
-  background: #10131a;
+  background: var(--jb-bg);
 }
 
 .login-card {
@@ -38,11 +38,11 @@ button {
 }
 
 .error {
-  color: #b3261e;
+  color: var(--jb-error);
 }
 
 .success {
-  color: #146c43;
+  color: var(--jb-success);
 }
 
 @media (min-width: 600px) {
@@ -74,11 +74,11 @@ button {
 }
 
 .login-alternatives a {
-  color: #3659a2;
+  color: var(--jb-gold);
 }
 
 .divider {
-  color: #666;
+  color: var(--jb-muted);
 }
 
 .spotify-button {
