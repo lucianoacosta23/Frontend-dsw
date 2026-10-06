@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #151920;
+  color: #eef0f5;
+}
+
+.profile-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2.5rem 0 4rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #394151;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border: 1px solid #575171;
+  border-radius: 50%;
+  background: #343047;
+  color: #d4ceff;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    overflow-wrap: anywhere;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: #aaa5ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.username {
+  color: #bcc4d3;
+  overflow-wrap: anywhere;
+}
+
+.edit-button,
+button {
+  display: inline-block;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #6258df;
+  border-radius: 6px;
+  background: #6258df;
+  color: #fff;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.follow-stats {
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+
+  div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.35rem;
+    text-align: center;
+  }
+
+  dt {
+    color: #bcc4d3;
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+}
+
+.account-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #343c4b;
+  border-radius: 10px;
+  background: #1c212b;
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  dt {
+    margin-bottom: 0.4rem;
+    color: #bcc4d3;
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.status {
+  color: #bcc4d3;
+}
+
+.error {
+  color: #ffabab;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #c4bfff;
+  outline-offset: 3px;
+}

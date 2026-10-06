@@ -13,7 +13,7 @@
 
           <div class="dropdown">
             <a routerLink="/dashboard">Inicio</a>
-            <a [routerLink]="['/users', user.username]">Mi perfil</a>
+            <a routerLink="/profile">Mi perfil</a>
 
             <button
               type="button"
@@ -25,16 +25,14 @@
           </div>
         </details>
 
-        <!-- Se habilitarán cuando conectemos estas pantallas. -->
-        <button
+                <a
           class="icon-button"
-          type="button"
-          disabled
-          aria-label="Actividad, próximamente"
-          title="Actividad: próximamente"
+          routerLink="/activity"
+          aria-label="Actividad"
+          title="Actividad"
         >
           <span aria-hidden="true">ϟ</span>
-        </button>
+        </a>
 
                 <a
           class="icon-button"

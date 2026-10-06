@@ -1,0 +1,20 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #151920;
+  color: #eef0f5;
+}
+
+.edit-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0;
+
+  a {
+    color: #c4bfff;
+  }
+
+  p {
+    color: #bcc4d3;
+  }
+}
