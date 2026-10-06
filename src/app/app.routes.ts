@@ -1,5 +1,6 @@
 ﻿import { Routes } from '@angular/router';
 
+import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
 import { adminGuard } from './core/guards/admin-guard.js';
 import { AdminDashboard } from './features/admin/pages/admin-dashboard/admin-dashboard.js';
 import { Activity } from './features/activity/pages/activity/activity.js';
@@ -68,6 +69,12 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminDashboard,
     canActivate: [adminGuard],
+  },
+
+    {
+    path: 'playlists/new',
+    component: CreatePlaylist,
+    canActivate: [authGuard],
   },
 
   // Debe quedar última: captura las direcciones desconocidas.
