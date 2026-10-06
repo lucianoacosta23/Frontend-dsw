@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #151920;
+  color: #eef0f5;
+}
+
+.dashboard-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2.5rem 0 4rem;
+}
+
+.welcome {
+  text-align: center;
+
+  h1 {
+    margin: 0.5rem 0 1rem;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 500;
+  }
+
+  > p:last-child {
+    color: #b7bfd0;
+    line-height: 1.6;
+  }
+}
+
+.eyebrow {
+  color: #aaa5ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
