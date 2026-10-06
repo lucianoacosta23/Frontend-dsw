@@ -9,7 +9,7 @@
   min-height: 100dvh;
   place-items: center;
   padding: 1rem;
-  background: #10131a;
+  background: var(--jb-bg);
 }
 
 .register-card {
@@ -38,11 +38,11 @@ button {
 }
 
 .error {
-  color: #b3261e;
+  color: var(--jb-error);
 }
 
 .success {
-  color: #146c43;
+  color: var(--jb-success);
 }
 
 .account-link {

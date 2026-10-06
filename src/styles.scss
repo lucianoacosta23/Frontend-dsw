@@ -1,39 +1,115 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@use './styles/fonts';
+@use './styles/ambient';
 
+// Shared tokens; layout and control defaults remain in their components.
+:root {
+  --jb-bg: #101110;
+  --jb-surface: #1b1d19;
+  --jb-surface-raised: #252720;
+  --jb-glass: rgba(28, 29, 25, 0.86);
+  --jb-text: #f2f0e9;
+  --jb-copy: #d6d3c9;
+  --jb-muted: #b0b0a8;
+  --jb-gold: #e9c779;
+  --jb-on-gold: #272113;
+  --jb-border: rgba(240, 232, 208, 0.14);
+  --jb-control-border: #77776b;
+  --jb-error: #ffb4ab;
+  --jb-success: #9de2ae;
+  --jb-radius: 8px;
+  --jb-space-1: 0.5rem;
+  --jb-space-2: 1rem;
+  --jb-space-3: 1.5rem;
+  --jb-space-4: 2rem;
+  --jb-space-5: 3rem;
+  --jb-content: 76rem;
+  --jb-body-font: 'DM Sans', sans-serif;
+  --jb-heading-font: 'Manrope', sans-serif;
+}
 html {
-  height: 100%;
+  min-height: 100%;
+  color-scheme: dark;
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: mat.$yellow-palette,
+        tertiary: mat.$orange-palette,
+        theme-type: dark,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: 'DM Sans',
+        brand-family: 'Manrope',
+      ),
       density: 0,
     )
   );
+  // Public API: no MDC internals or fragile control selectors.
+  @include mat.theme-overrides(
+    (
+      primary: #e9c779,
+      on-primary: #272113,
+      primary-container: #51452b,
+      on-primary-container: #f8e5b3,
+      secondary: #d1c4a5,
+      on-secondary: #302b20,
+      secondary-container: #454034,
+      on-secondary-container: #eee2c8,
+      tertiary: #deb69e,
+      on-tertiary: #3c291d,
+      surface: #101110,
+      on-surface: #f2f0e9,
+      surface-container-lowest: #0c0d0b,
+      surface-container-low: #171914,
+      surface-container: #1b1d19,
+      surface-container-high: #252720,
+      surface-container-highest: #30322a,
+      surface-bright: #36382f,
+      surface-dim: #101110,
+      surface-variant: #34372e,
+      on-surface-variant: #c6c5b9,
+      outline: #929285,
+      outline-variant: #55594d,
+      background: #101110,
+      on-background: #f2f0e9,
+      error: #ffb4ab,
+      on-error: #690005,
+    )
+  );
 }
-
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
-  height: 100%;
+  min-height: 100dvh;
+  background: var(--jb-bg);
+  color: var(--jb-text);
+  font: var(--mat-sys-body-medium);
 }
-/* You can add global styles to this file, and also import other style files */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--jb-heading-font);
+}
+:where(a) {
+  color: var(--jb-gold);
+}
+:where(button, input, textarea, select) {
+  font-family: var(--jb-body-font);
+}
+:where(a, button, summary, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--jb-gold);
+  outline-offset: 3px;
+}
+::selection {
+  background: #e9c779;
+  color: #272113;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .album-card,
+  .cover-wrap img {
+    transition: none !important;
+  }
+}
