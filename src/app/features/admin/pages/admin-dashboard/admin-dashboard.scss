@@ -1,0 +1,88 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #151920;
+  color: #eef0f5;
+}
+
+.admin-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: #c4bfff;
+}
+
+.page-heading {
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0.5rem 0 1rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+  }
+
+  > p:last-child {
+    max-width: 700px;
+    color: #bcc4d3;
+    line-height: 1.6;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  color: #aaa5ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.admin-card {
+  padding: 1.5rem;
+  border: 1px solid #343c4b;
+  border-radius: 12px;
+  background: #1c212b;
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  p {
+    color: #bcc4d3;
+    line-height: 1.6;
+  }
+}
+
+.card-icon {
+  color: #aaa5ff;
+  font-size: 2rem;
+}
+
+button {
+  padding: 0.7rem 1rem;
+  border: 1px solid #414959;
+  border-radius: 8px;
+  background: #282e3b;
+  color: #bcc4d3;
+  font: inherit;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+a:focus-visible {
+  outline: 2px solid #c4bfff;
+  outline-offset: 3px;
+}
