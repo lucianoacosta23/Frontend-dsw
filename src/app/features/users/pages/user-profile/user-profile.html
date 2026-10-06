@@ -22,10 +22,51 @@
       }
     </section>
   } @else if (user(); as profile) {
-    <article class="profile-card">
+        <article class="profile-card">
       <p class="eyebrow">Perfil de usuario</p>
       <h1>{{ profile.fullName }}</h1>
       <p class="username">@{{ profile.username }}</p>
+
+      <!-- Se muestra si el usuario del perfil sigue a nuestra cuenta. -->
+      @if (profile.followsMe && !profile.isOwnProfile) {
+        <span class="follows-you">Te sigue</span>
+      }
+
+      <dl class="follow-stats">
+        <div>
+          <dt>Seguidores</dt>
+          <dd>{{ profile.followersCount }}</dd>
+        </div>
+
+        <div>
+          <dt>Seguidos</dt>
+          <dd>{{ profile.followingCount }}</dd>
+        </div>
+      </dl>
+
+      <!-- No podemos seguirnos a nosotros mismos. -->
+      @if (!profile.isOwnProfile) {
+               <button
+          type="button"
+          class="follow-button"
+          [disabled]="followSubmitting()"
+          [attr.aria-pressed]="profile.isFollowing"
+          (click)="followUser()"
+        >
+          {{
+            followSubmitting()
+              ? 'Actualizando…'
+              : profile.isFollowing
+                ? 'Siguiendo'
+                : 'Seguir'
+          }}
+        </button>
+      
+      }
+
+      @if (followError(); as message) {
+        <p class="error" role="alert">{{ message }}</p>
+      }
     </article>
   }
 </main>
