@@ -71,16 +71,21 @@ private readonly router = inject(Router);
       });
   }
 
-  // Recupera el destino pendiente o vuelve a la portada si no hay uno válido.
-private getReturnUrl(): string {
-  const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+  // Conserva el destino elegido; sin destino, abre el inicio privado.
+  private getReturnUrl(): string {
+    const returnUrl =
+      this.route.snapshot.queryParamMap.get('returnUrl');
 
-  if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
-    return '/';
+    if (
+      !returnUrl ||
+      !returnUrl.startsWith('/') ||
+      returnUrl.startsWith('//')
+    ) {
+      return '/dashboard';
+    }
+
+    return returnUrl;
   }
-
-  return returnUrl;
-}
 
   private getErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {

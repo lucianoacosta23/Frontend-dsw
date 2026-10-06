@@ -1,0 +1,179 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #151920;
+  color: #eef0f5;
+}
+
+.search-page {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+}
+
+.search-form label {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: #bcc4d3;
+}
+
+.search-input-row {
+  display: flex;
+  gap: 0.6rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid #485064;
+    border-radius: 10px;
+    background: #202530;
+    color: #fff;
+    font: inherit;
+  }
+
+  button {
+    padding: 0.8rem 1rem;
+    border: 0;
+    border-radius: 10px;
+    background: #6258df;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+
+  button {
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #414959;
+    border-radius: 999px;
+    background: #252b36;
+    color: #e4e7ef;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button.active {
+    background: #eeeaff;
+    border-color: #eeeaff;
+    color: #252036;
+  }
+}
+
+.status {
+  color: #bcc4d3;
+  line-height: 1.6;
+}
+
+.error {
+  color: #ffabab;
+}
+
+.result-section {
+  margin-top: 2rem;
+
+  h2 {
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #343c4b;
+    font-size: 1.2rem;
+  }
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid #343c4b;
+  border-radius: 10px;
+  background: #1c212b;
+  color: #eef0f5;
+  text-decoration: none;
+
+  img,
+  .placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+  }
+
+  img {
+    object-fit: cover;
+  }
+
+  strong {
+    overflow-wrap: anywhere;
+  }
+}
+
+a.result-card:hover {
+  border-color: #aaa5ff;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  background: #303749;
+  color: #c4bfff;
+  font-size: 3rem;
+}
+
+.result-type {
+  color: #bcc4d3;
+  font-size: 0.85rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #b5afff;
+  outline-offset: 3px;
+}
+
+.spotify-result-button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+}
+
+.import-label {
+  color: #c4bfff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.spotify-source {
+  color: #b7c4d8;
+  font-size: 0.8rem;
+}

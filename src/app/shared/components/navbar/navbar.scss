@@ -1,0 +1,138 @@
+:host {
+  display: block;
+}
+
+.site-header {
+  background: #101319;
+  border-bottom: 1px solid #303643;
+  color: #eef0f5;
+}
+
+.navbar {
+  width: min(1100px, calc(100% - 2rem));
+  min-height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brand-mark {
+  color: #a5a0ff;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.user-menu {
+  position: relative;
+
+  summary {
+    padding: 0.6rem;
+    color: #c8c4ff;
+    cursor: pointer;
+    font-weight: 700;
+  }
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 10;
+  width: 190px;
+  padding: 0.4rem;
+  background: #242936;
+  border: 1px solid #444b5c;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0005;
+
+  a,
+  button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #eef0f5;
+    text-align: left;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  a:hover,
+  button:hover:not(:disabled) {
+    background: #373d4d;
+  }
+}
+
+.icon-button,
+.admin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #b7bfd0;
+  font: inherit;
+}
+
+.icon-button {
+  font-size: 1.7rem;
+}
+
+.admin-button {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #b5afff;
+  outline-offset: 3px;
+}
+
+.logout-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: #ffabab;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    justify-content: center;
+  }
+
+  .nav-actions {
+    justify-content: center;
+    gap: 0.6rem;
+  }
+}

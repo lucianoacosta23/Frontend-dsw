@@ -1,0 +1,13 @@
+<app-navbar />
+
+<main class="dashboard-page">
+  @if (auth.currentUser(); as user) {
+    <section class="welcome" aria-labelledby="welcome-title">
+      <p class="eyebrow">Tu comunidad musical</p>
+      <h1 id="welcome-title">
+        Bienvenido, {{ user.username }}.
+      </h1>
+      <p>Descubrí qué está escuchando y reseñando la comunidad.</p>
+    </section>
+  }
+</main>
