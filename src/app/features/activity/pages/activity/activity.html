@@ -1,0 +1,52 @@
+<app-navbar />
+
+<main class="activity-page">
+  <header class="page-heading">
+    <p class="eyebrow">Tu comunidad musical</p>
+    <h1>Actividad</h1>
+  </header>
+
+  <div class="activity-layout">
+    <section class="activity-content" aria-label="Listado de actividad">
+      <!-- Los botones seleccionan qué actividad vamos a consultar. -->
+      <div class="tabs" role="group" aria-label="Tipo de actividad">
+        @for (tab of tabs; track tab.id) {
+          <button
+            type="button"
+            [class.active]="selectedTab() === tab.id"
+            [attr.aria-pressed]="selectedTab() === tab.id"
+            (click)="selectTab(tab.id)"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+
+      <div class="activity-status" aria-live="polite">
+        @for (tab of tabs; track tab.id) {
+          @if (selectedTab() === tab.id) {
+            <h2>{{ tab.label }}</h2>
+            <p>{{ tab.description }}</p>
+          }
+        }
+
+        <!-- Todavía no consultamos eventos; no representa una lista vacía. -->
+        <p class="pending-message">
+          El listado de actividad todavía no está conectado.
+        </p>
+      </div>
+    </section>
+
+    <aside class="activity-sidebar" aria-labelledby="activity-info-title">
+      <h2 id="activity-info-title">Qué vas a encontrar</h2>
+
+      <p>
+        Reseñas, puntuaciones e interacciones, ordenadas desde las más recientes.
+      </p>
+
+      <p>
+        Cada evento permitirá abrir el perfil o el contenido relacionado.
+      </p>
+    </aside>
+  </div>
+</main>

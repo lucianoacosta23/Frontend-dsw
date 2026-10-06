@@ -44,4 +44,11 @@ export class UserService {
       },
     );
   }
+    // Consulta el perfil de la cuenta autenticada, sin buscar por username.
+  getOwnProfile(): Observable<UserProfileResponse> {
+    return this.http.get<UserProfileResponse>(
+      `${environment.apiBaseUrl}/users/me`,
+      { withCredentials: true },
+    );
+  }
 }

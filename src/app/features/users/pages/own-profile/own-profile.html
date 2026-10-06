@@ -1,0 +1,69 @@
+<app-navbar />
+
+<main class="profile-page">
+  @if (loading()) {
+    <p class="status" role="status">Cargando tu perfil…</p>
+  } @else if (errorMessage(); as message) {
+    <div class="status error" role="alert">
+      <p>{{ message }}</p>
+      <button type="button" (click)="loadProfile()">
+        Volver a intentar
+      </button>
+    </div>
+  } @else if (profile(); as user) {
+    <section class="profile-header" aria-labelledby="profile-title">
+      <!-- Usamos una inicial hasta incorporar fotos de perfil. -->
+      <div class="avatar" aria-hidden="true">
+        {{ user.username.slice(0, 1).toUpperCase() }}
+      </div>
+
+      <div class="identity">
+        <p class="eyebrow">Mi perfil</p>
+        <h1 id="profile-title">{{ user.fullName }}</h1>
+        <p class="username">@{{ user.username }}</p>
+
+        <a class="edit-button" routerLink="/profile/edit">
+          Editar perfil
+        </a>
+      </div>
+
+      <dl class="follow-stats">
+        <div>
+          <dt>Seguidores</dt>
+          <dd>{{ user.followersCount }}</dd>
+        </div>
+
+        <div>
+          <dt>Seguidos</dt>
+          <dd>{{ user.followingCount }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="account-info" aria-labelledby="account-title">
+      <h2 id="account-title">Datos de tu cuenta</h2>
+
+      <dl>
+        <div>
+          <dt>Nombre de usuario</dt>
+          <dd>{{ user.username }}</dd>
+        </div>
+
+        <div>
+          <dt>Nombre completo</dt>
+          <dd>{{ user.fullName }}</dd>
+        </div>
+
+        <div>
+          <dt>Email</dt>
+          <dd>{{ auth.currentUser()?.email ?? 'Sin email asociado' }}</dd>
+        </div>
+
+        <div>
+          <dt>Miembro desde</dt>
+          <dd>{{ user.createdAt | date:'dd/MM/yyyy' }}</dd>
+        </div>
+      </dl>
+    </section>
+  }
+</main>

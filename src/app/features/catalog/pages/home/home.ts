@@ -15,7 +15,9 @@ export class Home implements OnInit {
   private readonly catalog = inject(CatalogService);
 
   // El backend inicia el flujo OAuth y luego redirige a Spotify.
-readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login`;
+// Después de autenticar desde la portada, abre el inicio privado.
+readonly spotifyLoginUrl =
+  `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent('/dashboard')}`;
   // Signals para que la vista reaccione cuando cambian los datos.
   readonly albums = signal<PopularAlbum[]>([]);
   readonly loading = signal(true);

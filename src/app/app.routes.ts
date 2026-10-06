@@ -1,5 +1,8 @@
 ﻿import { Routes } from '@angular/router';
 
+import { Activity } from './features/activity/pages/activity/activity.js';
+import { OwnProfile } from './features/users/pages/own-profile/own-profile.js';
+import { EditProfile } from './features/users/pages/edit-profile/edit-profile.js';
 import { Search } from './features/search/pages/search/search.js';
 import { authGuard } from './core/guards/auth-guard.js';
 import { Home } from './features/catalog/pages/home/home';
@@ -39,6 +42,25 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   
+  // Ambas páginas trabajan con la cuenta autenticada.
+  {
+    path: 'profile/edit',
+    component: EditProfile,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'profile',
+    component: OwnProfile,
+    canActivate: [authGuard],
+  },
+
+    // Actividad de la cuenta autenticada y su comunidad.
+  {
+    path: 'activity',
+    component: Activity,
+    canActivate: [authGuard],
+  },
+
   // Debe quedar última: captura las direcciones desconocidas.
   { path: '**', redirectTo: '' },
 ];
