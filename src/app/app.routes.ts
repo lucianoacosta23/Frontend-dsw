@@ -1,5 +1,7 @@
 ﻿import { Routes } from '@angular/router';
 
+import { adminGuard } from './core/guards/admin-guard.js';
+import { AdminDashboard } from './features/admin/pages/admin-dashboard/admin-dashboard.js';
 import { Activity } from './features/activity/pages/activity/activity.js';
 import { OwnProfile } from './features/users/pages/own-profile/own-profile.js';
 import { EditProfile } from './features/users/pages/edit-profile/edit-profile.js';
@@ -59,6 +61,13 @@ export const routes: Routes = [
     path: 'activity',
     component: Activity,
     canActivate: [authGuard],
+  },
+
+    // El guard comprueba tanto la sesión como el rol ADMIN.
+  {
+    path: 'admin',
+    component: AdminDashboard,
+    canActivate: [adminGuard],
   },
 
   // Debe quedar última: captura las direcciones desconocidas.
