@@ -54,17 +54,13 @@
           </svg>
         </a>
 
-        <!-- Solo ADMIN ve esta opción. -->
+                <!-- Solo las cuentas ADMIN ven este enlace. -->
         @if (user.category === 'ADMIN') {
-          <button
-            class="admin-button"
-            type="button"
-            disabled
-            title="Administración: próximamente"
-          >
+          <a class="admin-button" routerLink="/admin">
             Administrar
-          </button>
+          </a>
         }
+        
       </div>
     }
   </nav>

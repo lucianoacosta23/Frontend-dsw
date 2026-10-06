@@ -1,0 +1,33 @@
+<app-navbar />
+
+<main class="admin-page">
+  <a class="back-link" routerLink="/dashboard">Volver al inicio</a>
+
+  <header class="page-heading">
+    <p class="eyebrow">Administración</p>
+    <h1>Panel de administrador</h1>
+
+    @if (auth.currentUser(); as user) {
+      <p>
+        {{ user.username }}, desde acá podés acceder a las herramientas
+        de administración de Jukeboxd.
+      </p>
+    }
+  </header>
+
+  <section class="admin-options" aria-label="Herramientas de administración">
+    <article class="admin-card">
+      <span class="card-icon" aria-hidden="true">⚑</span>
+      <h2>Reportes de reseñas</h2>
+      <p>
+        Revisar reportes, descartarlos o dar de baja las reseñas
+        que incumplan las reglas.
+      </p>
+
+      <!-- El backend existe; falta conectar su pantalla. -->
+      <button type="button" disabled>
+        Moderación pendiente de conectar
+      </button>
+    </article>
+  </section>
+</main>
