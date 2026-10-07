@@ -1,1 +1,224 @@
-<p>playlist-detail works!</p>
+<app-navbar />
+
+<main class="playlist-page">
+  @if (loading()) {
+    <p class="state-message" role="status">Cargando playlist…</p>
+  } @else if (errorMessage(); as message) {
+    <section class="state-message">
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" (click)="retry()">Reintentar</button>
+    </section>
+  } @else if (playlist(); as current) {
+    <header class="playlist-header">
+      <div class="cover" aria-hidden="true">
+        @if (covers().length >= 4) {
+          <div class="cover-grid">
+            @for (url of covers(); track url) {
+              <img [src]="url" alt="" />
+            }
+          </div>
+        } @else if (covers().length > 0) {
+          <img [src]="covers()[0]" alt="" />
+        } @else {
+          <span class="cover-placeholder">♫</span>
+        }
+      </div>
+
+      <div class="header-info">
+        <h1>{{ current.name }}</h1>
+
+        <p class="meta">
+          <a
+            class="author-link"
+            [routerLink]="['/users', current.author.username]"
+          >
+            {{ current.author.username }}
+          </a>
+          <span>{{ pluralize(current.saveCount, 'guardado', 'guardados') }}</span>
+          <span>{{ pluralize(trackCount(), 'canción', 'canciones') }}</span>
+          @if (trackCount() > 0) {
+            <span>{{ totalDuration(totalDurationMs()) }}</span>
+          }
+        </p>
+      </div>
+    </header>
+
+    @if (current.isOwnPlaylist) {
+      <div class="actions">
+        <button
+          type="button"
+          class="add-toggle"
+          aria-label="Agregar canciones"
+          title="Agregar canciones"
+          [attr.aria-expanded]="adding()"
+          aria-controls="add-panel"
+          (click)="toggleAdding()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+        </button>
+      </div>
+    }
+
+    @if (current.isOwnPlaylist && adding()) {
+      <section id="add-panel" class="add-panel">
+        <h2>Agregar canciones</h2>
+
+        <form class="search-form" (ngSubmit)="search()">
+          <label for="track-search">Buscar canciones</label>
+
+          <div class="search-controls">
+            <input
+              id="track-search"
+              name="trackQuery"
+              type="search"
+              [(ngModel)]="query"
+              placeholder="Nombre de una canción"
+              maxlength="255"
+              required
+            />
+
+            <button type="submit" [disabled]="!query.trim()">
+              Buscar
+            </button>
+          </div>
+        </form>
+
+        @if (searching()) {
+          <p role="status">Buscando canciones…</p>
+        }
+
+        @if (searchError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
+        }
+
+        @if (searchWarning(); as message) {
+          <p role="status">{{ message }}</p>
+        }
+
+        @if (addError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
+        }
+
+        @if (successMessage(); as message) {
+          <p class="success-message" role="status">{{ message }}</p>
+        }
+
+        @if (!searching() && searched() && results().length === 0) {
+          <p>No encontramos canciones para esa búsqueda.</p>
+        }
+
+        <ul class="result-list">
+          @for (track of results(); track track.key) {
+            <li class="result-row">
+              @if (track.imageUrl) {
+                <img
+                  class="thumb"
+                  [src]="track.imageUrl"
+                  alt=""
+                  loading="lazy"
+                />
+              } @else {
+                <span class="thumb thumb-placeholder" aria-hidden="true">♫</span>
+              }
+
+              <div class="result-info">
+                <strong>{{ track.name }}</strong>
+                <span>{{ track.artists }}</span>
+              </div>
+
+              <span class="result-album">{{ track.album }}</span>
+              <span class="duration">{{ duration(track.durationMs) }}</span>
+
+              <button
+                type="button"
+                class="result-add"
+                [disabled]="addingKey() !== null || isAdded(track)"
+                [attr.aria-label]="'Agregar ' + track.name"
+                (click)="add(track)"
+              >
+                @if (addingKey() === track.key) {
+                  Agregando…
+                } @else if (isAdded(track)) {
+                  Agregada ✓
+                } @else {
+                  + Agregar
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (current.tracks.length === 0) {
+      <p class="empty">
+        Esta playlist todavía no tiene canciones.
+        @if (current.isOwnPlaylist) {
+          Usá el botón + para agregar la primera.
+        }
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table class="track-table">
+          <thead>
+            <tr>
+              <th scope="col" class="col-index">#</th>
+              <th scope="col">Título</th>
+              <th scope="col" class="col-album">Álbum</th>
+              <th scope="col" class="col-duration">Duración</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (track of current.tracks; track track.id; let i = $index) {
+              <tr>
+                <td class="col-index">{{ i + 1 }}</td>
+
+                <td>
+                  <div class="title-cell">
+                    @if (track.release.imageUrl) {
+                      <img
+                        class="thumb"
+                        [src]="track.release.imageUrl"
+                        alt=""
+                        loading="lazy"
+                      />
+                    } @else {
+                      <span class="thumb thumb-placeholder" aria-hidden="true">♫</span>
+                    }
+
+                    <div class="title-text">
+                      <a
+                        class="track-link"
+                        [routerLink]="['/tracks', track.id]"
+                      >
+                        {{ track.name }}
+                      </a>
+                      <span class="track-artists">{{ artistsLabel(track) }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="col-album">{{ track.release.name }}</td>
+                <td class="col-duration duration">
+                  {{ duration(track.durationMs) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</main>

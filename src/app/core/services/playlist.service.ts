@@ -36,6 +36,18 @@ export interface PlaylistData extends CreatedPlaylist {
   tracks: PlaylistTrack[];
 }
 
+export interface PlaylistDetailData extends PlaylistData {
+  author: { id: number; username: string; fullName: string };
+  saveCount: number;
+  savedByMe: boolean;
+  isOwnPlaylist: boolean;
+}
+
+export interface PlaylistDetailResponse {
+  message: string;
+  data: PlaylistDetailData;
+}
+
 export interface CreatePlaylistResponse {
   message: string;
   data: CreatedPlaylist;
@@ -87,6 +99,13 @@ export class PlaylistService {
   private readonly mutationHeaders = new HttpHeaders({
     'X-Jukeboxd-Request': '1',
   });
+
+  getById(playlistId: number): Observable<PlaylistDetailResponse> {
+    return this.http.get<PlaylistDetailResponse>(
+      `${environment.apiBaseUrl}/playlist/${playlistId}`,
+      { withCredentials: true },
+    );
+  }
 
   create(name: string): Observable<CreatePlaylistResponse> {
     return this.http.post<CreatePlaylistResponse>(
@@ -212,4 +231,4 @@ export class PlaylistService {
       }),
     );
   }
-}
+}
