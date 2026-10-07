@@ -27,7 +27,7 @@ import type { ReviewListItem } from '../../../../models/review.js';
 })
 export class ReviewCard implements OnChanges {
   @Input({ required: true }) review!: ReviewListItem;
-
+  @Input() openCommentsOnLoad = false;
   private readonly reviewService = inject(ReviewService);
   private readonly commentService = inject(CommentService);
   private readonly reportService = inject(ReportService);
@@ -80,9 +80,18 @@ export class ReviewCard implements OnChanges {
   ];
 
   // Copia a la tarjeta el estado inicial recibido del backend.
-  ngOnChanges(): void {
+    ngOnChanges(): void {
     this.liked.set(this.review.likedByMe);
     this.likeCount.set(this.review.likeCount);
+
+    if (
+      this.openCommentsOnLoad &&
+      !this.commentsLoaded() &&
+      !this.commentsLoading()
+    ) {
+      this.commentsOpen.set(true);
+      this.loadComments();
+    }
   }
 
   toggleLike(): void {

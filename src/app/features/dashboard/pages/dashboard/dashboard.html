@@ -4,10 +4,189 @@
   @if (auth.currentUser(); as user) {
     <section class="welcome" aria-labelledby="welcome-title">
       <p class="eyebrow">Tu comunidad musical</p>
-      <h1 id="welcome-title">
-        Bienvenido, {{ user.username }}.
-      </h1>
+      <h1 id="welcome-title">Bienvenido, {{ user.username }}.</h1>
       <p>Descubrí qué está escuchando y reseñando la comunidad.</p>
     </section>
   }
+
+  <section class="ranking-section" aria-labelledby="playlists-title">
+    <div class="section-heading">
+      <h2 id="playlists-title">Playlists populares</h2>
+      <span>Por cantidad de guardados</span>
+    </div>
+
+    @if (playlists.loading()) {
+      <p role="status">Cargando playlists…</p>
+    } @else if (playlists.error(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" (click)="loadPlaylists()">Reintentar</button>
+    } @else {
+      <div class="catalog-grid">
+        @for (playlist of playlists.items(); track playlist.id) {
+          <article class="catalog-card">
+            <a
+              class="card-main"
+              [routerLink]="['/playlists', playlist.id]"
+            >
+              <span class="cover placeholder" aria-hidden="true">♫</span>
+              <h3>{{ playlist.name }}</h3>
+            </a>
+
+            <a
+              class="author-link"
+              [routerLink]="['/users', playlist.author.username]"
+            >
+              {{ playlist.author.username }}
+            </a>
+
+            <p>{{ playlist.trackCount }} canciones</p>
+            <p class="metric">{{ playlist.saveCount }} guardados</p>
+
+            @if (playlist.savedByMe) {
+              <span class="saved-label">En tu biblioteca ✓</span>
+            }
+          </article>
+        } @empty {
+          <p>Todavía no hay playlists.</p>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="ranking-section" aria-labelledby="tracks-title">
+    <div class="section-heading">
+      <h2 id="tracks-title">Canciones populares</h2>
+      <span>Por cantidad de reseñas</span>
+    </div>
+
+    @if (tracks.loading()) {
+      <p role="status">Cargando canciones…</p>
+    } @else if (tracks.error(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" (click)="loadTracks()">Reintentar</button>
+    } @else {
+      <div class="catalog-grid">
+        @for (item of tracks.items(); track item.track.id) {
+          <article class="catalog-card">
+            <a
+              class="card-main"
+              [routerLink]="['/tracks', item.track.id]"
+            >
+              @if (item.track.release.imageUrl) {
+                <img
+                  class="cover"
+                  [src]="item.track.release.imageUrl"
+                  alt=""
+                  loading="lazy"
+                />
+              } @else {
+                <span class="cover placeholder" aria-hidden="true">♫</span>
+              }
+
+              <h3>{{ item.track.name }}</h3>
+            </a>
+
+            <p>{{ artistsLabel(item.track.artists) }}</p>
+            <p class="metric">{{ item.reviewCount }} reseñas</p>
+          </article>
+        } @empty {
+          <p>Todavía no hay canciones en el catálogo.</p>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="ranking-section" aria-labelledby="albums-title">
+    <div class="section-heading">
+      <h2 id="albums-title">Álbumes populares</h2>
+      <span>Por cantidad de reseñas</span>
+    </div>
+
+    @if (albums.loading()) {
+      <p role="status">Cargando álbumes…</p>
+    } @else if (albums.error(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" (click)="loadAlbums()">Reintentar</button>
+    } @else {
+      <div class="catalog-grid">
+        @for (album of albums.items(); track album.id) {
+          <article class="catalog-card">
+            <a class="card-main" [routerLink]="['/releases', album.id]">
+              @if (album.imageUrl) {
+                <img
+                  class="cover"
+                  [src]="album.imageUrl"
+                  alt=""
+                  loading="lazy"
+                />
+              } @else {
+                <span class="cover placeholder" aria-hidden="true">♫</span>
+              }
+
+              <h3>{{ album.name }}</h3>
+            </a>
+
+            <p>{{ artistsLabel(album.artists) }}</p>
+            <p class="metric">{{ album.reviewCount }} reseñas</p>
+          </article>
+        } @empty {
+          <p>Todavía no hay álbumes en el catálogo.</p>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="ranking-section" aria-labelledby="reviews-title">
+    <div class="section-heading">
+      <h2 id="reviews-title">Reseñas populares</h2>
+      <span>Por cantidad de likes</span>
+    </div>
+
+    @if (reviews.loading()) {
+      <p role="status">Cargando reseñas…</p>
+    } @else if (reviews.error(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" (click)="loadReviews()">Reintentar</button>
+    } @else {
+      <div class="reviews-grid">
+        @for (review of reviews.items(); track review.id) {
+          <article class="popular-review">
+            <a
+              class="review-target"
+              [routerLink]="[
+                review.target.type === 'track' ? '/tracks' : '/releases',
+                review.target.id
+              ]"
+            >
+              @if (review.target.imageUrl) {
+                <img
+                  [src]="review.target.imageUrl"
+                  alt=""
+                  loading="lazy"
+                />
+              } @else {
+                <span class="review-placeholder" aria-hidden="true">♫</span>
+              }
+
+              <div>
+                <h3>{{ review.target.name }}</h3>
+                <p>{{ artistsLabel(review.target.artists) }}</p>
+              </div>
+            </a>
+
+            <a
+  class="review-detail-link"
+  [routerLink]="['/reviews', review.id]"
+>
+  Ver reseña completa y comentarios →
+</a>
+            <!-- Conserva likes, comentarios y reportes. -->
+            <app-review-card [review]="review" />
+          </article>
+        } @empty {
+          <p>Todavía no hay reseñas.</p>
+        }
+      </div>
+    }
+  </section>
 </main>

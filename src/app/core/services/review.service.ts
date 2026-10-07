@@ -6,6 +6,7 @@ import type {
   ReviewApiResponse,
   ReviewListResponse,
   ReviewLikeResponse,
+  ReviewDetailResponse,
 } from '../../models/review.js';
 import { environment } from '../../../environments/environments.js';
 import type { RatingStatsResponse } from '../../models/rating-stats.js';
@@ -13,6 +14,13 @@ import type { RatingStatsResponse } from '../../models/rating-stats.js';
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
   private readonly http = inject(HttpClient);
+
+  getReviewById(id: number): Observable<ReviewDetailResponse> {
+    return this.http.get<ReviewDetailResponse>(
+      `${environment.apiBaseUrl}/reviews/${id}`,
+      { withCredentials: true },
+    );
+  }
 
 getPopularReviews(
   targetType: 'release' | 'track',
