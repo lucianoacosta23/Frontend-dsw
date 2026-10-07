@@ -51,3 +51,18 @@ export interface ReviewLikeResponse {
     createdAt?: string;
   };
 }
+
+export interface ReviewDetailData extends ReviewListItem {
+  target: {
+    type: 'release' | 'track';
+    id: number;
+    name: string;
+    imageUrl: string | null;
+    artists: Array<{ id: number; name: string }>;
+  };
+}
+
+export interface ReviewDetailResponse {
+  message: string;
+  data: ReviewDetailData;
+}

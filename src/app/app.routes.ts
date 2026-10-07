@@ -1,5 +1,7 @@
 ﻿import { Routes } from '@angular/router';
 
+
+import { ReviewDetail } from './features/reviews/pages/review-detail/review-detail.js';
 import { PlaylistDetail } from './features/playlists/pages/playlist-detail/playlist-detail.js';
 import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
 import { adminGuard } from './core/guards/admin-guard.js';
@@ -81,6 +83,12 @@ export const routes: Routes = [
   {
     path: 'playlists/:id',
     component: PlaylistDetail,
+    canActivate: [authGuard],
+  },
+
+    {
+    path: 'reviews/:id',
+    component: ReviewDetail,
     canActivate: [authGuard],
   },
 
