@@ -18,7 +18,10 @@
   } @else {
     <p class="review-text review-text-empty">Solo puntuación.</p>
   }
-
+<app-review-editor
+  [review]="review"
+  (saved)="onReviewSaved($event)"
+/>
   <div class="review-actions">
     <button
       type="button"

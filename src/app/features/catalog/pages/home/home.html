@@ -1,17 +1,27 @@
+@if (privateHome) {
+  <app-navbar />
+}
+
 <main class="home-page">
-  <header class="topbar">
-    <a class="brand" routerLink="/" aria-label="Jukeboxd, inicio">Jukeboxd</a>
-    <nav aria-label="Acceso a la cuenta">
-      <a routerLink="/login">Iniciar sesión</a>
-      <a class="nav-button" routerLink="/register">Crear cuenta</a>
-    </nav>
-  </header>
+  @if (!privateHome) {
+    <header class="topbar">
+      <a class="brand" routerLink="/" aria-label="Jukeboxd, inicio">
+        Jukeboxd
+      </a>
+
+      <nav aria-label="Acceso a la cuenta">
+        <a routerLink="/login">Iniciar sesión</a>
+        <a class="nav-button" routerLink="/register">Crear cuenta</a>
+      </nav>
+    </header>
+  }
 
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-heading">
       <h1 id="hero-title" class="eyebrow">Lo más reseñado</h1>
       <span>LA MÚSICA TAMBIÉN SE CONVERSA</span>
     </div>
+
     @if (loading()) {
       <p class="status" role="status">Cargando el álbum destacado…</p>
     } @else if (errorMessage(); as message) {
@@ -25,9 +35,15 @@
       <div class="featured-grid">
         <div class="featured-art">
           <a
-            [routerLink]="['/login']"
-            [queryParams]="{ returnUrl: '/releases/' + album.id }"
-            [attr.aria-label]="'Iniciar sesión para ver ' + album.name"
+            [routerLink]="privateHome ? ['/releases', album.id] : ['/login']"
+            [queryParams]="
+              privateHome ? null : { returnUrl: '/releases/' + album.id }
+            "
+            [attr.aria-label]="
+              privateHome
+                ? 'Ver ' + album.name
+                : 'Iniciar sesión para ver ' + album.name
+            "
           >
             <app-release-cover
               [src]="album.imageUrl"
@@ -35,49 +51,71 @@
               loading="eager"
             />
           </a>
+
           <p class="art-caption">UN DISCO. MUCHAS MIRADAS.</p>
         </div>
+
         <div class="featured-info">
           <p class="eyebrow">El disco que nos reúne</p>
           <h2>{{ album.name }}</h2>
+
           <p class="featured-artists">
             {{ artistsLabel(album) }}
             <span>· {{ releaseYear(album) }} · {{ releaseType(album) }}</span>
           </p>
+
           <div class="featured-stats">
             <div class="review-count">
               <strong>{{ album.reviewCount }}</strong>
-              {{ album.reviewCount === 1 ? 'reseña' : 'reseñas' }}<small>En Jukeboxd</small>
+              {{ album.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+              <small>En Jukeboxd</small>
             </div>
+
             <div class="average">
               @if (statsLoading()) {
                 <span role="status">Cargando promedio…</span>
               } @else if (statsError(); as message) {
                 <span role="status">{{ message }}</span>
-                <button type="button" class="text-button" (click)="loadFeaturedStats()">
+                <button
+                  type="button"
+                  class="text-button"
+                  (click)="loadFeaturedStats()"
+                >
                   Reintentar promedio
                 </button>
               } @else if (averageLabel(); as average) {
-                <strong><span aria-hidden="true">★</span> {{ average }} <small>/ 5</small></strong>
+                <strong>
+                  <span aria-hidden="true">★</span>
+                  {{ average }}
+                  <small>/ 5</small>
+                </strong>
                 <small>Promedio general</small>
               } @else {
                 <span>Sin puntuaciones disponibles</span>
               }
             </div>
           </div>
+
           <div class="featured-reviews">
             <h3>Lo que opina la comunidad</h3>
+
             @if (reviewsLoading()) {
               <p class="status" role="status">Cargando reseñas destacadas…</p>
             } @else if (reviewsError(); as message) {
               <div class="status error" role="alert">
                 <p>{{ message }}</p>
-                <button type="button" class="text-button" (click)="loadFeaturedReviews()">
+                <button
+                  type="button"
+                  class="text-button"
+                  (click)="loadFeaturedReviews()"
+                >
                   Reintentar reseñas
                 </button>
               </div>
             } @else if (reviews().length === 0) {
-              <p class="status">Todavía no hay reseñas para mostrar de este álbum.</p>
+              <p class="status">
+                Todavía no hay reseñas para mostrar de este álbum.
+              </p>
             } @else {
               @for (review of reviews(); track review.id) {
                 <app-review-card [review]="review" />
@@ -92,11 +130,26 @@
         <p>Todavía no hay álbumes reseñados.</p>
       </div>
     }
+
     <div class="welcome-strip">
       <p>Descubrí qué álbumes están escuchando y reseñando los demás.</p>
+
       <div class="hero-actions">
-        <a class="primary-button" routerLink="/register">Empezar gratis</a>
-        <a class="spotify-button" [href]="spotifyLoginUrl">Entrar con Spotify</a>
+        @if (privateHome) {
+          <a class="primary-button" routerLink="/search">
+            Explorar música
+          </a>
+          <a class="spotify-button" routerLink="/playlists/new">
+            Crear playlist
+          </a>
+        } @else {
+          <a class="primary-button" routerLink="/register">
+            Empezar gratis
+          </a>
+          <a class="spotify-button" [href]="spotifyLoginUrl">
+            Entrar con Spotify
+          </a>
+        }
       </div>
     </div>
   </section>
@@ -107,8 +160,14 @@
         <p class="eyebrow">El pulso de Jukeboxd</p>
         <h2 id="popular-title">Álbumes populares</h2>
       </div>
-      <a routerLink="/login">Iniciar sesión</a>
+
+      @if (privateHome) {
+        <a routerLink="/search">Explorar catálogo →</a>
+      } @else {
+        <a routerLink="/login">Iniciar sesión</a>
+      }
     </div>
+
     @if (loading()) {
       <p class="status" role="status">Cargando álbumes…</p>
     } @else if (errorMessage(); as message) {
@@ -121,7 +180,10 @@
     } @else if (albums().length === 0) {
       <p class="status">Todavía no hay álbumes reseñados.</p>
     } @else {
-      <app-popular-carousel [albums]="albums()" />
+      <app-popular-carousel
+        [albums]="albums()"
+        [directNavigation]="privateHome"
+      />
     }
   </section>
 
@@ -132,6 +194,7 @@
         <h2 id="popular-tracks-title">Pistas populares</h2>
       </div>
     </div>
+
     @if (tracksLoading()) {
       <p class="status" role="status">Cargando pistas…</p>
     } @else if (tracksErrorMessage(); as message) {
@@ -148,9 +211,17 @@
         @for (item of tracks(); track item.track.id; let position = $index) {
           <a
             class="album-card"
-            [routerLink]="['/login']"
-            [queryParams]="{ returnUrl: '/tracks/' + item.track.id }"
-            [attr.aria-label]="'Iniciar sesión para ver ' + item.track.name"
+            [routerLink]="
+              privateHome ? ['/tracks', item.track.id] : ['/login']
+            "
+            [queryParams]="
+              privateHome ? null : { returnUrl: '/tracks/' + item.track.id }
+            "
+            [attr.aria-label]="
+              privateHome
+                ? 'Ver ' + item.track.name
+                : 'Iniciar sesión para ver ' + item.track.name
+            "
           >
             <div class="cover-wrap">
               <app-release-cover
@@ -159,14 +230,17 @@
               />
               <span class="rank">#{{ position + 1 }}</span>
             </div>
+
             <div class="album-info">
               <h3>{{ item.track.name }}</h3>
               <p class="artist">{{ artistsLabel(item.track) }}</p>
+
               <div class="album-meta">
-                <span>{{ item.track.release.name }}</span
-                ><span
-                  >{{ item.reviewCount }} {{ item.reviewCount === 1 ? 'reseña' : 'reseñas' }}</span
-                >
+                <span>{{ item.track.release.name }}</span>
+                <span>
+                  {{ item.reviewCount }}
+                  {{ item.reviewCount === 1 ? 'reseña' : 'reseñas' }}
+                </span>
               </div>
             </div>
           </a>
@@ -175,6 +249,160 @@
     }
   </section>
 
+  @if (privateHome) {
+    <section class="popular" aria-labelledby="popular-playlists-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Selecciones que la comunidad vuelve a escuchar</p>
+          <h2 id="popular-playlists-title">Playlists más guardadas</h2>
+        </div>
+
+        <a routerLink="/playlists/new">Crear playlist →</a>
+      </div>
+
+      @if (playlistsLoading()) {
+        <p class="status" role="status">Cargando playlists…</p>
+      } @else if (playlistsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button
+            type="button"
+            class="text-button"
+            (click)="loadPopularPlaylists()"
+          >
+            Reintentar playlists
+          </button>
+        </div>
+      } @else if (popularPlaylists().length === 0) {
+        <p class="status">Todavía no hay playlists para mostrar.</p>
+      } @else {
+        <div class="album-grid playlist-grid">
+          @for (
+            playlist of popularPlaylists();
+            track playlist.id;
+            let position = $index
+          ) {
+            <article class="album-card">
+              <a
+                class="playlist-main"
+                [routerLink]="['/playlists', playlist.id]"
+                [attr.aria-label]="'Ver playlist ' + playlist.name"
+              >
+                <div class="cover-wrap playlist-cover" aria-hidden="true">
+                  <span class="vinyl"></span>
+                  <span class="rank">#{{ position + 1 }}</span>
+                  <span class="playlist-caption">JUKEBOXD · PLAYLIST</span>
+                </div>
+              </a>
+
+              <div class="album-info">
+                <h3>
+                  <a
+                    class="playlist-title"
+                    [routerLink]="['/playlists', playlist.id]"
+                  >
+                    {{ playlist.name }}
+                  </a>
+                </h3>
+
+                <p class="artist">
+                  Por
+                  <a
+                    class="playlist-author"
+                    [routerLink]="['/users', playlist.author.username]"
+                  >
+                    {{ playlist.author.username }}
+                  </a>
+                </p>
+
+                <div class="album-meta">
+                  <span>
+                    {{ playlist.trackCount }}
+                    {{ playlist.trackCount === 1 ? 'canción' : 'canciones' }}
+                  </span>
+                  <span>
+                    {{ playlist.saveCount }}
+                    {{ playlist.saveCount === 1 ? 'guardado' : 'guardados' }}
+                  </span>
+                </div>
+
+                @if (playlist.savedByMe) {
+                  <p class="saved-label">En tu biblioteca ✓</p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="popular" aria-labelledby="popular-reviews-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Opiniones que conectan</p>
+          <h2 id="popular-reviews-title">Reseñas más populares</h2>
+        </div>
+
+        <span class="section-note">Por cantidad de likes</span>
+      </div>
+
+      @if (popularReviewsLoading()) {
+        <p class="status" role="status">Cargando reseñas populares…</p>
+      } @else if (popularReviewsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button
+            type="button"
+            class="text-button"
+            (click)="loadPopularReviews()"
+          >
+            Reintentar reseñas
+          </button>
+        </div>
+      } @else if (popularReviews().length === 0) {
+        <p class="status">Todavía no hay reseñas para mostrar.</p>
+      } @else {
+        <div class="popular-reviews-grid">
+          @for (review of popularReviews(); track review.id) {
+            <article class="popular-review">
+              <a
+                class="popular-review-target"
+                [routerLink]="[
+                  review.target.type === 'track' ? '/tracks' : '/releases',
+                  review.target.id
+                ]"
+              >
+                <div class="popular-review-art">
+                  <app-release-cover
+                    [src]="review.target.imageUrl"
+                    [alt]="'Portada de ' + review.target.name"
+                  />
+                </div>
+
+                <div class="popular-review-info">
+                  <p class="eyebrow">
+                    {{ review.target.type === 'track' ? 'Canción' : 'Release' }}
+                  </p>
+                  <h3>{{ review.target.name }}</h3>
+                  <p>{{ artistsLabel(review.target) }}</p>
+                </div>
+              </a>
+
+              <app-review-card [review]="review" />
+
+              <a
+                class="popular-review-detail"
+                [routerLink]="['/reviews', review.id]"
+              >
+                Ver reseña completa y comentarios →
+              </a>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
   <section class="social popular" aria-labelledby="social-title">
     <div class="section-heading">
       <div>
@@ -182,21 +410,35 @@
         <h2 id="social-title">Novedades de las personas que seguís</h2>
       </div>
     </div>
+
     <div class="social-grid">
       <div class="social-empty">
         <span class="empty-icon" aria-hidden="true">◎</span>
+
         <div>
           <h3>La música se disfruta más cuando se comparte.</h3>
-          <p>La actividad de las personas que seguís todavía no está disponible en esta página.</p>
-          <a routerLink="/login">Iniciar sesión</a>
+          <p>
+            {{
+              privateHome
+                ? 'Descubrí las reseñas de las personas que seguís y tus interacciones recibidas.'
+                : 'La actividad de las personas que seguís todavía no está disponible en esta página.'
+            }}
+          </p>
+
+          <a [routerLink]="privateHome ? '/activity' : '/login'">
+            {{ privateHome ? 'Ver actividad →' : 'Iniciar sesión' }}
+          </a>
         </div>
       </div>
+
       <aside class="suggestions" aria-labelledby="suggestions-title">
         <p class="eyebrow">Ampliá tu frecuencia</p>
         <h3 id="suggestions-title">Personas para seguir</h3>
         <p>
-          Estamos preparando este espacio. Las sugerencias de personas aún no están disponibles.
+          Estamos preparando este espacio.
+          Las sugerencias de personas aún no están disponibles.
         </p>
+
         <div class="suggestions-note">
           <span aria-hidden="true">◎</span>
           <p>Tu próximo disco favorito puede empezar con una reseña.</p>
@@ -204,8 +446,14 @@
       </aside>
     </div>
   </section>
+
   <footer class="home-footer">
-    <a routerLink="/" class="brand">Jukeboxd</a>
+    <a
+      [routerLink]="privateHome ? '/dashboard' : '/'"
+      class="brand"
+    >
+      Jukeboxd
+    </a>
     <p>La música también se conversa.</p>
   </footer>
 </main>

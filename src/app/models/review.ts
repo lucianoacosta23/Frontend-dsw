@@ -66,3 +66,31 @@ export interface ReviewDetailResponse {
   message: string;
   data: ReviewDetailData;
 }
+
+export interface ReviewTextUpdate {
+  text: string | null;
+  editedAt: string | null;
+}
+
+export interface ReviewEditResponse {
+  message: string;
+  data: ReviewTextUpdate & { id: number };
+}
+
+export interface ReviewRevisionItem {
+  id: number;
+  text: string | null;
+  effectiveAt: string;
+  replacedAt: string;
+}
+
+export interface ReviewHistoryResponse {
+  message: string;
+  data: ReviewRevisionItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
