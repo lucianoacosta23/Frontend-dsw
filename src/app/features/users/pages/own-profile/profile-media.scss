@@ -1,0 +1,31 @@
+.ambient-cover app-profile-image {
+  position: relative;
+  z-index: 1;
+}
+.avatar {
+  overflow: hidden;
+}
+.favorite-slots {
+  align-items: start;
+}
+.favorite-cover {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  background: var(--jb-surface);
+  overflow: hidden;
+}
+.favorite-card {
+  color: var(--jb-copy);
+  text-decoration: none;
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.favorite-card > span {
+  display: block;
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.favorite-card:hover {
+  color: var(--jb-gold);
+}

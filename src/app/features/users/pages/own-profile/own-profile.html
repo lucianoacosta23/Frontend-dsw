@@ -1,69 +1,330 @@
 <app-navbar />
-
 <main class="profile-page">
   @if (loading()) {
-    <p class="status" role="status">Cargando tu perfil…</p>
+    <p class="status" role="status">Cargando perfil…</p>
   } @else if (errorMessage(); as message) {
     <div class="status error" role="alert">
       <p>{{ message }}</p>
-      <button type="button" (click)="loadProfile()">
-        Volver a intentar
-      </button>
+      <button type="button" (click)="loadProfile()">Volver a intentar</button>
     </div>
   } @else if (profile(); as user) {
     <section class="profile-header" aria-labelledby="profile-title">
-      <!-- Usamos una inicial hasta incorporar fotos de perfil. -->
-      <div class="avatar" aria-hidden="true">
-        {{ user.username.slice(0, 1).toUpperCase() }}
+      <div class="ambient-cover" aria-hidden="true">
+        <span></span
+        ><app-profile-image [src]="user.coverUrl" alt="Portada del perfil" fallback="" />
       </div>
-
-      <div class="identity">
-        <p class="eyebrow">Mi perfil</p>
-        <h1 id="profile-title">{{ user.fullName }}</h1>
-        <p class="username">@{{ user.username }}</p>
-
-        <a class="edit-button" routerLink="/profile/edit">
-          Editar perfil
-        </a>
+      <div class="profile-summary">
+        <div class="avatar">
+          <app-profile-image
+            [src]="user.avatarUrl"
+            [alt]="'Avatar de ' + user.username"
+            [fallback]="user.username.slice(0, 1).toUpperCase()"
+          />
+        </div>
+        <div class="identity">
+          <p class="eyebrow">{{ isOwner() ? 'Mi universo musical' : 'Su universo musical' }}</p>
+          <h1 id="profile-title">{{ user.fullName }}</h1>
+          <p class="username">@{{ user.username }}</p>
+          @if (isOwner()) {
+            <a class="edit-button" routerLink="/profile/edit"
+              >Editar perfil <span aria-hidden="true">↗</span></a
+            >
+          } @else if (auth.currentUser()) {
+            <button type="button" (click)="followUser()" [disabled]="followSubmitting()">
+              {{
+                followSubmitting()
+                  ? 'Actualizando…'
+                  : user.isFollowing
+                    ? 'Dejar de seguir'
+                    : 'Seguir'
+              }}
+            </button>
+          } @else {
+            <a
+              class="edit-button"
+              routerLink="/login"
+              [queryParams]="{ returnUrl: '/users/' + user.username }"
+              >Iniciar sesión para seguir</a
+            >
+          }
+          @if (followError()) {
+            <p class="error" role="alert">{{ followError() }}</p>
+          }
+        </div>
+        <dl class="profile-stats">
+          <div>
+            <dt>Reseñas</dt>
+            <dd>{{ reviewsTotal() ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Seguidores</dt>
+            <dd>{{ user.followersCount }}</dd>
+          </div>
+          <div>
+            <dt>Seguidos</dt>
+            <dd>{{ user.followingCount }}</dd>
+          </div>
+        </dl>
       </div>
-
-      <dl class="follow-stats">
-        <div>
-          <dt>Seguidores</dt>
-          <dd>{{ user.followersCount }}</dd>
-        </div>
-
-        <div>
-          <dt>Seguidos</dt>
-          <dd>{{ user.followingCount }}</dd>
-        </div>
-      </dl>
+      <p class="membership">Miembro desde {{ user.createdAt | date: 'dd/MM/yyyy' }}</p>
     </section>
-
-    <section class="account-info" aria-labelledby="account-title">
-      <h2 id="account-title">Datos de tu cuenta</h2>
-
-      <dl>
-        <div>
-          <dt>Nombre de usuario</dt>
-          <dd>{{ user.username }}</dd>
+    <div class="favorites">
+      <section aria-labelledby="favorite-projects-title">
+        <div class="section-heading">
+          <h2 id="favorite-projects-title">Proyectos favoritos</h2>
+          <span class="section-note">Hasta 5</span>
         </div>
-
-        <div>
-          <dt>Nombre completo</dt>
-          <dd>{{ user.fullName }}</dd>
+        <div class="favorite-slots">
+          @for (release of user.favoriteReleases; track release.id) {
+            <a class="favorite-card" [routerLink]="['/releases', release.id]" [title]="release.name"
+              ><div class="favorite-cover">
+                <app-profile-image [src]="release.imageUrl" alt="" />
+              </div>
+              <span>{{ release.name }}</span></a
+            >
+          }
+          @for (slot of favoriteSlots.slice(user.favoriteReleases.length); track slot) {
+            <div class="favorite-slot" aria-hidden="true"><span>◎</span></div>
+          }
         </div>
-
-        <div>
-          <dt>Email</dt>
-          <dd>{{ auth.currentUser()?.email ?? 'Sin email asociado' }}</dd>
+        @if (!user.favoriteReleases.length) {
+          <p class="hint">
+            {{
+              isOwner()
+                ? 'Todavía no elegiste proyectos favoritos. Agregalos desde Editar perfil.'
+                : 'Todavía no eligió proyectos favoritos.'
+            }}
+          </p>
+        }
+      </section>
+      <section aria-labelledby="favorite-tracks-title">
+        <div class="section-heading">
+          <h2 id="favorite-tracks-title">Canciones favoritas</h2>
+          <span class="section-note">Hasta 5</span>
         </div>
-
-        <div>
-          <dt>Miembro desde</dt>
-          <dd>{{ user.createdAt | date:'dd/MM/yyyy' }}</dd>
+        <div class="favorite-slots">
+          @for (track of user.favoriteTracks; track track.id) {
+            <a class="favorite-card" [routerLink]="['/tracks', track.id]" [title]="track.name"
+              ><div class="favorite-cover">
+                <app-profile-image [src]="track.release.imageUrl" alt="" />
+              </div>
+              <span>{{ track.name }}</span></a
+            >
+          }
+          @for (slot of favoriteSlots.slice(user.favoriteTracks.length); track slot) {
+            <div class="favorite-slot" aria-hidden="true"><span>♪</span></div>
+          }
         </div>
-      </dl>
+        @if (!user.favoriteTracks.length) {
+          <p class="hint">
+            {{
+              isOwner()
+                ? 'Todavía no elegiste canciones favoritas. Agregalas desde Editar perfil.'
+                : 'Todavía no eligió canciones favoritas.'
+            }}
+          </p>
+        }
+      </section>
+    </div>
+    <section
+      class="collection"
+      aria-labelledby="playlists-title"
+      [attr.aria-busy]="playlistsLoading()"
+    >
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Selecciones con {{ isOwner() ? 'tu' : 'su' }} firma</p>
+          <h2 id="playlists-title">
+            {{ isOwner() ? 'Tus playlists' : 'Playlists de ' + user.username }}
+          </h2>
+        </div>
+        <span class="section-note">{{
+          isOwner() ? 'Creadas por vos' : 'Creadas por este usuario'
+        }}</span>
+      </div>
+      @if (playlistsLoading()) {
+        <p class="status" role="status">Cargando playlists…</p>
+      } @else if (playlistsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button type="button" (click)="loadPlaylists()">Reintentar playlists</button>
+        </div>
+      } @else if (playlists().length === 0) {
+        <div class="status empty">
+          <span aria-hidden="true">♫</span>
+          <h3>
+            {{
+              isOwner()
+                ? 'Tus próximas selecciones empiezan acá.'
+                : 'Todavía no hay selecciones para mostrar.'
+            }}
+          </h3>
+          <p>
+            {{
+              playlistsTotal() === 0
+                ? isOwner()
+                  ? 'Todavía no creaste ninguna playlist.'
+                  : 'Este usuario todavía no creó playlists.'
+                : 'No hay playlists en esta página.'
+            }}
+          </p>
+          @if (isOwner()) {
+            <a routerLink="/playlists/new">Crear una playlist <span aria-hidden="true">↗</span></a>
+          }
+        </div>
+      } @else {
+        <div class="playlist-grid">
+          @for (playlist of playlists(); track playlist.id) {
+            <a class="playlist-card" [routerLink]="['/playlists', playlist.id]">
+              <div class="playlist-art" aria-hidden="true">
+                <span class="record"></span><span class="art-label">JUKEBOXD · PLAYLIST</span>
+              </div>
+              <h3>{{ playlist.name }}</h3>
+              <p>
+                {{ playlist.trackCount }} {{ playlist.trackCount === 1 ? 'canción' : 'canciones' }}
+              </p>
+            </a>
+          }
+        </div>
+      }
+      @if (playlistsPages() > 1) {
+        <nav class="pagination" aria-label="Páginas de playlists">
+          <button
+            type="button"
+            (click)="loadPlaylists(playlistsPage() - 1)"
+            [disabled]="playlistsLoading() || playlistsPage() <= 1"
+            aria-label="Playlists anteriores"
+          >
+            ← Anterior
+          </button>
+          <span role="status">Página {{ playlistsPage() }} de {{ playlistsPages() }}</span>
+          <button
+            type="button"
+            (click)="loadPlaylists(playlistsPage() + 1)"
+            [disabled]="playlistsLoading() || playlistsPage() >= playlistsPages()"
+            aria-label="Playlists siguientes"
+          >
+            Siguiente →
+          </button>
+        </nav>
+      }
+    </section>
+    <section class="collection" aria-labelledby="reviews-title" [attr.aria-busy]="reviewsLoading()">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">{{ isOwner() ? 'Tu' : 'Su' }} manera de escuchar</p>
+          <h2 id="reviews-title">
+            {{ isOwner() ? 'Tus reseñas' : 'Reseñas de ' + user.username }}
+          </h2>
+        </div>
+        <span class="section-note">Más recientes</span>
+      </div>
+      @if (reviewsLoading()) {
+        <p class="status" role="status">Cargando reseñas…</p>
+      } @else if (reviewsError(); as message) {
+        <div class="status error" role="alert">
+          <p>{{ message }}</p>
+          <button type="button" (click)="loadReviews()">Reintentar reseñas</button>
+        </div>
+      } @else if (reviews().length === 0) {
+        <div class="status empty">
+          <span aria-hidden="true">☆</span>
+          <h3>Cada escucha tiene algo que contar.</h3>
+          <p>
+            {{
+              reviewsTotal() === 0
+                ? isOwner()
+                  ? 'Todavía no escribiste ninguna reseña.'
+                  : 'Este usuario todavía no escribió reseñas.'
+                : 'No hay reseñas en esta página.'
+            }}
+          </p>
+        </div>
+      } @else {
+        <div class="review-grid">
+          @for (card of reviews(); track card.review.id) {
+            <a class="review-tile" [routerLink]="['/reviews', card.review.id]">
+              <div class="review-art">
+                @if (card.target?.imageUrl && !card.brokenImage) {
+                  <img
+                    [src]="card.target!.imageUrl"
+                    alt=""
+                    loading="lazy"
+                    (error)="imageFailed(card.review.id)"
+                  />
+                } @else {
+                  <span aria-hidden="true">♫</span>
+                }
+              </div>
+              <div class="review-content">
+                <p class="target-kind">
+                  {{ card.review.trackId !== null ? 'Canción' : 'Proyecto' }}
+                </p>
+                <h3>
+                  {{
+                    card.target?.name ??
+                      (card.pending ? 'Cargando título…' : 'Título no disponible')
+                  }}
+                </h3>
+                @if (artists(card); as names) {
+                  <p class="review-artists">{{ names }}</p>
+                }
+                <div
+                  class="rating"
+                  role="img"
+                  [attr.aria-label]="'Valoración: ' + ratingLabel(card.review.rating) + ' de 5'"
+                >
+                  <span class="stars" aria-hidden="true"
+                    >★★★★★<span [style.width.%]="starWidth(card.review.rating)">★★★★★</span></span
+                  >
+                  <span aria-hidden="true">{{ ratingLabel(card.review.rating) }} / 5</span>
+                </div>
+                <p class="excerpt">{{ card.review.text || 'Sin texto en esta reseña.' }}</p>
+                <span class="review-date"
+                  >{{ card.review.createdAt | date: 'dd/MM/yyyy' }}
+                  <span aria-hidden="true">↗</span></span
+                >
+              </div>
+            </a>
+          }
+        </div>
+        @if (hasUnavailableDetails()) {
+          <div class="detail-warning" role="status">
+            <p>
+              Algunos títulos o portadas no pudieron cargarse. Tus valoraciones y textos siguen
+              disponibles.
+            </p>
+            <button type="button" (click)="retryDetails()" [disabled]="detailsPending()">
+              Reintentar datos de reseñas
+            </button>
+          </div>
+        }
+      }
+      @if (reviewsPages() > 1) {
+        <nav class="pagination" aria-label="Páginas de reseñas">
+          <button
+            type="button"
+            (click)="loadReviews(reviewsPage() - 1)"
+            [disabled]="reviewsLoading() || reviewsPage() <= 1"
+            aria-label="Reseñas anteriores"
+          >
+            ← Anterior
+          </button>
+          <span role="status">Página {{ reviewsPage() }} de {{ reviewsPages() }}</span>
+          <button
+            type="button"
+            (click)="loadReviews(reviewsPage() + 1)"
+            [disabled]="reviewsLoading() || reviewsPage() >= reviewsPages()"
+            aria-label="Reseñas siguientes"
+          >
+            Siguiente →
+          </button>
+        </nav>
+      }
     </section>
   }
+  <footer class="profile-footer">
+    <a routerLink="/dashboard">JUKEBOXD <span aria-hidden="true">·</span></a>
+    <p>La música también se conversa.</p>
+  </footer>
 </main>

@@ -15,6 +15,14 @@ import type { RatingStatsResponse } from '../../models/rating-stats.js';
 export class ReviewService {
   private readonly http = inject(HttpClient);
 
+  getReviewsByAuthor(authorId: number, page = 1, pageSize = 6): Observable<ReviewListResponse> {
+    const params = new HttpParams().set('authorId', authorId).set('sort', 'newest')
+      .set('page', page).set('pageSize', pageSize);
+    return this.http.get<ReviewListResponse>(`${environment.apiBaseUrl}/reviews`, {
+      params, withCredentials: true,
+    });
+  }
+
   getReviewById(id: number): Observable<ReviewDetailResponse> {
     return this.http.get<ReviewDetailResponse>(
       `${environment.apiBaseUrl}/reviews/${id}`,

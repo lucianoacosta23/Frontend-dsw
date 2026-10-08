@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+label {
+  font-size: 0.8rem;
+  color: var(--jb-copy);
+}
+select,
+input,
+button {
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid var(--jb-control-border);
+  border-radius: 5px;
+  background: var(--jb-surface);
+  color: var(--jb-text);
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+}
+select {
+  margin-left: 0.5rem;
+  max-width: 100%;
+}
+input {
+  min-width: 0;
+  width: 100%;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.search-label {
+  grid-column: 1/-1;
+}
+.hint,
+p {
+  font-size: 0.8rem;
+  color: var(--jb-muted);
+}
+.error {
+  color: var(--jb-error);
+}
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 320px;
+  overflow: auto;
+}
+li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--jb-border);
+}
+li > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cover {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: var(--jb-surface-raised);
+}

@@ -13,6 +13,7 @@ export interface SearchMusicItem {
 }
 
 export interface SearchReleaseItem extends SearchMusicItem {
+  type: 'ALBUM' | 'EP' | 'SINGLE' | 'MIXTAPE' | 'COMPILATION';
   spotifyId: string | null;
   imageUrl: string | null;
   releaseDate: string;

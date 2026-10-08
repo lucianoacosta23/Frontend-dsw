@@ -36,6 +36,20 @@ export interface PlaylistData extends CreatedPlaylist {
   tracks: PlaylistTrack[];
 }
 
+export interface OwnPlaylistItem extends CreatedPlaylist {
+  author: { id: number; username: string; fullName: string };
+  trackCount: number;
+  saveCount: number;
+  savedByMe: boolean;
+  isOwnPlaylist: boolean;
+}
+
+export interface OwnPlaylistsResponse {
+  message: string;
+  data: OwnPlaylistItem[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+}
+
 export interface CreatePlaylistResponse {
   message: string;
   data: CreatedPlaylist;
@@ -83,6 +97,20 @@ export interface PlaylistSearchResults {
 @Injectable({ providedIn: 'root' })
 export class PlaylistService {
   private readonly http = inject(HttpClient);
+
+  getMine(page = 1, pageSize = 6): Observable<OwnPlaylistsResponse> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<OwnPlaylistsResponse>(`${environment.apiBaseUrl}/playlist/mine`, {
+      params, withCredentials: true,
+    });
+  }
+
+  getByAuthor(authorId: number, page = 1, pageSize = 6): Observable<OwnPlaylistsResponse> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<OwnPlaylistsResponse>(`${environment.apiBaseUrl}/users/${authorId}/playlists`, {
+      params, withCredentials: true,
+    });
+  }
 
   private readonly mutationHeaders = new HttpHeaders({
     'X-Jukeboxd-Request': '1',

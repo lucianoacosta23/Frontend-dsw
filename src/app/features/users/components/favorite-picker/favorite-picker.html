@@ -1,0 +1,65 @@
+<div class="picker">
+  <label [for]="kind + '-source'">Buscar en</label>
+  <select
+    [id]="kind + '-source'"
+    [(ngModel)]="source"
+    (ngModelChange)="resetSearch()"
+    [disabled]="disabled || selecting()"
+  >
+    <option value="local">Catálogo de Jukeboxd</option>
+    <option value="spotify">Spotify</option>
+  </select>
+  <div class="search-row">
+    <label class="search-label" [for]="kind + '-query'">{{
+      kind === 'release' ? 'Buscar proyectos' : 'Buscar canciones'
+    }}</label>
+    <input
+      [id]="kind + '-query'"
+      [(ngModel)]="query"
+      [disabled]="disabled || selecting()"
+      (keydown.enter)="$event.preventDefault(); search()"
+    />
+    <button type="button" (click)="search()" [disabled]="disabled || loading() || selecting()">
+      Buscar
+    </button>
+  </div>
+  @if (source === 'spotify') {
+    <p class="hint">La selección se importa a Jukeboxd antes de agregarla al borrador.</p>
+  }
+  @if (error()) {
+    <p role="alert" class="error">{{ error() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">Buscando…</p>
+  }
+  @if (selecting()) {
+    <p role="status">Preparando selección…</p>
+  }
+  @if (selectedIds.length >= 5) {
+    <p role="status">Ya elegiste cinco. Quitá uno para agregar otro.</p>
+  }
+  @if (searched() && !loading() && !error() && !results().length) {
+    <p>No se encontraron resultados.</p>
+  }
+  <ul>
+    @for (item of results(); track item.key) {
+      <li>
+        <div class="cover"><app-profile-image [src]="item.image" alt="" /></div>
+        <span>{{ item.name }}</span
+        ><button
+          type="button"
+          (click)="choose(item)"
+          [disabled]="
+            disabled ||
+            selecting() ||
+            selectedIds.length >= 5 ||
+            (item.id !== null && selectedIds.includes(item.id))
+          "
+          [attr.aria-label]="'Agregar ' + item.name"
+        >
+          {{ item.id !== null && selectedIds.includes(item.id) ? 'Elegido' : 'Agregar' }}
+        </button>
+      </li>
+    }
+  </ul>
+</div>
