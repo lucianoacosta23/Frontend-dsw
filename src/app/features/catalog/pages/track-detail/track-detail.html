@@ -63,10 +63,13 @@
         <h2>Tu reseña</h2>
 
         <app-review-form
-          [target]="{ type: 'track', id: item.id }"
-          [submitting]="reviewSubmitting()"
-          (submitReview)="createReview($event)"
-        />
+  [target]="{ type: 'track', id: item.id }"
+  [title]="item.name"
+  [imageUrl]="item.release.imageUrl"
+  [submitting]="reviewSubmitting()"
+  [errorMessage]="reviewError()"
+  (submitReview)="createReview($event)"
+/>
 
         @if (reviewMessage(); as message) {
           <p class="success-message" role="status">{{ message }}</p>
