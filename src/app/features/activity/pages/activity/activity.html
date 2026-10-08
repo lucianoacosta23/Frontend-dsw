@@ -8,7 +8,6 @@
 
   <div class="activity-layout">
     <section class="activity-content" aria-label="Listado de actividad">
-      <!-- Los botones seleccionan qué actividad vamos a consultar. -->
       <div class="tabs" role="group" aria-label="Tipo de actividad">
         @for (tab of tabs; track tab.id) {
           <button
@@ -22,31 +21,163 @@
         }
       </div>
 
-      <div class="activity-status" aria-live="polite">
-        @for (tab of tabs; track tab.id) {
-          @if (selectedTab() === tab.id) {
-            <h2>{{ tab.label }}</h2>
-            <p>{{ tab.description }}</p>
+      <div class="activity-status">
+        <h2>{{ heading() }}</h2>
+
+        <button
+          type="button"
+          class="refresh-button"
+          [disabled]="loading() || loadingMore()"
+          (click)="reload()"
+        >
+          Actualizar
+        </button>
+      </div>
+
+      @if (loading()) {
+        <p role="status">Cargando actividad…</p>
+      } @else if (errorMessage(); as message) {
+        <p class="error-message" role="alert">{{ message }}</p>
+
+        <button type="button" class="load-button" (click)="reload()">
+          Volver a intentar
+        </button>
+      } @else if (items().length === 0) {
+        <div class="empty-state">
+          @if (selectedTab() === 'following') {
+            <h3>Todavía no hay reseñas para mostrar</h3>
+            <p>Seguí a otros usuarios para ver sus reseñas recientes acá.</p>
+            <a routerLink="/search">Buscar usuarios</a>
+          } @else if (selectedTab() === 'own') {
+            <h3>Todavía no publicaste reseñas</h3>
+            <p>Buscá música y compartí tu primera opinión.</p>
+            <a routerLink="/search">Buscar música</a>
+          } @else {
+            <h3>Todavía no recibiste interacciones</h3>
+            <p>
+              Acá aparecerán nuevos seguidores, likes en tus reseñas,
+              comentarios y respuestas a tus comentarios.
+            </p>
           }
+        </div>
+      } @else {
+        <ul class="activity-list">
+          @for (item of items(); track eventKey(item)) {
+            <li class="activity-item">
+              @if (item.target; as target) {
+                <a
+                  class="cover-link"
+                  [routerLink]="[
+                    target.type === 'track' ? '/tracks' : '/releases',
+                    target.id
+                  ]"
+                  [attr.aria-label]="'Ver ' + target.name"
+                >
+                  @if (target.imageUrl) {
+                    <img [src]="target.imageUrl" alt="" loading="lazy" />
+                  } @else {
+                    <span class="cover-placeholder" aria-hidden="true">♫</span>
+                  }
+                </a>
+              } @else {
+                <a
+                  class="cover-link"
+                  [routerLink]="['/users', item.author.username]"
+                  [attr.aria-label]="'Ver perfil de ' + item.author.username"
+                >
+                  <span class="cover-placeholder" aria-hidden="true">
+                    {{ item.author.username.slice(0, 1).toUpperCase() }}
+                  </span>
+                </a>
+              }
+
+              <div class="event-content">
+                <p class="event-description">
+                  <a [routerLink]="['/users', item.author.username]">
+                    {{ item.author.username }}
+                  </a>
+
+                  {{ actionLabel(item) }}
+
+                  @if (item.target; as target) {
+                    <a
+                      [routerLink]="[
+                        target.type === 'track' ? '/tracks' : '/releases',
+                        target.id
+                      ]"
+                    >
+                      {{ target.name }}
+                    </a>
+                  }
+
+                  @if (item.type === 'REVIEW_CREATED' && item.rating !== null) {
+                    <span class="rating">★ {{ item.rating }} / 5</span>
+                  }
+                </p>
+
+                @if (item.target) {
+                  <p class="event-artists">{{ artistsLabel(item) }}</p>
+                }
+
+                @if (item.text) {
+                  <p class="event-text">{{ item.text }}</p>
+                }
+
+                <div class="event-footer">
+                  @if (item.reviewId !== null) {
+                    <a [routerLink]="['/reviews', item.reviewId]">
+                      Ver reseña y comentarios →
+                    </a>
+                  } @else {
+                    <a [routerLink]="['/users', item.author.username]">
+                      Ver perfil →
+                    </a>
+                  }
+
+                  <time [attr.datetime]="item.createdAt">
+                    {{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  </time>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (moreError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
         }
 
-        <!-- Todavía no consultamos eventos; no representa una lista vacía. -->
-        <p class="pending-message">
-          El listado de actividad todavía no está conectado.
-        </p>
-      </div>
+        @if (hasMore()) {
+          <button
+            type="button"
+            class="load-button"
+            [disabled]="loadingMore()"
+            (click)="loadMore()"
+          >
+            {{ loadingMore() ? 'Cargando…' : 'Cargar más' }}
+          </button>
+        }
+      }
     </section>
 
     <aside class="activity-sidebar" aria-labelledby="activity-info-title">
-      <h2 id="activity-info-title">Qué vas a encontrar</h2>
+      <h2 id="activity-info-title">Tu actividad musical</h2>
 
       <p>
-        Reseñas, puntuaciones e interacciones, ordenadas desde las más recientes.
+        En Seguidos aparecen las reseñas de las personas que seguís.
+        En Vos aparecen las que publicaste.
       </p>
 
       <p>
-        Cada evento permitirá abrir el perfil o el contenido relacionado.
+        En Recibida aparecen quienes te siguen, los likes y comentarios
+        en tus reseñas y las respuestas a tus comentarios.
       </p>
+
+      <p>Abrí una reseña para leerla completa, comentar o darle like.</p>
+
+      @if (!loading() && !errorMessage()) {
+        <p>{{ total() }} eventos en este listado.</p>
+      }
     </aside>
   </div>
 </main>

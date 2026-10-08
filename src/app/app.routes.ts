@@ -1,6 +1,8 @@
 ﻿import { Routes } from '@angular/router';
 
-
+import {
+  SpotifyRegister,
+} from './features/auth/pages/spotify-register/spotify-register.js';
 import { ReviewDetail } from './features/reviews/pages/review-detail/review-detail.js';
 import { PlaylistDetail } from './features/playlists/pages/playlist-detail/playlist-detail.js';
 import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
@@ -91,6 +93,11 @@ export const routes: Routes = [
     component: ReviewDetail,
     canActivate: [authGuard],
   },
+
+{
+  path: 'register/spotify',
+  component: SpotifyRegister,
+},
 
   // Debe quedar última: captura las direcciones desconocidas.
   { path: '**', redirectTo: '' },

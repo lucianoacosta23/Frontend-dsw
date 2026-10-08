@@ -12,9 +12,10 @@ import type {
 } from '../../../../models/review.js';
 import { ReviewForm } from '../../../reviews/components/review-form/review-form';
 import { ReviewCard } from '../../../reviews/components/review-card/review-card';
+import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 
 @Component({
-  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats],
+  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats, Navbar],
   selector: 'app-track-detail',
   styleUrl: './track-detail.scss',
   templateUrl: './track-detail.html',

@@ -62,4 +62,34 @@ export class AuthService {
       )
       .pipe(tap(() => this.currentUserState.set(null)));
   }
+  getSpotifyRegistration(): Observable<
+  ApiResponse<{ displayName: string | null }>
+> {
+  return this.http.get<
+    ApiResponse<{ displayName: string | null }>
+  >(
+    `${environment.apiBaseUrl}/auth/spotify/registration`,
+    { withCredentials: true },
+  );
+}
+
+completeSpotifyRegistration(data: {
+  username: string;
+  fullName: string;
+}): Observable<ApiResponse<AuthUser> & { returnUrl: string }> {
+  return this.http.post<
+    ApiResponse<AuthUser> & { returnUrl: string }
+  >(
+    `${environment.apiBaseUrl}/auth/spotify/registration`,
+    data,
+    {
+      withCredentials: true,
+      headers: {
+        'X-Jukeboxd-Request': '1',
+      },
+    },
+  ).pipe(
+    tap(response => this.currentUserState.set(response.data)),
+  );
+}
 }

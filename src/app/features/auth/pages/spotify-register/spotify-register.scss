@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #151920;
+  color: #f2f2f5;
+}
+
+.registration-page {
+  padding: 64px 20px;
+}
+
+.registration-card {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 32px;
+  background: #1c222c;
+  border: 1px solid #363e4c;
+  border-radius: 14px;
+}
+
+.brand,
+a {
+  color: #c5baff;
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+h1 {
+  margin-top: 32px;
+}
+
+p {
+  line-height: 1.5;
+}
+
+form {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+label {
+  font-weight: 600;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #4b5566;
+  border-radius: 8px;
+  background: #242b36;
+  color: inherit;
+  font: inherit;
+}
+
+input:focus-visible {
+  outline: 2px solid #b9aaff;
+  outline-offset: 2px;
+}
+
+.help {
+  margin: 0 0 12px;
+  color: #bcc3d0;
+  font-size: 14px;
+}
+
+.error-message {
+  color: #ffaaaa;
+}
+
+button {
+  margin-top: 12px;
+  padding: 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #6554df;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
