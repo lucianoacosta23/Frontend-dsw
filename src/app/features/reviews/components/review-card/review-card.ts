@@ -13,7 +13,7 @@ import { finalize } from 'rxjs';
 
 import { ReportService } from '../../../../core/services/report.service.js';
 import type { CreateReportRequest, ReportReason } from '../../../../models/report.js';
-
+import { AuthService } from '../../../../core/services/auth.service.js';
 import { CommentService } from '../../../../core/services/comments-service.js';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { CommentItem } from '../../../../models/comment.js';
@@ -31,6 +31,7 @@ export class ReviewCard implements OnChanges {
   private readonly reviewService = inject(ReviewService);
   private readonly commentService = inject(CommentService);
   private readonly reportService = inject(ReportService);
+private readonly auth = inject(AuthService);
 
   readonly liked = signal(false);
   readonly likeCount = signal(0);
@@ -92,6 +93,14 @@ export class ReviewCard implements OnChanges {
       this.commentsOpen.set(true);
       this.loadComments();
     }
+  }
+
+    canReport(): boolean {
+    const user = this.auth.currentUser();
+
+    return Boolean(
+      user && user.id !== this.review.author.id,
+    );
   }
 
   toggleLike(): void {
@@ -289,12 +298,14 @@ export class ReviewCard implements OnChanges {
   }
 
   toggleReport(): void {
+    if (!this.canReport()) return;
     if (this.reportSubmitting() || this.reportSent()) return;
     this.reportOpen.update(open => !open);
     this.reportError.set(null);
   }
 
   submitReport(): void {
+    if (!this.canReport()) return;
     if (this.reportSubmitting() || this.reportSent()) return;
 
     const details = this.reportDetails.trim();

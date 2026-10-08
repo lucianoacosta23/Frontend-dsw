@@ -42,9 +42,10 @@
         · {{ commentsTotal() }}
       }
     </button>
-
+@if (canReport()) {
     <button
       type="button"
+    
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"
@@ -52,7 +53,7 @@
       (click)="toggleReport()"
     >
       {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>
+    </button>}
   </div>
 
   @if (likeError(); as message) {
@@ -154,9 +155,10 @@
         · {{ repliesCountFor(comment.id) }}
       }
     </button>
-
+@if (canReport()) {
     <button
       type="button"
+      
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"
@@ -164,7 +166,7 @@
       (click)="toggleReport()"
     >
       {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>
+    </button>}
   </div>
 
   @if (isReplyFormOpen(comment.id)) {
