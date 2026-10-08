@@ -1,22 +1,155 @@
-<form class="review-form" (ngSubmit)="submit()">
-  <label for="review-rating">Tu puntuación</label>
-  <select id="review-rating" name="rating" [(ngModel)]="rating">
-    @for (value of ratings; track value) {
-      <option [ngValue]="value">{{ value }}</option>
+<ng-template #ratingStars let-openDialog="openDialog">
+  <div class="stars" role="group" aria-label="Elegir puntuación">
+    @for (star of stars; track star) {
+      <span class="star">
+        <svg class="star-empty" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2 15 8.5 22 9.5 17 14.5 18.2 22 12 18.5 5.8 22 7 14.5 2 9.5 9 8.5Z" />
+</svg>
+
+<span
+  class="star-filled"
+  aria-hidden="true"
+  [style.width.%]="fill(star)"
+>
+  <svg viewBox="0 0 24 24">
+    <path d="M12 2 15 8.5 22 9.5 17 14.5 18.2 22 12 18.5 5.8 22 7 14.5 2 9.5 9 8.5Z" />
+  </svg>
+</span>
+
+        <button
+          class="star-half left"
+          type="button"
+          [disabled]="submitting"
+          [attr.aria-label]="(star - 0.5) + ' de 5'"
+          [attr.aria-pressed]="rating === star - 0.5"
+          (click)="selectRating(star - 0.5, openDialog)"
+        ></button>
+
+        <button
+          class="star-half right"
+          type="button"
+          [disabled]="submitting"
+          [attr.aria-label]="star + ' de 5'"
+          [attr.aria-pressed]="rating === star"
+          (click)="selectRating(star, openDialog)"
+        ></button>
+      </span>
     }
-  </select>
+  </div>
+</ng-template>
 
-  <label for="review-text">Tu reseña</label>
-  <textarea
-    id="review-text"
-    name="text"
-    [(ngModel)]="text"
-    rows="5"
-    maxlength="2000"
-    placeholder="¿Qué te pareció?"
-  ></textarea>
+<section class="rating-panel">
+  <p class="rating-label">Tu puntuación</p>
 
-  <button type="submit" [disabled]="submitting">
-    {{ submitting ? 'Publicando…' : 'Publicar reseña' }}
+  <ng-container
+    [ngTemplateOutlet]="ratingStars"
+    [ngTemplateOutletContext]="{ openDialog: true }"
+  />
+
+  <p class="rating-value">{{ rating }} / 5</p>
+
+  <button
+    class="review-trigger"
+    type="button"
+    [disabled]="submitting"
+    (click)="open()"
+  >
+    Escribir reseña…
   </button>
-</form>
+</section>
+
+<dialog
+  #reviewDialog
+  class="review-dialog"
+  [attr.aria-labelledby]="'review-dialog-title-' + target.type + target.id"
+  (cancel)="onCancel($event)"
+>
+  <header class="dialog-header">
+    <h2 [id]="'review-dialog-title-' + target.type + target.id">
+      Tu reseña
+    </h2>
+
+    <button
+      class="close-button"
+      type="button"
+      aria-label="Cerrar formulario"
+      [disabled]="submitting"
+      (click)="close()"
+    >
+      ×
+    </button>
+  </header>
+
+  <form (ngSubmit)="submit()">
+    <div class="dialog-body">
+      <div class="dialog-cover">
+        @if (imageUrl) {
+          <img [src]="imageUrl" [alt]="'Portada de ' + title" />
+        } @else {
+          <span aria-hidden="true">♫</span>
+        }
+      </div>
+
+      <div class="dialog-content">
+        <p class="eyebrow">
+          {{ target.type === 'release' ? 'Lanzamiento' : 'Canción' }}
+        </p>
+        <h3>{{ title || 'Compartí tu opinión' }}</h3>
+
+        <label [for]="'review-text-' + target.type + target.id">
+          Tu opinión <span>(opcional)</span>
+        </label>
+
+        <textarea
+          [id]="'review-text-' + target.type + target.id"
+          name="text"
+          [(ngModel)]="text"
+          [disabled]="submitting"
+          rows="6"
+          placeholder="¿Qué te pareció?"
+          autofocus
+        ></textarea>
+
+        <small>Hasta 2000 caracteres.</small>
+
+        <div class="modal-rating">
+          <p>Tu puntuación</p>
+
+          <ng-container
+            [ngTemplateOutlet]="ratingStars"
+            [ngTemplateOutletContext]="{ openDialog: false }"
+          />
+
+          <span class="rating-value">{{ rating }} / 5</span>
+        </div>
+
+        @if (validationError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
+        }
+
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+      </div>
+    </div>
+
+    <footer class="dialog-footer">
+      <button
+        class="cancel-button"
+        type="button"
+        [disabled]="submitting"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="publish-button"
+        type="submit"
+        [disabled]="submitting"
+      >
+        {{ submitting ? 'Publicando…' : 'Publicar reseña' }}
+      </button>
+    </footer>
+  </form>
+</dialog>
