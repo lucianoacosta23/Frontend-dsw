@@ -10,7 +10,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-
+import { ReviewEditor } from '../review-editor/review-editor';
+import type { ReviewTextUpdate } from '../../../../models/review';
 import { ReportService } from '../../../../core/services/report.service.js';
 import type { CreateReportRequest, ReportReason } from '../../../../models/report.js';
 import { AuthService } from '../../../../core/services/auth.service.js';
@@ -20,7 +21,8 @@ import type { CommentItem } from '../../../../models/comment.js';
 import type { ReviewListItem } from '../../../../models/review.js';
 
 @Component({
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ReviewEditor
+  ],
   selector: 'app-review-card',
   styleUrl: './review-card.scss',
   templateUrl: './review-card.html',
@@ -79,7 +81,12 @@ private readonly auth = inject(AuthService);
     { value: 'SPOILER', label: 'Spoiler' },
     { value: 'OTHER', label: 'Otro motivo' },
   ];
-
+onReviewSaved(update: ReviewTextUpdate): void {
+  this.review = {
+    ...this.review,
+    ...update,
+  };
+}
   // Copia a la tarjeta el estado inicial recibido del backend.
     ngOnChanges(): void {
     this.liked.set(this.review.likedByMe);

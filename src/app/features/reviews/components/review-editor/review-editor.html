@@ -1,0 +1,114 @@
+@if (review.editedAt) {
+  <p class="edit-date">
+    Editada el {{ review.editedAt | date:'dd/MM/yyyy HH:mm' }}
+  </p>
+}
+
+<div class="editor-actions">
+  @if (canEdit() && !editing()) {
+    <button type="button" (click)="startEdit()">
+      Editar reseña
+    </button>
+  }
+
+  @if (canReadHistory()) {
+    <button
+      type="button"
+      [disabled]="saving()"
+      [attr.aria-expanded]="historyOpen()"
+      (click)="toggleHistory()"
+    >
+      {{ historyOpen() ? 'Ocultar historial' : 'Ver historial' }}
+    </button>
+  }
+</div>
+
+@if (isOwner() && !canEdit()) {
+  <p class="edit-date">
+    El plazo de 24 horas para editar terminó.
+  </p>
+}
+
+@if (editing()) {
+  <form class="edit-form" (ngSubmit)="save()">
+    <label [for]="'review-edit-' + review.id">
+      Texto de tu reseña
+    </label>
+
+    <textarea
+      [id]="'review-edit-' + review.id"
+      name="reviewText"
+      [(ngModel)]="editText"
+      [disabled]="saving()"
+      rows="5"
+      required
+    ></textarea>
+
+    <small>Hasta 2000 caracteres. La puntuación se mantiene.</small>
+
+    <div class="editor-actions">
+      <button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+
+      <button
+        type="button"
+        [disabled]="saving()"
+        (click)="cancelEdit()"
+      >
+        Cancelar
+      </button>
+    </div>
+
+    @if (editError(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+  </form>
+}
+
+@if (success(); as message) {
+  <p class="success" role="status">{{ message }}</p>
+}
+
+@if (historyOpen()) {
+  <section class="history">
+    <h3>Versiones anteriores</h3>
+
+    @for (revision of revisions(); track revision.id) {
+      <article class="revision">
+        <p class="edit-date">
+          Desde {{ revision.effectiveAt | date:'dd/MM/yyyy HH:mm' }}
+          hasta {{ revision.replacedAt | date:'dd/MM/yyyy HH:mm' }}
+        </p>
+
+        <p class="revision-text">
+          {{ revision.text ?? 'Solo puntuación.' }}
+        </p>
+      </article>
+    }
+
+    @if (historyLoading()) {
+      <p role="status">Cargando historial…</p>
+    }
+
+    @if (historyError(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+      <button
+        type="button"
+        (click)="loadHistory(historyLoaded())"
+      >
+        Volver a intentar
+      </button>
+    } @else if (historyLoaded() && !historyLoading()) {
+      @if (revisions().length === 0) {
+        <p class="edit-date">Esta reseña no tiene versiones anteriores.</p>
+      }
+
+      @if (page() < totalPages()) {
+        <button type="button" (click)="loadHistory(true)">
+          Cargar más versiones
+        </button>
+      }
+    }
+  </section>
+}

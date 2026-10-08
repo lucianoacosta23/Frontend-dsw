@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, Input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
@@ -13,12 +13,17 @@ import type { RatingStatsData } from '../../../../models/rating-stats.js';
 import { ReviewCard } from '../../../reviews/components/review-card/review-card';
 import { ReleaseCover } from '../../components/release-cover/release-cover';
 import { PopularCarousel } from '../../components/popular-carousel/popular-carousel';
-
+import { DashboardService } from '../../../../core/services/dashboard.service.js';
+import type {
+  PopularPlaylist,
+  PopularReview,
+} from '../../../../models/dashboard.js';
+import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrls: ['./home.scss', './home-hero.scss', './home-social.scss'],
-  imports: [RouterLink, ReviewCard, ReleaseCover, PopularCarousel],
+  imports: [RouterLink, ReviewCard, ReleaseCover, PopularCarousel, Navbar],
 })
 export class Home implements OnInit {
   private readonly catalog = inject(CatalogService);
@@ -44,11 +49,27 @@ export class Home implements OnInit {
   readonly tracksLoading = signal(true);
   readonly tracksErrorMessage = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.loadPopularAlbums();
-    this.loadPopularTracks();
-  }
+  @Input() privateHome = false;
 
+private readonly dashboardService = inject(DashboardService);
+
+readonly popularPlaylists = signal<PopularPlaylist[]>([]);
+readonly playlistsLoading = signal(false);
+readonly playlistsError = signal<string | null>(null);
+
+readonly popularReviews = signal<PopularReview[]>([]);
+readonly popularReviewsLoading = signal(false);
+readonly popularReviewsError = signal<string | null>(null);
+
+ngOnInit(): void {
+  this.loadPopularAlbums();
+  this.loadPopularTracks();
+
+  if (this.privateHome) {
+    this.loadPopularPlaylists();
+    this.loadPopularReviews();
+  }
+}
   loadPopularAlbums(): void {
     this.catalogRequest?.unsubscribe();
     this.reviewsRequest?.unsubscribe();
@@ -81,6 +102,54 @@ export class Home implements OnInit {
         },
       });
   }
+
+loadPopularPlaylists(): void {
+  if (!this.privateHome || this.playlistsLoading()) return;
+
+  this.playlistsLoading.set(true);
+  this.playlistsError.set(null);
+
+  this.dashboardService.getPlaylists()
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.playlistsLoading.set(false)),
+    )
+    .subscribe({
+      next: response => {
+        this.popularPlaylists.set(response.data);
+      },
+      error: () => {
+        this.playlistsError.set(
+          'No pudimos cargar las playlists. Intentá nuevamente.',
+        );
+      },
+    });
+}
+
+loadPopularReviews(): void {
+  if (!this.privateHome || this.popularReviewsLoading()) return;
+
+  this.popularReviewsLoading.set(true);
+  this.popularReviewsError.set(null);
+
+  this.dashboardService.getReviews()
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.popularReviewsLoading.set(false)),
+    )
+    .subscribe({
+      next: response => {
+        this.popularReviews.set(response.data);
+      },
+      error: () => {
+        this.popularReviewsError.set(
+          'No pudimos cargar las reseñas populares. Intentá nuevamente.',
+        );
+      },
+    });
+}
+
+
 
   loadFeaturedReviews(): void {
     const release = this.featured();

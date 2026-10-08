@@ -7,6 +7,8 @@ import type {
   ReviewListResponse,
   ReviewLikeResponse,
   ReviewDetailResponse,
+  ReviewEditResponse,
+ReviewHistoryResponse,
 } from '../../models/review.js';
 import { environment } from '../../../environments/environments.js';
 import type { RatingStatsResponse } from '../../models/rating-stats.js';
@@ -92,6 +94,7 @@ likeReview(reviewId: number): Observable<ReviewLikeResponse> {
       headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
     },
   );
+
 }
 
 // Quita el like del usuario de la sesión.
@@ -101,6 +104,37 @@ unlikeReview(reviewId: number): Observable<ReviewLikeResponse> {
     {
       withCredentials: true,
       headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
+editReview(
+  reviewId: number,
+  text: string,
+): Observable<ReviewEditResponse> {
+  return this.http.patch<ReviewEditResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}`,
+    { text },
+    {
+      withCredentials: true,
+      headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
+
+getReviewHistory(
+  reviewId: number,
+  page = 1,
+  pageSize = 10,
+): Observable<ReviewHistoryResponse> {
+  const params = new HttpParams()
+    .set('page', page)
+    .set('pageSize', pageSize);
+
+  return this.http.get<ReviewHistoryResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}/history`,
+    {
+      params,
+      withCredentials: true,
     },
   );
 }
