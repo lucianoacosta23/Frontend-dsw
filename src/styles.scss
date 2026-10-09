@@ -1,6 +1,7 @@
 @use '@angular/material' as mat;
 @use './styles/fonts';
 @use './styles/ambient';
+@use './styles/backgrounds';
 
 // Shared tokens; layout and control defaults remain in their components.
 :root {
@@ -80,7 +81,6 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--jb-bg);
   color: var(--jb-text);
   font: var(--mat-sys-body-medium);
 }
