@@ -1,5 +1,5 @@
 ﻿import { Routes } from '@angular/router';
-
+import { guestGuard } from './core/guards/guest-guard';
 import {
   SpotifyRegister,
 } from './features/auth/pages/spotify-register/spotify-register.js';
@@ -40,7 +40,11 @@ export const routes: Routes = [
   { path: 'users/:username', component: UserProfile },
 
   // Acceso y registro.
-  { path: 'login', component: Login },
+  {
+  path: 'login',
+  component: Login,
+  canActivate: [guestGuard],
+},
   { path: 'register', component: Register },
 
     // La búsqueda requiere una sesión válida.
