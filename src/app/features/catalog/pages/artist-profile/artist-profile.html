@@ -1,33 +1,119 @@
-<main class="artist-page">
-  <a class="back-link" routerLink="/">Volver a la portada</a>
+<app-navbar />
 
+<main class="artist-page">
   @if (loading()) {
-    <p class="status" role="status">Cargando perfil del artista…</p>
+    <p class="status" role="status">Cargando artista y discografía…</p>
   } @else if (errorMessage(); as message) {
     <section class="status error" role="alert">
       <p>{{ message }}</p>
       <button type="button" (click)="loadArtist()">Volver a intentar</button>
     </section>
   } @else if (artist(); as item) {
-    <article class="artist-card">
-      @if (item.imageUrl) {
-        <img class="artist-image" [src]="item.imageUrl" [alt]="item.name" />
-      } @else {
-        <div class="artist-placeholder" aria-label="Imagen no disponible">
-          ♪
+    <header class="page-heading">
+      <p class="eyebrow">Discografía de</p>
+      <h1>{{ item.name }}</h1>
+    </header>
+
+    <div class="artist-layout">
+      <section class="discography" aria-labelledby="discography-title">
+        <div class="toolbar">
+          <h2 id="discography-title">Releases</h2>
+          <div class="filters">
+            <label>
+              <span>Tipo</span>
+              <select #typeSelect [value]="releaseFilter()" (change)="setFilter(typeSelect.value)">
+                <option value="ALL">Todos</option>
+                <option value="ALBUM">Álbumes</option>
+                <option value="EP">EP</option>
+                <option value="SINGLE">Singles</option>
+                <option value="MIXTAPE">Mixtapes</option>
+                <option value="COMPILATION">Compilaciones</option>
+              </select>
+            </label>
+            <label>
+              <span>Orden</span>
+              <select #orderSelect [value]="releaseOrder()" (change)="setOrder(orderSelect.value)">
+                <option value="newest">Más recientes</option>
+                <option value="oldest">Más antiguos</option>
+                <option value="name">Nombre</option>
+              </select>
+            </label>
+          </div>
         </div>
-      }
 
-      <div class="artist-info">
-        <p class="eyebrow">Perfil de artista</p>
-        <h1>{{ item.name }}</h1>
-
-        @if (item.biography) {
-          <p class="biography">{{ item.biography }}</p>
-        } @else {
-          <p class="biography empty">Todavía no hay una biografía disponible.</p>
+        @if (releasesError(); as message) {
+          <div class="inline-message error" role="alert">
+            <p>{{ message }}</p>
+            <button type="button" (click)="loadArtist()">Volver a intentar</button>
+          </div>
         }
-      </div>
-    </article>
+        @if (spotifyError(); as message) {
+          <div class="inline-message error" role="alert">
+            <p>{{ message }}</p>
+            <button type="button" [disabled]="spotifyLoading()" (click)="retrySpotify()">Reintentar Spotify</button>
+          </div>
+        }
+        @if (importError(); as message) {
+          <p class="inline-message error" role="alert">{{ message }}</p>
+        }
+        <p class="release-count" role="status">{{ visibleReleases().length }} releases cargados{{ releaseFilter() === 'ALL' ? '' : ' de este tipo' }}</p>
+        @if (artist()?.spotifyId) {
+          <p class="catalog-note">Los filtros y el orden se aplican a los releases cargados. Cargá más para seguir explorando.</p>
+        }
+        <div class="release-grid" [attr.aria-busy]="spotifyLoading()">
+          @for (release of visibleReleases(); track release.key) {
+            <div class="release-entry">
+              @if (release.localId !== null) {
+                <a class="release-card" [routerLink]="['/releases', release.localId]" [attr.aria-label]="release.name + ', ' + typeLabel(release.type)">
+                  <ng-container [ngTemplateOutlet]="releaseContent" [ngTemplateOutletContext]="{ $implicit: release }" />
+                </a>
+              } @else {
+                <button class="release-card external-card" type="button" (click)="openSpotifyRelease(release)" [disabled]="importingId() !== null" [attr.aria-label]="'Abrir ' + release.name">
+                  <ng-container [ngTemplateOutlet]="releaseContent" [ngTemplateOutletContext]="{ $implicit: release }" />
+                  <span class="open-label">{{ importingId() === release.spotifyId ? 'Abriendo…' : 'Abrir release' }}</span>
+                </button>
+              }
+              @if (release.spotifyId) {
+                <a class="spotify-link" [href]="'https://open.spotify.com/album/' + release.spotifyId" target="_blank" rel="noopener noreferrer">Ver en Spotify ↗</a>
+              }
+            </div>
+          } @empty {
+            @if (!spotifyLoading() && !spotifyError() && !releasesError()) {
+              <p class="empty-state">{{ allReleases().length ? 'No hay releases de este tipo entre los cargados.' : 'No encontramos releases de este artista en el catálogo ni en Spotify.' }}</p>
+            }
+          }
+        </div>
+        @if (spotifyLoading()) {
+          <p class="status" role="status">Cargando releases de Spotify…</p>
+        }
+        @if (nextOffset() !== null && !spotifyError()) {
+          <div class="load-more">
+            <button type="button" [disabled]="spotifyLoading()" (click)="loadMoreSpotify()">{{ spotifyLoading() ? 'Cargando…' : 'Cargar más releases' }}</button>
+            <span>{{ spotifyReleases().length }} de {{ spotifyTotal() }} resultados de Spotify</span>
+          </div>
+        }
+        <ng-template #releaseContent let-release>
+          <div class="cover-wrap">
+            @if (release.imageUrl) {
+              <img [src]="release.imageUrl" alt="" loading="lazy" width="300" height="300" />
+            } @else {
+              <span class="cover-placeholder" aria-hidden="true">♫</span>
+            }
+          </div>
+          <h3>{{ release.name }}</h3>
+          <p>{{ release.releaseDate.slice(0, 4) }} · {{ typeLabel(release.type) }}</p>
+        </ng-template>
+      </section>
+
+      <aside class="artist-summary" aria-label="Artista">
+        @if (item.imageUrl) {
+          <img class="artist-image" [src]="item.imageUrl" [alt]="item.name" width="400" height="400" />
+        } @else {
+          <div class="artist-placeholder" role="img" [attr.aria-label]="item.name + ': imagen no disponible'">♫</div>
+        }
+        <p class="artist-name">{{ item.name }}</p>
+        <p class="summary-label">Artista / banda</p>
+      </aside>
+    </div>
   }
 </main>
