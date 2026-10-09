@@ -21,7 +21,9 @@ import type {
   SearchResults,
   SearchType,
   SpotifyAlbumResult,
-  SpotifyAlbumSearchResponse,
+  SpotifyMusicSearchResponse,
+  SpotifyTrackResult,
+  SpotifyArtistResult,
 } from '../../../../models/search.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 
@@ -43,7 +45,7 @@ export class Search implements OnDestroy {
 
   readonly filters: Array<{ type: SearchType; label: string }> = [
     { type: 'tracks', label: 'Canciones' },
-    { type: 'releases', label: 'Álbumes' },
+    { type: 'releases', label: 'Releases' },
     { type: 'artists', label: 'Artistas' },
     { type: 'playlists', label: 'Playlists' },
     { type: 'users', label: 'Usuarios' },
@@ -52,6 +54,8 @@ export class Search implements OnDestroy {
   readonly selectedTypes = signal<SearchType[]>([]);
   readonly results = signal<SearchResults | null>(null);
   readonly spotifyAlbums = signal<SpotifyAlbumResult[]>([]);
+  readonly spotifyTracks = signal<SpotifyTrackResult[]>([]);
+  readonly spotifyArtists = signal<SpotifyArtistResult[]>([]);
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
@@ -61,7 +65,7 @@ export class Search implements OnDestroy {
   readonly importingId = signal<string | null>(null);
   readonly importError = signal('');
 
-  // Suma resultados locales y álbumes externos sin duplicados.
+  // Suma resultados locales y música externa sin duplicados.
   readonly totalResults = computed(() => {
     const results = this.results();
 
@@ -73,7 +77,7 @@ export class Search implements OnDestroy {
         + results.users.length
       : 0;
 
-    return localCount + this.spotifyAlbums().length;
+    return localCount + this.spotifyAlbums().length + this.spotifyTracks().length + this.spotifyArtists().length;
   });
 
   isSelected(type: SearchType): boolean {
@@ -110,28 +114,31 @@ export class Search implements OnDestroy {
     this.importError.set('');
     this.results.set(null);
     this.spotifyAlbums.set([]);
+    this.spotifyTracks.set([]);
+    this.spotifyArtists.set([]);
 
     const query = this.query.trim();
 
-    if (!query) {
-      this.errorMessage.set('Escribí algo para buscar.');
+    if (!query || query.length > 255) {
+      this.hasSearched.set(false);
+      this.errorMessage.set('Escribí entre 1 y 255 caracteres para buscar.');
       return;
     }
 
     const types = this.selectedTypes();
 
-    // Por ahora buscamos álbumes externos cuando se selecciona
-    // Todo o Álbumes. Las demás categorías siguen siendo locales.
-    const includeSpotifyAlbums =
-      types.length === 0 || types.includes('releases');
+    const spotifyTypes: Array<'album' | 'track' | 'artist'> = [];
+    if (types.length === 0 || types.includes('releases')) spotifyTypes.push('album');
+    if (types.length === 0 || types.includes('tracks')) spotifyTypes.push('track');
+    if (types.length === 0 || types.includes('artists')) spotifyTypes.push('artist');
 
-    const emptySpotifyResponse: SpotifyAlbumSearchResponse = {
+    const emptySpotifyResponse: SpotifyMusicSearchResponse = {
       message: '',
-      data: { albums: [] },
+      data: { albums: [], tracks: [], artists: [] },
     };
 
-    const spotifyRequest = includeSpotifyAlbums
-      ? this.searchService.searchSpotifyAlbums(query).pipe(
+    const spotifyRequest = spotifyTypes.length > 0
+      ? this.searchService.searchSpotifyMusic(query, spotifyTypes).pipe(
           catchError(() => {
             // Un fallo externo no oculta los resultados locales.
             this.spotifyError.set(
@@ -155,6 +162,28 @@ export class Search implements OnDestroy {
       .subscribe({
         next: ({ local, spotify }) => {
           this.results.set(local.data);
+
+          const localArtistIds = new Set(
+            local.data.artists.map(artist => artist.spotifyId)
+              .filter((id): id is string => typeof id === 'string'),
+          );
+          const seenArtists = new Set<string>();
+          this.spotifyArtists.set((spotify.data.artists ?? []).filter(artist => {
+            if (localArtistIds.has(artist.id) || seenArtists.has(artist.id)) return false;
+            seenArtists.add(artist.id);
+            return true;
+          }));
+
+          const localTrackIds = new Set(
+            local.data.tracks.map(track => track.spotifyId)
+              .filter((id): id is string => typeof id === 'string'),
+          );
+          const seenTracks = new Set<string>();
+          this.spotifyTracks.set((spotify.data.tracks ?? []).filter(track => {
+            if (localTrackIds.has(track.id) || seenTracks.has(track.id)) return false;
+            seenTracks.add(track.id);
+            return true;
+          }));
 
           const localSpotifyIds = new Set(
             local.data.releases
@@ -211,13 +240,75 @@ export class Search implements OnDestroy {
             error instanceof HttpErrorResponse &&
               typeof error.error?.message === 'string'
               ? error.error.message
-              : 'No pudimos importar el álbum. Intentá nuevamente.',
+              : 'No pudimos importar el lanzamiento. Intentá nuevamente.',
           );
         },
       });
   }
 
-  spotifyArtistsLabel(album: SpotifyAlbumResult): string {
+  openSpotifyTrack(track: SpotifyTrackResult): void {
+    if (this.importingId() !== null) return;
+
+    this.importingId.set(`track:${track.id}`);
+    this.importError.set('');
+    this.importRequest = this.searchService.importSpotifyTrack(track.id)
+      .pipe(finalize(() => this.importingId.set(null)))
+      .subscribe({
+        next: response => {
+          void this.router.navigate(['/tracks', response.data.trackId]);
+        },
+        error: (error: unknown) => {
+          this.importError.set(
+            error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
+              ? error.error.message
+              : 'No pudimos importar la canción. Intentá nuevamente.',
+          );
+        },
+      });
+  }
+
+  openSpotifyArtist(artist: SpotifyArtistResult): void {
+    if (this.importingId() !== null) return;
+
+    this.importingId.set(`artist:${artist.id}`);
+    this.importError.set('');
+    this.importRequest = this.searchService.importSpotifyArtist(artist.id)
+      .pipe(finalize(() => this.importingId.set(null)))
+      .subscribe({
+        next: response => {
+          void this.router.navigate(['/artists', response.data.artistId]);
+        },
+        error: (error: unknown) => {
+          this.importError.set(
+            error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
+              ? error.error.message
+              : 'No pudimos importar el artista. Intentá nuevamente.',
+          );
+        },
+      });
+  }
+
+  spotifyReleaseTypeLabel(release: SpotifyAlbumResult): string {
+    switch (release.album_type) {
+      case 'album': return 'Álbum';
+      case 'single': return 'Single';
+      case 'compilation': return 'Compilación';
+      default: return 'Release';
+    }
+  }
+
+  localReleaseTypeLabel(type: string): string {
+    switch (type) {
+      case 'ALBUM': return 'Álbum';
+      case 'EP': return 'EP';
+      case 'SINGLE': return 'Single';
+      case 'MIXTAPE': return 'Mixtape';
+      case 'COMPILATION': return 'Compilación';
+      default: return 'Release';
+    }
+  }
+
+  spotifyArtistsLabel(album: { artists: Array<{ name: string }> }): string {
     return album.artists.map(artist => artist.name).join(', ');
   }
 

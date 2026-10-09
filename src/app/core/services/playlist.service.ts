@@ -98,6 +98,18 @@ export interface PlaylistSearchResults {
 export class PlaylistService {
   private readonly http = inject(HttpClient);
 
+  getDetail(playlistId: number): Observable<{
+    message: string;
+    data: PlaylistData & { isOwnPlaylist: boolean };
+  }> {
+    return this.http.get<{
+      message: string;
+      data: PlaylistData & { isOwnPlaylist: boolean };
+    }>(`${environment.apiBaseUrl}/playlist/${playlistId}`, {
+      withCredentials: true,
+    });
+  }
+
   getMine(page = 1, pageSize = 6): Observable<OwnPlaylistsResponse> {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http.get<OwnPlaylistsResponse>(`${environment.apiBaseUrl}/playlist/mine`, {

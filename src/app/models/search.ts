@@ -20,6 +20,7 @@ export interface SearchReleaseItem extends SearchMusicItem {
 }
 
 export interface SearchArtistItem extends SearchMusicItem {
+  spotifyId?: string | null;
   imageUrl: string | null;
 }
 
@@ -37,7 +38,7 @@ export interface SearchPlaylistItem {
 
 // Cada categoría tiene su propio listado de resultados.
 export interface SearchResults {
-  tracks: SearchMusicItem[];
+  tracks: SearchTrackItem[];
   releases: SearchReleaseItem[];
   artists: SearchArtistItem[];
   playlists: SearchPlaylistItem[];
@@ -52,6 +53,7 @@ export interface SearchResponse {
 // Datos de un álbum devuelto por Spotify.
 // Su ID es un texto, distinto del ID numérico de nuestra base.
 export interface SpotifyAlbumResult {
+  album_type?: 'album' | 'single' | 'compilation';
   id: string;
   name: string;
   release_date: string;
@@ -83,4 +85,48 @@ export interface SpotifyAlbumImportResponse {
     releaseId: number;
     createdRelease: boolean;
   };
+}
+
+export interface SearchTrackItem extends SearchMusicItem {
+  spotifyId?: string | null;
+  release?: { name: string; imageUrl: string | null };
+  artists?: Array<{ id: number; name: string }>;
+}
+
+export interface SpotifyTrackResult {
+  id: string;
+  name: string;
+  duration_ms: number;
+  artists: Array<{ id: string; name: string }>;
+  album: {
+    name: string;
+    images: Array<{ url: string }>;
+  };
+  external_urls: { spotify: string };
+}
+
+export interface SpotifyMusicSearchResponse {
+  message: string;
+  data: {
+    albums: SpotifyAlbumResult[];
+    tracks: SpotifyTrackResult[];
+    artists: SpotifyArtistResult[];
+  };
+}
+
+export interface SpotifyTrackImportResponse {
+  message: string;
+  data: { trackId: number; releaseId: number };
+}
+
+export interface SpotifyArtistResult {
+  id: string;
+  name: string;
+  images: Array<{ url: string }>;
+  external_urls: { spotify: string };
+}
+
+export interface SpotifyArtistImportResponse {
+  message: string;
+  data: { artistId: number; createdArtist: boolean };
 }

@@ -295,3 +295,46 @@ textarea:focus-visible {
     cursor: default;
   }
 }
+.playlist-dialog { max-width: 620px; }
+.playlist-selector { padding: 1.5rem; }
+.playlist-target { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.playlist-help { color: var(--jb-muted); }
+.playlist-success { color: var(--jb-success); }
+.playlist-selector a { color: var(--jb-gold); }
+.playlist-options {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  li {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--jb-border);
+  }
+}
+.playlist-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background: var(--jb-surface-raised);
+  color: var(--jb-gold);
+  font-size: 1.5rem;
+}
+.playlist-option-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: .25rem;
+  overflow-wrap: anywhere;
+  span, small { color: var(--jb-muted); font-size: .8rem; }
+}
+@media (max-width: 480px) {
+  .playlist-selector { padding: 1rem; }
+  .playlist-options li { flex-wrap: wrap; }
+  .playlist-options button { margin-left: 3.5rem; }
+}

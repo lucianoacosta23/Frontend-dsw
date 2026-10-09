@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, inject, signal, Input } from '@angular/c
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
+import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environments.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { ReviewService } from '../../../../core/services/review.service';
@@ -48,6 +49,36 @@ export class Home implements OnInit {
   readonly tracks = signal<PopularTrackItem[]>([]);
   readonly tracksLoading = signal(true);
   readonly tracksErrorMessage = signal<string | null>(null);
+  readonly auth = inject(AuthService);
+readonly sessionLoading = signal(false);
+readonly sessionError = signal<string | null>(null);
+
+get canAccess(): boolean {
+  return this.auth.currentUser() !== null;
+}
+
+loadPublicSession(): void {
+  this.sessionLoading.set(true);
+  this.sessionError.set(null);
+
+  this.auth.loadSession()
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.sessionLoading.set(false)),
+    )
+    .subscribe({
+      error: (error: unknown) => {
+        // Sin sesión es un estado normal de la portada.
+        if (error instanceof HttpErrorResponse && error.status === 401) {
+          return;
+        }
+
+        this.sessionError.set(
+          'No pudimos verificar tu sesión. Intentá nuevamente.',
+        );
+      },
+    });
+}
 
   @Input() privateHome = false;
 
@@ -68,6 +99,8 @@ ngOnInit(): void {
   if (this.privateHome) {
     this.loadPopularPlaylists();
     this.loadPopularReviews();
+  } else {
+    this.loadPublicSession();
   }
 }
   loadPopularAlbums(): void {
