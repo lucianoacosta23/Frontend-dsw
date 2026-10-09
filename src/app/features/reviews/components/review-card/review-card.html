@@ -14,9 +14,17 @@
   </div>
 
   @if (review.text) {
-    <p class="review-text">{{ review.text }}</p>
+    <p class="review-text">
+      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+        {{ review.text }}
+      </a>
+    </p>
   } @else {
-    <p class="review-text review-text-empty">Solo puntuación.</p>
+    <p class="review-text review-text-empty">
+      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+        Solo puntuación. Ver reseña →
+      </a>
+    </p>
   }
 <app-review-editor
   [review]="review"
@@ -48,7 +56,7 @@
 @if (canReport()) {
     <button
       type="button"
-    
+
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"
@@ -161,7 +169,7 @@
 @if (canReport()) {
     <button
       type="button"
-      
+
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"

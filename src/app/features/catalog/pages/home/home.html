@@ -10,9 +10,24 @@
       </a>
 
       <nav aria-label="Acceso a la cuenta">
-        <a routerLink="/login">Iniciar sesión</a>
-        <a class="nav-button" routerLink="/register">Crear cuenta</a>
-      </nav>
+  @if (sessionLoading()) {
+    <span role="status">Verificando sesión…</span>
+  } @else if (sessionError()) {
+    <button
+      type="button"
+      class="text-button"
+      (click)="loadPublicSession()"
+    >
+      Reintentar conexión
+    </button>
+  } @else if (auth.currentUser(); as user) {
+    <a routerLink="/profile">{{ user.username }}</a>
+    <a class="nav-button" routerLink="/dashboard">Ir al home</a>
+  } @else {
+    <a routerLink="/login">Iniciar sesión</a>
+    <a class="nav-button" routerLink="/register">Crear cuenta</a>
+  }
+</nav>
     </header>
   }
 
@@ -35,12 +50,12 @@
       <div class="featured-grid">
         <div class="featured-art">
           <a
-            [routerLink]="privateHome ? ['/releases', album.id] : ['/login']"
+            [routerLink]="canAccess ? ['/releases', album.id] : ['/login']"
             [queryParams]="
-              privateHome ? null : { returnUrl: '/releases/' + album.id }
+              canAccess ? null : { returnUrl: '/releases/' + album.id }
             "
             [attr.aria-label]="
-              privateHome
+              canAccess
                 ? 'Ver ' + album.name
                 : 'Iniciar sesión para ver ' + album.name
             "
@@ -136,20 +151,35 @@
 
       <div class="hero-actions">
         @if (privateHome) {
-          <a class="primary-button" routerLink="/search">
-            Explorar música
-          </a>
-          <a class="spotify-button" routerLink="/playlists/new">
-            Crear playlist
-          </a>
-        } @else {
-          <a class="primary-button" routerLink="/register">
-            Empezar gratis
-          </a>
-          <a class="spotify-button" [href]="spotifyLoginUrl">
-            Entrar con Spotify
-          </a>
-        }
+  <a class="primary-button" routerLink="/search">
+    Explorar música
+  </a>
+  <a class="spotify-button" routerLink="/playlists/new">
+    Crear playlist
+  </a>
+} @else if (sessionLoading()) {
+  <p role="status">Verificando sesión…</p>
+} @else if (sessionError(); as message) {
+  <p role="alert">{{ message }}</p>
+  <button
+    type="button"
+    class="text-button"
+    (click)="loadPublicSession()"
+  >
+    Volver a intentar
+  </button>
+} @else if (canAccess) {
+  <a class="primary-button" routerLink="/dashboard">
+    Ir al home
+  </a>
+} @else {
+  <a class="primary-button" routerLink="/register">
+    Empezar gratis
+  </a>
+  <a class="spotify-button" [href]="spotifyLoginUrl">
+    Entrar con Spotify
+  </a>
+}
       </div>
     </div>
   </section>
@@ -161,7 +191,7 @@
         <h2 id="popular-title">Álbumes populares</h2>
       </div>
 
-      @if (privateHome) {
+      @if (canAccess) {
         <a routerLink="/search">Explorar catálogo →</a>
       } @else {
         <a routerLink="/login">Iniciar sesión</a>
@@ -182,7 +212,7 @@
     } @else {
       <app-popular-carousel
         [albums]="albums()"
-        [directNavigation]="privateHome"
+        [directNavigation]="canAccess"
       />
     }
   </section>
@@ -212,13 +242,13 @@
           <a
             class="album-card"
             [routerLink]="
-              privateHome ? ['/tracks', item.track.id] : ['/login']
+              canAccess ? ['/tracks', item.track.id] : ['/login']
             "
             [queryParams]="
-              privateHome ? null : { returnUrl: '/tracks/' + item.track.id }
+              canAccess ? null : { returnUrl: '/tracks/' + item.track.id }
             "
             [attr.aria-label]="
-              privateHome
+              canAccess
                 ? 'Ver ' + item.track.name
                 : 'Iniciar sesión para ver ' + item.track.name
             "
@@ -419,14 +449,14 @@
           <h3>La música se disfruta más cuando se comparte.</h3>
           <p>
             {{
-              privateHome
+              canAccess
                 ? 'Descubrí las reseñas de las personas que seguís y tus interacciones recibidas.'
                 : 'La actividad de las personas que seguís todavía no está disponible en esta página.'
             }}
           </p>
 
-          <a [routerLink]="privateHome ? '/activity' : '/login'">
-            {{ privateHome ? 'Ver actividad →' : 'Iniciar sesión' }}
+          <a [routerLink]="canAccess ? '/activity' : '/login'">
+            {{ canAccess ? 'Ver actividad →' : 'Iniciar sesión' }}
           </a>
         </div>
       </div>
@@ -449,7 +479,7 @@
 
   <footer class="home-footer">
     <a
-      [routerLink]="privateHome ? '/dashboard' : '/'"
+      [routerLink]="canAccess ? '/dashboard' : '/'"
       class="brand"
     >
       Jukeboxd

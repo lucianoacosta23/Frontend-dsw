@@ -56,6 +56,12 @@
   >
     Escribir reseña…
   </button>
+
+  @if (target.type === 'track') {
+    <button class="review-trigger" type="button" (click)="openPlaylists()">
+      + Agregar a lista
+    </button>
+  }
 </section>
 
 <dialog
@@ -152,4 +158,72 @@
       </button>
     </footer>
   </form>
+</dialog>
+<dialog #playlistDialog class="review-dialog playlist-dialog"
+  [attr.aria-labelledby]="'playlist-dialog-title-' + target.id"
+  (cancel)="cancelPlaylists($event)">
+  <header class="dialog-header">
+    <h2 [id]="'playlist-dialog-title-' + target.id">Agregar a una playlist</h2>
+    <button type="button" class="close-button" aria-label="Cerrar selector"
+      [disabled]="addingPlaylistId() !== null" (click)="closePlaylists()">×</button>
+  </header>
+
+  <section class="playlist-selector">
+    <p class="playlist-target">{{ title }}</p>
+    <p class="playlist-help">Elegí una de tus playlists.</p>
+
+    @if (playlistSuccess(); as message) {
+      <p class="playlist-success" role="status">{{ message }}</p>
+    }
+    @if (playlistAddError(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    <ul class="playlist-options">
+      @for (playlist of playlistOptions(); track playlist.id) {
+        <li>
+          <span class="playlist-icon" aria-hidden="true">♫</span>
+          <div class="playlist-option-info">
+            <strong>{{ playlist.name }}</strong>
+            <span>{{ playlist.trackCount }} canciones</span>
+            @if (playlist.unavailable) {
+              <small>No pudimos verificar esta playlist. Actualizá la lista.</small>
+            }
+          </div>
+          <button type="button" class="cancel-button"
+            [disabled]="addingPlaylistId() !== null || playlistsLoading() || playlist.alreadyAdded || playlist.unavailable"
+            [attr.aria-label]="'Agregar a ' + playlist.name"
+            (click)="addToPlaylist(playlist)">
+            {{ addingPlaylistId() === playlist.id ? 'Agregando…' : playlist.alreadyAdded ? 'Ya agregada ✓' : '+ Agregar' }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (playlistsLoading()) {
+      <p role="status">Cargando tus playlists…</p>
+    }
+    @if (playlistsError(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" class="cancel-button" [disabled]="playlistsLoading()"
+        (click)="loadPlaylists(playlistPage() > 0)">Volver a intentar</button>
+    } @else if (!playlistsLoading() && playlistPage() > 0 && playlistOptions().length === 0) {
+      <p class="playlist-help">Todavía no creaste playlists.</p>
+      <a routerLink="/playlists/new" (click)="closePlaylists()">Crear playlist →</a>
+    }
+
+    @if (playlistPage() < playlistTotalPages() && !playlistsError()) {
+      <button type="button" class="cancel-button"
+        [disabled]="playlistsLoading() || addingPlaylistId() !== null"
+        (click)="loadPlaylists(true)">Cargar más playlists</button>
+    }
+  </section>
+
+  <footer class="dialog-footer">
+    <button type="button" class="cancel-button"
+      [disabled]="addingPlaylistId() !== null || playlistsLoading()"
+      (click)="loadPlaylists()">Actualizar listas</button>
+    <button type="button" class="publish-button"
+      [disabled]="addingPlaylistId() !== null" (click)="closePlaylists()">Listo</button>
+  </footer>
 </dialog>
