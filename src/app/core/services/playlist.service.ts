@@ -43,6 +43,21 @@ export interface PlaylistDetailData extends PlaylistData {
   isOwnPlaylist: boolean;
 }
 
+export interface PlaylistTarget {
+  id: number;
+  name: string;
+  containsTrack: boolean;
+}
+
+export interface PlaylistSaveResponse {
+  message: string;
+  data: {
+    playlistId: number;
+    savedByMe: boolean;
+    saveCount: number;
+  };
+}
+
 export interface PlaylistDetailResponse {
   message: string;
   data: PlaylistDetailData;
@@ -118,6 +133,16 @@ export class PlaylistService {
     );
   }
 
+  delete(playlistId: number): Observable<{ success: boolean; message: string }> {
+    return this.http.delete<{ success: boolean; message: string }>(
+      `${environment.apiBaseUrl}/playlist/${playlistId}`,
+      {
+        withCredentials: true,
+        headers: this.mutationHeaders,
+      },
+    );
+  }
+
   addTrack(
     playlistId: number,
     trackId: number,
@@ -125,6 +150,50 @@ export class PlaylistService {
     return this.http.post<PlaylistResponse>(
       `${environment.apiBaseUrl}/playlist/${playlistId}/tracks`,
       { trackId },
+      {
+        withCredentials: true,
+        headers: this.mutationHeaders,
+      },
+    );
+  }
+
+  removeTrack(
+    playlistId: number,
+    trackId: number,
+  ): Observable<PlaylistResponse> {
+    return this.http.delete<PlaylistResponse>(
+      `${environment.apiBaseUrl}/playlist/${playlistId}/tracks/${trackId}`,
+      {
+        withCredentials: true,
+        headers: this.mutationHeaders,
+      },
+    );
+  }
+
+  listTargets(trackId: number): Observable<{ data: PlaylistTarget[] }> {
+    return this.http.get<{ data: PlaylistTarget[] }>(
+      `${environment.apiBaseUrl}/playlist/mine/targets`,
+      {
+        params: new HttpParams().set('trackId', String(trackId)),
+        withCredentials: true,
+      },
+    );
+  }
+
+  save(playlistId: number): Observable<PlaylistSaveResponse> {
+    return this.http.post<PlaylistSaveResponse>(
+      `${environment.apiBaseUrl}/playlist/${playlistId}/save`,
+      {},
+      {
+        withCredentials: true,
+        headers: this.mutationHeaders,
+      },
+    );
+  }
+
+  unsave(playlistId: number): Observable<PlaylistSaveResponse> {
+    return this.http.delete<PlaylistSaveResponse>(
+      `${environment.apiBaseUrl}/playlist/${playlistId}/save`,
       {
         withCredentials: true,
         headers: this.mutationHeaders,
@@ -231,4 +300,4 @@ export class PlaylistService {
       }),
     );
   }
-}
+}

@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
   computed,
   inject,
@@ -9,13 +10,14 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, of, Subscription, switchMap } from 'rxjs';
 
 import {
   PlaylistService,
   type PlaylistDetailData,
   type PlaylistSearchTrack,
+  type PlaylistTarget,
   type PlaylistTrack,
 } from '../../../../core/services/playlist.service.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
@@ -28,6 +30,7 @@ import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 })
 export class PlaylistDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly playlistService = inject(PlaylistService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -49,6 +52,22 @@ export class PlaylistDetail implements OnInit {
   readonly addingKey = signal<string | null>(null);
   readonly addError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+
+  readonly savingPlaylist = signal(false);
+  readonly saveError = signal<string | null>(null);
+  readonly actionMessage = signal<string | null>(null);
+
+  readonly openPlaylistMenu = signal(false);
+  readonly deletingPlaylist = signal(false);
+
+  readonly openMenuTrackId = signal<number | null>(null);
+  readonly removingTrackId = signal<number | null>(null);
+
+  readonly pickerTrack = signal<PlaylistTrack | null>(null);
+  readonly pickerPlaylists = signal<PlaylistTarget[]>([]);
+  readonly pickerLoading = signal(false);
+  readonly pickerError = signal<string | null>(null);
+  readonly addingToPlaylistId = signal<number | null>(null);
 
   // Los totales salen de la lista, así se actualizan al agregar canciones.
   readonly trackCount = computed(
@@ -84,6 +103,227 @@ export class PlaylistDetail implements OnInit {
 
   toggleAdding(): void {
     this.adding.update(value => !value);
+  }
+
+  @HostListener('document:click')
+  closeMenus(): void {
+    this.openMenuTrackId.set(null);
+    this.openPlaylistMenu.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOverlays(): void {
+    this.openMenuTrackId.set(null);
+    this.openPlaylistMenu.set(false);
+    this.closePicker();
+  }
+
+  togglePlaylistMenu(event: Event): void {
+    event.stopPropagation();
+    this.openMenuTrackId.set(null);
+    this.openPlaylistMenu.update(value => !value);
+  }
+
+  deletePlaylist(): void {
+    const playlist = this.playlist();
+
+    if (!playlist || !playlist.isOwnPlaylist || this.deletingPlaylist()) {
+      return;
+    }
+
+    if (!window.confirm('¿Estás seguro de que querés eliminar esta playlist?')) {
+      return;
+    }
+
+    this.deletingPlaylist.set(true);
+    this.openPlaylistMenu.set(false);
+    this.saveError.set(null);
+
+    this.playlistService
+      .delete(playlist.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.deletingPlaylist.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error: unknown) => {
+          this.saveError.set(
+            this.getErrorMessage(error, 'No pudimos eliminar la playlist.'),
+          );
+        },
+      });
+  }
+
+  toggleSave(): void {
+    const playlist = this.playlist();
+
+    if (!playlist || playlist.isOwnPlaylist || this.savingPlaylist()) {
+      return;
+    }
+
+    this.savingPlaylist.set(true);
+    this.saveError.set(null);
+    this.actionMessage.set(null);
+
+    const request = playlist.savedByMe
+      ? this.playlistService.unsave(playlist.id)
+      : this.playlistService.save(playlist.id);
+
+    request
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.savingPlaylist.set(false)),
+      )
+      .subscribe({
+        next: response => {
+          this.playlist.update(current =>
+            current
+              ? {
+                  ...current,
+                  savedByMe: response.data.savedByMe,
+                  saveCount: response.data.saveCount,
+                }
+              : current,
+          );
+          this.actionMessage.set(
+            response.data.savedByMe
+              ? 'Guardaste esta playlist en tu biblioteca.'
+              : 'Quitaste esta playlist de tu biblioteca.',
+          );
+        },
+        error: (error: unknown) => {
+          this.saveError.set(
+            this.getErrorMessage(error, 'No pudimos actualizar el guardado.'),
+          );
+        },
+      });
+  }
+
+  toggleTrackMenu(trackId: number, event: Event): void {
+    event.stopPropagation();
+    this.openMenuTrackId.update(current =>
+      current === trackId ? null : trackId,
+    );
+  }
+
+  keepMenuOpen(event: Event): void {
+    event.stopPropagation();
+  }
+
+  removeTrack(track: PlaylistTrack): void {
+    const playlist = this.playlist();
+
+    if (
+      !playlist?.isOwnPlaylist ||
+      this.removingTrackId() !== null
+    ) {
+      return;
+    }
+
+    this.openMenuTrackId.set(null);
+    this.removingTrackId.set(track.id);
+    this.saveError.set(null);
+    this.actionMessage.set(null);
+
+    this.playlistService
+      .removeTrack(playlist.id, track.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.removingTrackId.set(null)),
+      )
+      .subscribe({
+        next: response => {
+          this.playlist.update(current =>
+            current
+              ? { ...current, tracks: sortTracks(response.data.tracks) }
+              : current,
+          );
+          this.actionMessage.set(`Eliminaste “${track.name}”.`);
+        },
+        error: (error: unknown) => {
+          this.saveError.set(
+            this.getErrorMessage(error, 'No pudimos eliminar la canción.'),
+          );
+        },
+      });
+  }
+
+  openAddToPlaylist(track: PlaylistTrack, event: Event): void {
+    event.stopPropagation();
+    this.openMenuTrackId.set(null);
+    this.pickerTrack.set(track);
+    this.pickerPlaylists.set([]);
+    this.pickerError.set(null);
+    this.pickerLoading.set(true);
+
+    this.playlistService
+      .listTargets(track.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.pickerLoading.set(false)),
+      )
+      .subscribe({
+        next: response => {
+          const currentId = this.playlist()?.id;
+          this.pickerPlaylists.set(
+            response.data.filter(
+              item => !item.containsTrack && item.id !== currentId,
+            ),
+          );
+        },
+        error: (error: unknown) => {
+          this.pickerError.set(
+            this.getErrorMessage(
+              error,
+              'No pudimos cargar tus playlists.',
+            ),
+          );
+        },
+      });
+  }
+
+  closePicker(): void {
+    if (this.addingToPlaylistId()) return;
+
+    this.pickerTrack.set(null);
+    this.pickerPlaylists.set([]);
+    this.pickerError.set(null);
+  }
+
+  addToPlaylist(target: PlaylistTarget): void {
+    const track = this.pickerTrack();
+
+    if (!track || this.addingToPlaylistId() !== null) return;
+
+    this.addingToPlaylistId.set(target.id);
+    this.pickerError.set(null);
+
+    this.playlistService
+      .addTrack(target.id, track.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.addingToPlaylistId.set(null)),
+      )
+      .subscribe({
+        next: () => {
+          this.actionMessage.set(
+            `Agregaste “${track.name}” a “${target.name}”.`,
+          );
+          this.pickerTrack.set(null);
+          this.pickerPlaylists.set([]);
+        },
+        error: (error: unknown) => {
+          this.pickerError.set(
+            this.getErrorMessage(
+              error,
+              'No pudimos agregar la canción a esa playlist.',
+            ),
+          );
+        },
+      });
   }
 
   search(): void {
@@ -210,6 +450,13 @@ export class PlaylistDetail implements OnInit {
   private load(rawId: string | null): void {
     this.loadRequest?.unsubscribe();
     this.resetAddPanel();
+    this.openMenuTrackId.set(null);
+    this.openPlaylistMenu.set(false);
+    this.pickerTrack.set(null);
+    this.pickerPlaylists.set([]);
+    this.pickerError.set(null);
+    this.saveError.set(null);
+    this.actionMessage.set(null);
     this.playlist.set(null);
 
     if (!rawId || !/^[1-9]\d*$/.test(rawId)) {

@@ -43,8 +43,36 @@
       </div>
     </header>
 
-    @if (current.isOwnPlaylist) {
-      <div class="actions">
+    <div class="actions">
+      @if (!current.isOwnPlaylist) {
+        <button
+          type="button"
+          class="save-toggle"
+          [class.saved]="current.savedByMe"
+          [disabled]="savingPlaylist()"
+          [attr.aria-pressed]="current.savedByMe"
+          [attr.aria-label]="current.savedByMe ? 'Quitar de guardados' : 'Guardar playlist'"
+          [title]="current.savedByMe ? 'Quitar de guardados' : 'Guardar'"
+          (click)="toggleSave()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 3.5h10A1.5 1.5 0 0 1 18.5 5v16.2l-6.5-3.7-6.5 3.7V5A1.5 1.5 0 0 1 7 3.5z"
+              [attr.fill]="current.savedByMe ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </button>
+      }
+
+      @if (current.isOwnPlaylist) {
         <button
           type="button"
           class="add-toggle"
@@ -67,7 +95,48 @@
             <path d="M12 5v14M5 12h14"></path>
           </svg>
         </button>
-      </div>
+
+        <div class="playlist-menu" (click)="keepMenuOpen($event)">
+          <button
+            type="button"
+            class="playlist-menu-toggle"
+            [attr.aria-expanded]="openPlaylistMenu()"
+            aria-label="Opciones de la playlist"
+            title="Más opciones"
+            (click)="togglePlaylistMenu($event)"
+          >
+            <span aria-hidden="true">⋯</span>
+          </button>
+
+          @if (openPlaylistMenu()) {
+            <ul class="menu" role="menu">
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="danger"
+                  [disabled]="deletingPlaylist()"
+                  (click)="deletePlaylist()"
+                >
+                  @if (deletingPlaylist()) {
+                    Eliminando…
+                  } @else {
+                    Eliminar playlist
+                  }
+                </button>
+              </li>
+            </ul>
+          }
+        </div>
+      }
+    </div>
+
+    @if (saveError(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    @if (actionMessage(); as message) {
+      <p class="success-message" role="status">{{ message }}</p>
     }
 
     @if (current.isOwnPlaylist && adding()) {
@@ -176,6 +245,7 @@
               <th scope="col" class="col-index">#</th>
               <th scope="col">Título</th>
               <th scope="col" class="col-album">Álbum</th>
+              <th scope="col" class="col-menu"><span class="sr-only">Acciones</span></th>
               <th scope="col" class="col-duration">Duración</th>
             </tr>
           </thead>
@@ -211,6 +281,51 @@
                 </td>
 
                 <td class="col-album">{{ track.release.name }}</td>
+                <td class="col-menu">
+                  <div class="track-menu" (click)="keepMenuOpen($event)">
+                    <button
+                      type="button"
+                      class="menu-toggle"
+                      [attr.aria-expanded]="openMenuTrackId() === track.id"
+                      [attr.aria-label]="'Opciones de ' + track.name"
+                      title="Opciones"
+                      (click)="toggleTrackMenu(track.id, $event)"
+                    >
+                      <span aria-hidden="true">⋯</span>
+                    </button>
+
+                    @if (openMenuTrackId() === track.id) {
+                      <ul class="menu" role="menu">
+                        <li role="none">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="openAddToPlaylist(track, $event)"
+                          >
+                            Agregar
+                          </button>
+                        </li>
+                        @if (current.isOwnPlaylist) {
+                          <li role="none">
+                            <button
+                              type="button"
+                              role="menuitem"
+                              class="danger"
+                              [disabled]="removingTrackId() !== null"
+                              (click)="removeTrack(track)"
+                            >
+                              @if (removingTrackId() === track.id) {
+                                Eliminando…
+                              } @else {
+                                Eliminar
+                              }
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                </td>
                 <td class="col-duration duration">
                   {{ duration(track.durationMs) }}
                 </td>
@@ -218,6 +333,63 @@
             }
           </tbody>
         </table>
+      </div>
+    }
+
+    @if (pickerTrack(); as track) {
+      <div
+        class="picker-backdrop"
+        (click)="closePicker()"
+      >
+        <section
+          class="picker"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="picker-title"
+          (click)="keepMenuOpen($event)"
+        >
+          <h2 id="picker-title">Agregar a otra playlist</h2>
+          <p class="picker-track">{{ track.name }}</p>
+
+          @if (pickerLoading()) {
+            <p role="status">Cargando tus playlists…</p>
+          }
+
+          @if (pickerError(); as message) {
+            <p class="error-message" role="alert">{{ message }}</p>
+          }
+
+          @if (!pickerLoading() && pickerPlaylists().length === 0 && !pickerError()) {
+            <p>No tenés otra playlist disponible para esta canción.</p>
+          }
+
+          <ul class="picker-list">
+            @for (target of pickerPlaylists(); track target.id) {
+              <li>
+                <button
+                  type="button"
+                  [disabled]="addingToPlaylistId() !== null"
+                  (click)="addToPlaylist(target)"
+                >
+                  @if (addingToPlaylistId() === target.id) {
+                    Agregando…
+                  } @else {
+                    {{ target.name }}
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+
+          <button
+            type="button"
+            class="picker-close"
+            [disabled]="addingToPlaylistId() !== null"
+            (click)="closePicker()"
+          >
+            Cancelar
+          </button>
+        </section>
       </div>
     }
   }

@@ -118,6 +118,114 @@ describe('PlaylistDetail', () => {
   it('muestra el botón + solo al creador de la playlist', async () => {
     const other = await open(buildPlaylist({ isOwnPlaylist: false }));
     expect(other.querySelector('.add-toggle')).toBeNull();
+    expect(other.querySelector('.save-toggle')).not.toBeNull();
+  });
+
+  it('el dueño no ve el ícono de guardar y sí el botón +', async () => {
+    const el = await open(buildPlaylist({ isOwnPlaylist: true }));
+    expect(el.querySelector('.save-toggle')).toBeNull();
+    expect(el.querySelector('.add-toggle')).not.toBeNull();
+  });
+
+  it('muestra el menú de tres puntos en cada canción', async () => {
+    const el = await open(buildPlaylist({ isOwnPlaylist: false }));
+    expect(el.querySelectorAll('.menu-toggle').length).toBe(2);
+    expect(el.querySelector('.menu')).toBeNull();
+
+    el.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
+    harness.detectChanges();
+
+    expect(el.querySelector('.menu')?.textContent).toContain('Agregar');
+    expect(el.querySelector('.menu')?.textContent).not.toContain('Eliminar');
+  });
+
+  it('el dueño puede eliminar una canción desde el menú', async () => {
+    const el = await open(buildPlaylist({ isOwnPlaylist: true }));
+
+    el.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
+    harness.detectChanges();
+
+    expect(el.querySelector('.menu')?.textContent).toContain('Eliminar');
+
+    el.querySelector<HTMLButtonElement>('.menu .danger')!.click();
+    harness.detectChanges();
+
+    http.expectOne(
+      req =>
+        req.method === 'DELETE' &&
+        req.url.endsWith('/playlist/7/tracks/10'),
+    ).flush({
+      message: 'ok',
+      data: {
+        id: 7,
+        name: 'Rock Argentino',
+        tracks: [
+          {
+            id: 20,
+            spotifyId: null,
+            name: 'Segunda',
+            durationMs: 3 * 60_000 + 7_000,
+            release: { id: 1, name: 'Disco B', imageUrl: null },
+            artists: [{ id: 1, name: 'Artista B' }],
+          },
+        ],
+      },
+    });
+
+    harness.detectChanges();
+
+    expect(el.querySelectorAll('.track-link').length).toBe(1);
+    expect(el.textContent).toContain('Eliminaste “Primera”.');
+  });
+
+  it('permite guardar una playlist ajena', async () => {
+    const el = await open(buildPlaylist({ isOwnPlaylist: false }));
+
+    el.querySelector<HTMLButtonElement>('.save-toggle')!.click();
+    harness.detectChanges();
+
+    http.expectOne(
+      req => req.method === 'POST' && req.url.endsWith('/playlist/7/save'),
+    ).flush({
+      message: 'ok',
+      data: { playlistId: 7, savedByMe: true, saveCount: 2 },
+    });
+
+    harness.detectChanges();
+
+    expect(el.querySelector('.save-toggle')?.classList.contains('saved')).toBe(
+      true,
+    );
+    expect(el.querySelector('.meta')?.textContent).toContain('2 guardados');
+  });
+
+  it('lista playlists propias sin esa canción al agregar', async () => {
+    const el = await open(buildPlaylist({ isOwnPlaylist: false }));
+
+    el.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
+    harness.detectChanges();
+    el.querySelector<HTMLButtonElement>('[role="menuitem"]')!.click();
+    harness.detectChanges();
+
+    http.expectOne(
+      req =>
+        req.url.includes('/playlist/mine/targets') &&
+        req.params.get('trackId') === '10',
+    ).flush({
+      data: [
+        { id: 7, name: 'Actual', containsTrack: false },
+        { id: 8, name: 'Otra mía', containsTrack: false },
+        { id: 9, name: 'Ya la tiene', containsTrack: true },
+      ],
+    });
+
+    harness.detectChanges();
+
+    const labels = Array.from(
+      el.querySelectorAll('.picker-list button'),
+    ).map(button => button.textContent?.trim());
+
+    expect(labels).toEqual(['Otra mía']);
   });
 
   it('el creador ve el botón + y puede abrir el panel de búsqueda', async () => {
