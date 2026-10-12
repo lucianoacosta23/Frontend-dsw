@@ -13,7 +13,7 @@ export interface ReviewApiResponse {
   message: string;
   data: unknown;
 }
-export type ReviewSort = 'newest' | 'popular';
+export type ReviewSort = 'newest' | 'popular' | 'oldest';
 
 export interface ReviewListItem {
   id: number;
@@ -49,5 +49,48 @@ export interface ReviewLikeResponse {
     liked: boolean;
     likeCount: number;
     createdAt?: string;
+  };
+}
+
+export interface ReviewDetailData extends ReviewListItem {
+  target: {
+    type: 'release' | 'track';
+    id: number;
+    name: string;
+    imageUrl: string | null;
+    artists: Array<{ id: number; name: string }>;
+  };
+}
+
+export interface ReviewDetailResponse {
+  message: string;
+  data: ReviewDetailData;
+}
+
+export interface ReviewTextUpdate {
+  text: string | null;
+  editedAt: string | null;
+}
+
+export interface ReviewEditResponse {
+  message: string;
+  data: ReviewTextUpdate & { id: number };
+}
+
+export interface ReviewRevisionItem {
+  id: number;
+  text: string | null;
+  effectiveAt: string;
+  replacedAt: string;
+}
+
+export interface ReviewHistoryResponse {
+  message: string;
+  data: ReviewRevisionItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
   };
 }

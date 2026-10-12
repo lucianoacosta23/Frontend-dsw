@@ -4,14 +4,13 @@ app-home {
     min-height: 100dvh;
     position: relative;
     isolation: isolate;
-    background:
-      radial-gradient(ellipse at 76% 13%, #b8803d19, transparent 38%),
-      radial-gradient(ellipse at 12% 22%, #b875671c, transparent 37%);
+    background: var(--jb-home-ambient-background);
   }
   .home-page::before,
   .hero::before,
   .hero::after {
     content: '';
+    display: var(--jb-home-ambient-display);
     position: absolute;
     pointer-events: none;
     z-index: -1;

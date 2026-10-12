@@ -1,6 +1,7 @@
+import type { SpotifyArtistReleasesResponse } from '../../models/artist-discography.js';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import type {
   ArtistDetail,
   CatalogDetailResponse,
@@ -49,5 +50,21 @@ getArtistById(id: number): Observable<CatalogDetailResponse<ArtistDetail>> {
     `${environment.apiBaseUrl}/artists/${id}`,
   );
 }
+
+  // El listado actual devuelve el catálogo completo; filtramos por el ID del artista.
+  getArtistReleases(artistId: number): Observable<ReleaseDetail[]> {
+    return this.http.get<CatalogDetailResponse<ReleaseDetail[]>>(
+      `${environment.apiBaseUrl}/releases`,
+    ).pipe(map(response => response.data.filter(
+      release => release.artists.some(artist => artist.id === artistId),
+    )));
+  }
+
+  getSpotifyArtistReleases(spotifyId: string, offset = 0): Observable<SpotifyArtistReleasesResponse> {
+    return this.http.get<SpotifyArtistReleasesResponse>(
+      `${environment.apiBaseUrl}/spotify/artists/${encodeURIComponent(spotifyId)}/releases`,
+      { params: { offset }, withCredentials: true },
+    );
+  }
 
 }

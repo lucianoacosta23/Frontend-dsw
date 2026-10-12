@@ -66,7 +66,12 @@
         <div class="result-grid">
           @for (track of data.tracks; track track.id) {
             <a class="result-card" [routerLink]="['/tracks', track.id]">
-              <span class="placeholder" aria-hidden="true">♪</span>
+              @if (track.release?.imageUrl) {
+                <img [src]="track.release?.imageUrl"
+                  [alt]="'Portada de ' + track.name" loading="lazy" />
+              } @else {
+                <span class="placeholder" aria-hidden="true">♪</span>
+              }
               <strong>{{ track.name }}</strong>
               <span class="result-type">Canción</span>
             </a>
@@ -77,7 +82,7 @@
 
     @if (data.releases.length > 0) {
       <section class="result-section">
-        <h2>Álbumes y lanzamientos</h2>
+        <h2>Releases del catálogo</h2>
 
         <div class="result-grid">
           @for (release of data.releases; track release.id) {
@@ -97,7 +102,7 @@
 
               <strong>{{ release.name }}</strong>
               <span class="result-type">
-                {{ release.releaseDate.slice(0, 4) }}
+                {{ localReleaseTypeLabel(release.type) }} · {{ release.releaseDate.slice(0, 4) }}
               </span>
             </a>
           }
@@ -182,11 +187,69 @@
       <p class="status error" role="alert">{{ message }}</p>
     }
 
+    @if (spotifyArtists().length > 0) {
+      <section class="result-section">
+        <h2>Artistas de Spotify</h2>
+        <p class="status">Seleccioná un artista para abrir su perfil.</p>
+        <div class="result-grid">
+          @for (artist of spotifyArtists(); track artist.id) {
+            <article class="result-card">
+              <button class="spotify-result-button" type="button"
+                [disabled]="importingId() !== null" (click)="openSpotifyArtist(artist)">
+                @if (artist.images[0]; as image) {
+                  <img [src]="image.url" [alt]="artist.name" loading="lazy" />
+                } @else {
+                  <span class="placeholder" aria-hidden="true">♫</span>
+                }
+                <strong>{{ artist.name }}</strong>
+                <span class="result-type">Artista</span>
+                <span class="import-label">
+                  {{ importingId() === 'artist:' + artist.id ? 'Importando…' : 'Abrir artista' }}
+                </span>
+              </button>
+              <a class="spotify-source" [href]="artist.external_urls.spotify"
+                target="_blank" rel="noopener noreferrer">Ver en Spotify</a>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (spotifyTracks().length > 0) {
+      <section class="result-section">
+        <h2>Canciones de Spotify</h2>
+        <p class="status">Seleccioná una canción para abrir su detalle.</p>
+
+        <div class="result-grid">
+          @for (track of spotifyTracks(); track track.id) {
+            <article class="result-card">
+              <button class="spotify-result-button" type="button"
+                [disabled]="importingId() !== null" (click)="openSpotifyTrack(track)">
+                @if (track.album.images[0]; as image) {
+                  <img [src]="image.url" [alt]="'Portada de ' + track.album.name" loading="lazy" />
+                } @else {
+                  <span class="placeholder" aria-hidden="true">♪</span>
+                }
+                <strong>{{ track.name }}</strong>
+                <span class="result-type">{{ spotifyArtistsLabel(track) }}</span>
+                <span class="result-type">{{ track.album.name }}</span>
+                <span class="import-label">
+                  {{ importingId() === 'track:' + track.id ? 'Importando…' : 'Abrir canción' }}
+                </span>
+              </button>
+              <a class="spotify-source" [href]="track.external_urls.spotify"
+                target="_blank" rel="noopener noreferrer">Ver en Spotify</a>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
     @if (spotifyAlbums().length > 0) {
       <section class="result-section">
-        <h2>Álbumes de Spotify</h2>
+        <h2>Releases de Spotify</h2>
         <p class="status">
-          Seleccioná un álbum para agregarlo al catálogo y abrir su detalle.
+          Álbumes, singles y otros lanzamientos. Seleccioná uno para abrir su detalle.
         </p>
 
         <div class="result-grid">
@@ -216,14 +279,14 @@
                 </span>
 
                 <span class="result-type">
-                  {{ album.release_date.slice(0, 4) }}
+                  {{ spotifyReleaseTypeLabel(album) }} · {{ album.release_date.slice(0, 4) }}
                 </span>
 
                 <span class="import-label">
                   {{
                     importingId() === album.id
                       ? 'Importando…'
-                      : 'Abrir álbum'
+                      : 'Abrir release'
                   }}
                 </span>
               </button>

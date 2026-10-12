@@ -1,5 +1,10 @@
 ﻿import { Routes } from '@angular/router';
-
+import { guestGuard } from './core/guards/guest-guard';
+import {
+  SpotifyRegister,
+} from './features/auth/pages/spotify-register/spotify-register.js';
+import { ReviewDetail } from './features/reviews/pages/review-detail/review-detail.js';
+import { PlaylistDetail } from './features/playlists/pages/playlist-detail/playlist-detail.js';
 import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
 import { adminGuard } from './core/guards/admin-guard.js';
 import { AdminDashboard } from './features/admin/pages/admin-dashboard/admin-dashboard.js';
@@ -36,7 +41,11 @@ export const routes: Routes = [
   { path: 'users/:username', component: UserProfile },
 
   // Acceso y registro.
-  { path: 'login', component: Login },
+  {
+  path: 'login',
+  component: Login,
+  canActivate: [guestGuard],
+},
   { path: 'register', component: Register },
 
     // La búsqueda requiere una sesión válida.
@@ -90,6 +99,23 @@ export const routes: Routes = [
     component: CreatePlaylist,
     canActivate: [authGuard],
   },
+
+  {
+    path: 'playlists/:id',
+    component: PlaylistDetail,
+    canActivate: [authGuard],
+  },
+
+    {
+    path: 'reviews/:id',
+    component: ReviewDetail,
+    canActivate: [authGuard],
+  },
+
+{
+  path: 'register/spotify',
+  component: SpotifyRegister,
+},
 
   // Debe quedar última: captura las direcciones desconocidas.
   { path: '**', redirectTo: '' },

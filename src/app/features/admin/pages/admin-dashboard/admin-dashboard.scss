@@ -1,8 +1,7 @@
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+:host {
+  display: block;
+  min-height: 100dvh;
+  color: #eef0f5;
 }
 
 .admin-card {
@@ -91,4 +90,8 @@
     color: #6b7280;
     cursor: not-allowed;
   }
+}
+a:focus-visible {
+  outline: 2px solid #c4bfff;
+  outline-offset: 3px;
 }

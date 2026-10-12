@@ -1,0 +1,68 @@
+<main class="registration-page">
+  <section class="registration-card">
+    <a class="brand" routerLink="/">♫ Jukeboxd</a>
+
+    <h1>Completá tu perfil</h1>
+    <p>Elegí cómo querés aparecer en Jukeboxd.</p>
+
+    @if (loading()) {
+      <p role="status">Cargando tus datos…</p>
+    }
+
+    @if (errorMessage(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    @if (ready()) {
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label for="fullName">Nombre</label>
+        <input
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          autocomplete="name"
+          maxlength="255"
+        />
+
+        @if (
+          form.controls.fullName.touched &&
+          form.controls.fullName.invalid
+        ) {
+          <p class="error-message">
+            Escribí un nombre de hasta 255 caracteres.
+          </p>
+        }
+
+        <label for="username">Nombre de usuario</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          maxlength="30"
+          aria-describedby="username-help"
+        />
+
+        <p id="username-help" class="help">
+          Entre 3 y 30 caracteres. Usá letras sin acentos,
+          números o guion bajo.
+        </p>
+
+        @if (
+          form.controls.username.touched &&
+          form.controls.username.invalid
+        ) {
+          <p class="error-message">
+            Revisá el formato del nombre de usuario.
+          </p>
+        }
+
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Creando cuenta…' : 'Crear mi cuenta' }}
+        </button>
+      </form>
+    } @else if (!loading()) {
+      <a routerLink="/login">Volver al inicio de sesión</a>
+    }
+  </section>
+</main>

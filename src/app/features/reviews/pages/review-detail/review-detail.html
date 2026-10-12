@@ -1,0 +1,66 @@
+<app-navbar />
+
+<main class="review-detail-page">
+  <a class="back-link" routerLink="/dashboard">← Volver al inicio</a>
+
+  @if (loading()) {
+    <p role="status">Cargando reseña…</p>
+  } @else if (errorMessage(); as message) {
+    <p class="error-message" role="alert">{{ message }}</p>
+    <button type="button" (click)="loadReview()">Volver a intentar</button>
+  } @else if (review(); as item) {
+    <div class="detail-layout">
+      <aside class="music-sidebar">
+        <a
+          [routerLink]="[
+            item.target.type === 'track' ? '/tracks' : '/releases',
+            item.target.id
+          ]"
+          [attr.aria-label]="'Ver detalle de ' + item.target.name"
+        >
+          @if (item.target.imageUrl) {
+            <img
+              class="cover"
+              [src]="item.target.imageUrl"
+              [alt]="'Portada de ' + item.target.name"
+            />
+          } @else {
+            <div class="cover placeholder" aria-hidden="true">♫</div>
+          }
+        </a>
+
+        <a
+          class="music-link"
+          [routerLink]="[
+            item.target.type === 'track' ? '/tracks' : '/releases',
+            item.target.id
+          ]"
+        >
+          Ver detalle de {{ item.target.type === 'track' ? 'la canción' : 'el release' }}
+        </a>
+      </aside>
+
+      <section class="review-content" aria-labelledby="review-title">
+        <p class="eyebrow">RESEÑA</p>
+
+        <h1 id="review-title">{{ item.target.name }}</h1>
+
+        <div class="artists">
+          @for (artist of item.target.artists; track artist.id) {
+            <a [routerLink]="['/artists', artist.id]">{{ artist.name }}</a>
+          }
+        </div>
+
+        <p class="review-date">
+          Publicada el {{ item.createdAt | date:'dd/MM/yyyy' }}
+        </p>
+
+        <!-- Reutiliza likes, reportes, comentarios y respuestas. -->
+        <app-review-card
+          [review]="item"
+          [openCommentsOnLoad]="true"
+        />
+      </section>
+    </div>
+  }
+</main>
