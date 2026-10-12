@@ -10,6 +10,7 @@ import type { TrackDetail as TrackDetailData } from '../../../../models/catalog-
 import type {
   CreateReviewRequest,
   ReviewListItem,
+  ReviewSort,
 } from '../../../../models/review.js';
 import { ReviewForm } from '../../../reviews/components/review-form/review-form';
 import { ReviewCard } from '../../../reviews/components/review-card/review-card';
@@ -37,6 +38,7 @@ export class TrackDetail implements OnInit {
   readonly reviewsLoading = signal(false);
   readonly reviewsError = signal<string | null>(null);
 
+  readonly reviewsSort = signal<ReviewSort>('popular');
   readonly reviewsPage = signal(0);
   readonly reviewsTotal = signal(0);
   readonly reviewsTotalPages = signal(0);
@@ -54,6 +56,7 @@ readonly ratingStatsRefreshKey = signal(0);
 
   // Carga la pista cuyo ID aparece en la URL.
   loadTrack(): void {
+    this.reviewsSort.set('popular');
     this.catalogRequest?.unsubscribe();
     this.reviewsRequest?.unsubscribe();
     this.track.set(null);
@@ -82,7 +85,7 @@ readonly ratingStatsRefreshKey = signal(0);
       .subscribe({
         next: response => {
           this.track.set(response.data);
-          this.loadPopularReviews(response.data.id);
+          this.loadReviews(response.data.id);
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.getErrorMessage(error));
@@ -90,14 +93,22 @@ readonly ratingStatsRefreshKey = signal(0);
       });
   }
 
-  // Pide al backend las reseñas de la pista ordenadas por popularidad.
-  loadPopularReviews(trackId: number): void {
+  // Recarga desde la primera página manteniendo el orden seleccionado.
+  loadReviews(trackId: number): void {
     this.reviewsRequest?.unsubscribe();
     this.reviews.set([]);
     this.reviewsPage.set(0);
     this.reviewsTotal.set(0);
     this.reviewsTotalPages.set(0);
     this.fetchReviews(trackId, 1);
+  }
+
+  changeReviewsSort(value: string): void {
+    if (value !== 'popular' && value !== 'newest' && value !== 'oldest') return;
+    if (value === this.reviewsSort()) return;
+    this.reviewsSort.set(value);
+    const item = this.track();
+    if (item) this.loadReviews(item.id);
   }
 
   loadMoreReviews(): void {
@@ -113,7 +124,7 @@ readonly ratingStatsRefreshKey = signal(0);
     this.reviewsMoreError.set(null);
 
     this.reviewsRequest = this.reviewService
-      .getPopularReviews('track', targetId, page, 10)
+      .getReviews('track', targetId, this.reviewsSort(), page, 10)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.reviewsLoading.set(false)),
@@ -160,7 +171,7 @@ readonly ratingStatsRefreshKey = signal(0);
 
         const trackId = this.track()?.id;
         if (trackId !== undefined) {
-          this.loadPopularReviews(trackId);
+          this.loadReviews(trackId);
           this.ratingStatsRefreshKey.update(value => value + 1);
         }
       },
