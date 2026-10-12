@@ -1,269 +1,324 @@
-<article class="review-card">
-  <div class="review-card-heading">
-    <p class="review-author">
-      Reseña de
+@if (compact) {
+  <article class="compact-review" [class.with-cover]="targetCover">
+    @if (targetCover) {
       <a
-        class="review-author-link"
-        [routerLink]="['/users', review.author.username]"
+        class="compact-cover"
+        [routerLink]="['/reviews', review.id]"
+        [attr.aria-label]="'Leer reseña de ' + targetName"
       >
-        {{ review.author.username }}
+        <app-release-cover [src]="targetCover" [alt]="'Portada de ' + targetName" />
       </a>
-    </p>
-
-    <p class="review-rating">★ {{ review.rating }} / 5</p>
-  </div>
-
-  @if (review.text) {
-    <p class="review-text">
-      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
-        {{ review.text }}
+    }
+    <div class="compact-content">
+      <header class="compact-heading">
+        <span class="compact-avatar" aria-hidden="true">
+          {{ review.author.username.slice(0, 2).toUpperCase() }}
+        </span>
+        <div class="compact-author">
+          <a [routerLink]="['/users', review.author.username]">{{ review.author.username }}</a>
+          <time [attr.datetime]="review.createdAt">{{ relativeDate() }}</time>
+        </div>
+        <p class="compact-rating">
+          <span aria-hidden="true">★</span>
+          {{ review.rating }}
+          <small>/ 5</small>
+        </p>
+      </header>
+      <a class="compact-excerpt" [routerLink]="['/reviews', review.id]">
+        {{ review.text || 'Solo puntuación.' }}
       </a>
-    </p>
-  } @else {
-    <p class="review-text review-text-empty">
-      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
-        Solo puntuación. Ver reseña →
-      </a>
-    </p>
-  }
-<app-review-editor
-  [review]="review"
-  (saved)="onReviewSaved($event)"
-/>
-  <div class="review-actions">
-    <button
-      type="button"
-      class="like-button"
-      [class.is-liked]="liked()"
-      [attr.aria-pressed]="liked()"
-      [disabled]="likeLoading()"
-      (click)="toggleLike()"
-    >
-      {{ liked() ? 'Quitar like' : 'Me gusta' }} · {{ likeCount() }}
-    </button>
-
-    <button
-      type="button"
-      class="comments-button"
-      [attr.aria-expanded]="commentsOpen()"
-      (click)="toggleComments()"
-    >
-      {{ commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios' }}
-      @if (commentsLoaded()) {
-        · {{ commentsTotal() }}
-      }
-    </button>
-@if (canReport()) {
-    <button
-      type="button"
-
-      class="report-button"
-      [attr.aria-expanded]="reportOpen()"
-      [attr.aria-controls]="'report-form-' + review.id"
-      [disabled]="reportSubmitting() || reportSent()"
-      (click)="toggleReport()"
-    >
-      {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>}
-  </div>
-
-  @if (likeError(); as message) {
-    <p class="action-error" role="alert">{{ message }}</p>
-  }
-
-  @if (reportSuccess(); as message) {
-    <p class="report-success" role="status">{{ message }}</p>
-  }
-
-  @if (reportOpen()) {
-    <section class="report-section" [attr.aria-labelledby]="'report-title-' + review.id">
-      <h3 [id]="'report-title-' + review.id">Reportar reseña</h3>
-      <form
-        class="report-form"
-        [id]="'report-form-' + review.id"
-        (ngSubmit)="submitReport()"
-      >
-        <label [for]="'report-reason-' + review.id">Motivo</label>
-        <select
-          [id]="'report-reason-' + review.id"
-          name="reportReason"
-          [(ngModel)]="reportReason"
-          [disabled]="reportSubmitting()"
-          required
-        >
-          @for (reason of reportReasons; track reason.value) {
-            <option [value]="reason.value">{{ reason.label }}</option>
-          }
-        </select>
-
-        <label [for]="'report-details-' + review.id">
-          Descripción {{ reportReason === 'OTHER' ? '(obligatoria)' : '(opcional)' }}
-        </label>
-        <textarea
-          [id]="'report-details-' + review.id"
-          name="reportDetails"
-          [(ngModel)]="reportDetails"
-          [required]="reportReason === 'OTHER'"
-          [disabled]="reportSubmitting()"
-          maxlength="500"
-          rows="3"
-          placeholder="Contanos por qué reportás esta reseña…"
-        ></textarea>
-        <p class="report-hint">Hasta 500 caracteres.</p>
-
-        @if (reportError(); as message) {
-          <p class="action-error" role="alert">{{ message }}</p>
-        }
-
-        <button type="submit" [disabled]="reportSubmitting()">
-          {{ reportSubmitting() ? 'Enviando…' : 'Enviar reporte' }}
-        </button>
-      </form>
-    </section>
-  }
-
-  @if (commentsOpen()) {
-    <section class="comments" aria-label="Comentarios de la reseña">
-      @if (commentsLoading()) {
-        <p role="status">Cargando comentarios…</p>
-      } @else if (commentsError(); as message) {
-        <p class="action-error" role="alert">{{ message }}</p>
-        <button type="button" class="text-button" (click)="loadComments()">
-          Volver a intentar
-        </button>
-      } @else if (comments().length === 0) {
-        <p class="empty-comments">Todavía no hay comentarios. ¡Sé el primero!</p>
-      } @else {
-        <div class="comment-list">
-          @for (comment of comments(); track comment.id) {
-            <article class="comment">
-  <p class="comment-author">
-    <a [routerLink]="['/users', comment.author.username]">
-      {{ comment.author.username }}
-    </a>
-  </p>
-
-  <p class="comment-text">{{ comment.text }}</p>
-
-  <div class="comment-actions">
-    <button
-      type="button"
-      class="text-button"
-      [attr.aria-expanded]="isReplyFormOpen(comment.id)"
-      (click)="toggleReplyForm(comment.id)"
-    >
-      {{ isReplyFormOpen(comment.id) ? 'Cancelar respuesta' : 'Responder' }}
-    </button>
-
-    <button
-      type="button"
-      class="text-button"
-      [attr.aria-expanded]="isRepliesOpen(comment.id)"
-      (click)="toggleReplies(comment.id)"
-    >
-      {{ isRepliesOpen(comment.id) ? 'Ocultar respuestas' : 'Ver respuestas' }}
-      @if (repliesCountFor(comment.id) > 0) {
-        · {{ repliesCountFor(comment.id) }}
-      }
-    </button>
-@if (canReport()) {
-    <button
-      type="button"
-
-      class="report-button"
-      [attr.aria-expanded]="reportOpen()"
-      [attr.aria-controls]="'report-form-' + review.id"
-      [disabled]="reportSubmitting() || reportSent()"
-      (click)="toggleReport()"
-    >
-      {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>}
-  </div>
-
-  @if (isReplyFormOpen(comment.id)) {
-    <form class="reply-form" (ngSubmit)="submitReply(comment)">
-      <label [for]="'reply-' + comment.id">
-        Responder a {{ comment.author.username }}
-      </label>
-
-      <textarea
-        [id]="'reply-' + comment.id"
-        [name]="'replyText-' + comment.id"
-        [ngModel]="replyTextFor(comment.id)"
-        (ngModelChange)="setReplyText(comment.id, $event)"
-        maxlength="2000"
-        required
-        rows="2"
-        placeholder="Escribí tu respuesta…"
-      ></textarea>
-
-      @if (replyError()[comment.id]; as message) {
-        <p class="action-error" role="alert">{{ message }}</p>
-      }
-
-      <button
-        type="submit"
-        [disabled]="replySubmitting()[comment.id] || repliesLoading()[comment.id]"
-      >
-        {{ replySubmitting()[comment.id] ? 'Publicando…' : 'Responder' }}
-      </button>
-    </form>
-  }
-
-  @if (isRepliesOpen(comment.id)) {
-    <div class="reply-list">
-      @if (repliesLoading()[comment.id]) {
-        <p role="status">Cargando respuestas…</p>
-      } @else if (repliesError()[comment.id]; as message) {
-        <p class="action-error" role="alert">{{ message }}</p>
+      <footer class="compact-actions">
         <button
           type="button"
-          class="text-button"
-          (click)="loadReplies(comment.id)"
+          [class.is-liked]="liked()"
+          [attr.aria-pressed]="liked()"
+          [disabled]="!canLike() || likeLoading()"
+          [attr.aria-label]="(liked() ? 'Quitar like' : 'Me gusta') + ' · ' + likeCount()"
+          (click)="toggleLike()"
         >
-          Volver a intentar
+          <svg aria-hidden="true"><use href="/icons.svg#heart" /></svg>
+          <span>{{ likeCount() }}</span>
         </button>
-      } @else if (repliesFor(comment.id).length === 0) {
-        <p class="empty-comments">Todavía no hay respuestas.</p>
-      } @else {
-        @for (reply of repliesFor(comment.id); track reply.id) {
-          <article class="comment reply-comment">
-            <p class="comment-author">
-              <a [routerLink]="['/users', reply.author.username]">
-                {{ reply.author.username }}
-              </a>
-            </p>
-            <p class="comment-text">{{ reply.text }}</p>
-          </article>
-        }
+        <a
+          [routerLink]="['/reviews', review.id]"
+          aria-label="Ver reseña y comentarios"
+          title="Ver reseña y comentarios"
+        >
+          <svg aria-hidden="true"><use href="/icons.svg#comment" /></svg>
+        </a>
+        <a
+          class="compact-more"
+          [routerLink]="['/reviews', review.id]"
+          aria-label="Ver reseña completa"
+        >
+          ···
+        </a>
+      </footer>
+      @if (likeError(); as message) {
+        <p class="action-error" role="alert">{{ message }}</p>
       }
     </div>
-  }
-</article>
-          }
-        </div>
+  </article>
+} @else {
+  <article class="review-card">
+    <div class="review-card-heading">
+      <p class="review-author">
+        Reseña de
+        <a class="review-author-link" [routerLink]="['/users', review.author.username]">
+          {{ review.author.username }}
+        </a>
+      </p>
+
+      <p class="review-rating">★ {{ review.rating }} / 5</p>
+    </div>
+
+    @if (review.text) {
+      <p class="review-text">
+        <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+          {{ review.text }}
+        </a>
+      </p>
+    } @else {
+      <p class="review-text review-text-empty">
+        <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+          Solo puntuación. Ver reseña →
+        </a>
+      </p>
+    }
+    <app-review-editor [review]="review" (saved)="onReviewSaved($event)" />
+    <div class="review-actions">
+      <button
+        type="button"
+        class="like-button"
+        [class.is-liked]="liked()"
+        [attr.aria-pressed]="liked()"
+        [disabled]="likeLoading()"
+        (click)="toggleLike()"
+      >
+        {{ liked() ? 'Quitar like' : 'Me gusta' }} · {{ likeCount() }}
+      </button>
+
+      <button
+        type="button"
+        class="comments-button"
+        [attr.aria-expanded]="commentsOpen()"
+        (click)="toggleComments()"
+      >
+        {{ commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios' }}
+        @if (commentsLoaded()) {
+          · {{ commentsTotal() }}
+        }
+      </button>
+      @if (canReport()) {
+        <button
+          type="button"
+          class="report-button"
+          [attr.aria-expanded]="reportOpen()"
+          [attr.aria-controls]="'report-form-' + review.id"
+          [disabled]="reportSubmitting() || reportSent()"
+          (click)="toggleReport()"
+        >
+          {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
+        </button>
       }
+    </div>
 
-      <form class="comment-form" (ngSubmit)="submitComment()">
-        <label [for]="'comment-' + review.id">Agregar un comentario</label>
-        <textarea
-          [id]="'comment-' + review.id"
-          name="commentText"
-          [(ngModel)]="commentText"
-          maxlength="2000"
-          required
-          rows="3"
-          placeholder="Escribí tu comentario…"
-        ></textarea>
+    @if (likeError(); as message) {
+      <p class="action-error" role="alert">{{ message }}</p>
+    }
 
-        @if (commentError(); as message) {
+    @if (reportSuccess(); as message) {
+      <p class="report-success" role="status">{{ message }}</p>
+    }
+
+    @if (reportOpen()) {
+      <section class="report-section" [attr.aria-labelledby]="'report-title-' + review.id">
+        <h3 [id]="'report-title-' + review.id">Reportar reseña</h3>
+        <form class="report-form" [id]="'report-form-' + review.id" (ngSubmit)="submitReport()">
+          <label [for]="'report-reason-' + review.id">Motivo</label>
+          <select
+            [id]="'report-reason-' + review.id"
+            name="reportReason"
+            [(ngModel)]="reportReason"
+            [disabled]="reportSubmitting()"
+            required
+          >
+            @for (reason of reportReasons; track reason.value) {
+              <option [value]="reason.value">{{ reason.label }}</option>
+            }
+          </select>
+
+          <label [for]="'report-details-' + review.id">
+            Descripción {{ reportReason === 'OTHER' ? '(obligatoria)' : '(opcional)' }}
+          </label>
+          <textarea
+            [id]="'report-details-' + review.id"
+            name="reportDetails"
+            [(ngModel)]="reportDetails"
+            [required]="reportReason === 'OTHER'"
+            [disabled]="reportSubmitting()"
+            maxlength="500"
+            rows="3"
+            placeholder="Contanos por qué reportás esta reseña…"
+          ></textarea>
+          <p class="report-hint">Hasta 500 caracteres.</p>
+
+          @if (reportError(); as message) {
+            <p class="action-error" role="alert">{{ message }}</p>
+          }
+
+          <button type="submit" [disabled]="reportSubmitting()">
+            {{ reportSubmitting() ? 'Enviando…' : 'Enviar reporte' }}
+          </button>
+        </form>
+      </section>
+    }
+
+    @if (commentsOpen()) {
+      <section class="comments" aria-label="Comentarios de la reseña">
+        @if (commentsLoading()) {
+          <p role="status">Cargando comentarios…</p>
+        } @else if (commentsError(); as message) {
           <p class="action-error" role="alert">{{ message }}</p>
+          <button type="button" class="text-button" (click)="loadComments()">
+            Volver a intentar
+          </button>
+        } @else if (comments().length === 0) {
+          <p class="empty-comments">Todavía no hay comentarios. ¡Sé el primero!</p>
+        } @else {
+          <div class="comment-list">
+            @for (comment of comments(); track comment.id) {
+              <article class="comment">
+                <p class="comment-author">
+                  <a [routerLink]="['/users', comment.author.username]">
+                    {{ comment.author.username }}
+                  </a>
+                </p>
+
+                <p class="comment-text">{{ comment.text }}</p>
+
+                <div class="comment-actions">
+                  <button
+                    type="button"
+                    class="text-button"
+                    [attr.aria-expanded]="isReplyFormOpen(comment.id)"
+                    (click)="toggleReplyForm(comment.id)"
+                  >
+                    {{ isReplyFormOpen(comment.id) ? 'Cancelar respuesta' : 'Responder' }}
+                  </button>
+
+                  <button
+                    type="button"
+                    class="text-button"
+                    [attr.aria-expanded]="isRepliesOpen(comment.id)"
+                    (click)="toggleReplies(comment.id)"
+                  >
+                    {{ isRepliesOpen(comment.id) ? 'Ocultar respuestas' : 'Ver respuestas' }}
+                    @if (repliesCountFor(comment.id) > 0) {
+                      · {{ repliesCountFor(comment.id) }}
+                    }
+                  </button>
+                  @if (canReport()) {
+                    <button
+                      type="button"
+                      class="report-button"
+                      [attr.aria-expanded]="reportOpen()"
+                      [attr.aria-controls]="'report-form-' + review.id"
+                      [disabled]="reportSubmitting() || reportSent()"
+                      (click)="toggleReport()"
+                    >
+                      {{
+                        reportSent()
+                          ? 'Reporte enviado'
+                          : reportOpen()
+                            ? 'Cancelar reporte'
+                            : 'Reportar'
+                      }}
+                    </button>
+                  }
+                </div>
+
+                @if (isReplyFormOpen(comment.id)) {
+                  <form class="reply-form" (ngSubmit)="submitReply(comment)">
+                    <label [for]="'reply-' + comment.id">
+                      Responder a {{ comment.author.username }}
+                    </label>
+
+                    <textarea
+                      [id]="'reply-' + comment.id"
+                      [name]="'replyText-' + comment.id"
+                      [ngModel]="replyTextFor(comment.id)"
+                      (ngModelChange)="setReplyText(comment.id, $event)"
+                      maxlength="2000"
+                      required
+                      rows="2"
+                      placeholder="Escribí tu respuesta…"
+                    ></textarea>
+
+                    @if (replyError()[comment.id]; as message) {
+                      <p class="action-error" role="alert">{{ message }}</p>
+                    }
+
+                    <button
+                      type="submit"
+                      [disabled]="replySubmitting()[comment.id] || repliesLoading()[comment.id]"
+                    >
+                      {{ replySubmitting()[comment.id] ? 'Publicando…' : 'Responder' }}
+                    </button>
+                  </form>
+                }
+
+                @if (isRepliesOpen(comment.id)) {
+                  <div class="reply-list">
+                    @if (repliesLoading()[comment.id]) {
+                      <p role="status">Cargando respuestas…</p>
+                    } @else if (repliesError()[comment.id]; as message) {
+                      <p class="action-error" role="alert">{{ message }}</p>
+                      <button type="button" class="text-button" (click)="loadReplies(comment.id)">
+                        Volver a intentar
+                      </button>
+                    } @else if (repliesFor(comment.id).length === 0) {
+                      <p class="empty-comments">Todavía no hay respuestas.</p>
+                    } @else {
+                      @for (reply of repliesFor(comment.id); track reply.id) {
+                        <article class="comment reply-comment">
+                          <p class="comment-author">
+                            <a [routerLink]="['/users', reply.author.username]">
+                              {{ reply.author.username }}
+                            </a>
+                          </p>
+                          <p class="comment-text">{{ reply.text }}</p>
+                        </article>
+                      }
+                    }
+                  </div>
+                }
+              </article>
+            }
+          </div>
         }
 
-        <button type="submit" [disabled]="commentSubmitting()">
-          {{ commentSubmitting() ? 'Publicando…' : 'Comentar' }}
-        </button>
-      </form>
-    </section>
-  }
-</article>
+        <form class="comment-form" (ngSubmit)="submitComment()">
+          <label [for]="'comment-' + review.id">Agregar un comentario</label>
+          <textarea
+            [id]="'comment-' + review.id"
+            name="commentText"
+            [(ngModel)]="commentText"
+            maxlength="2000"
+            required
+            rows="3"
+            placeholder="Escribí tu comentario…"
+          ></textarea>
+
+          @if (commentError(); as message) {
+            <p class="action-error" role="alert">{{ message }}</p>
+          }
+
+          <button type="submit" [disabled]="commentSubmitting()">
+            {{ commentSubmitting() ? 'Publicando…' : 'Comentar' }}
+          </button>
+        </form>
+      </section>
+    }
+  </article>
+}

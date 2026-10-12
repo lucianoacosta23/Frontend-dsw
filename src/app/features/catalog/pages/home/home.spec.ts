@@ -1,4 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { AuthService } from '../../../../core/services/auth.service';
+import { DashboardService } from '../../../../core/services/dashboard.service';
+import { PlaylistService } from '../../../../core/services/playlist.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,10 +17,14 @@ import { PopularCarousel } from '../../components/popular-carousel/popular-carou
 @Component({ selector: 'app-review-card', template: '' })
 class ReviewStub {
   @Input() review: unknown;
+  @Input() compact = false;
+  @Input() targetCover: string | null = null;
+  @Input() targetName = '';
 }
 @Component({ selector: 'app-popular-carousel', template: '' })
 class CarouselStub {
   @Input() albums: unknown;
+  @Input() directNavigation = false;
 }
 
 const album = {
@@ -38,6 +46,12 @@ const review = {
 };
 
 describe('Home: featured data isolation', () => {
+  const auth = {
+    currentUser: signal<{ id: number; username: string } | null>(null),
+    loadSession: vi.fn(() => of({ data: null })),
+  };
+  const dashboard = { getPlaylists: vi.fn(), getReviews: vi.fn() };
+  const playlists = { getDetail: vi.fn() };
   let catalog: {
     getPopularAlbums: ReturnType<typeof vi.fn>;
     getPopularTracks: ReturnType<typeof vi.fn>;
@@ -47,6 +61,11 @@ describe('Home: featured data isolation', () => {
     getRatingStats: ReturnType<typeof vi.fn>;
   };
   beforeEach(() => {
+    auth.currentUser.set(null);
+    vi.clearAllMocks();
+    dashboard.getPlaylists.mockReturnValue(of({ data: [] }));
+    dashboard.getReviews.mockReturnValue(of({ data: [] }));
+    playlists.getDetail.mockReturnValue(of({ data: { tracks: [] } }));
     catalog = {
       getPopularAlbums: vi.fn(() => of({ data: [album] })),
       getPopularTracks: vi.fn(() => of({ data: [] })),
@@ -59,6 +78,10 @@ describe('Home: featured data isolation', () => {
       imports: [Home],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        { provide: AuthService, useValue: auth },
+        { provide: DashboardService, useValue: dashboard },
+        { provide: PlaylistService, useValue: playlists },
         { provide: CatalogService, useValue: catalog },
         { provide: ReviewService, useValue: reviews },
       ],
@@ -141,5 +164,85 @@ describe('Home: featured data isolation', () => {
     expect(fixture.componentInstance.errorMessage()).toContain('No pudimos conectar');
     expect(catalog.getPopularTracks).toHaveBeenCalledWith(10);
     expect(fixture.componentInstance.tracksLoading()).toBe(false);
+  });
+  it('keeps private rankings restricted to privateHome, even for a signed-in public visitor', () => {
+    auth.currentUser.set({ id: 8, username: 'listener' });
+    const fixture = render();
+    expect(fixture.componentInstance.canAccess).toBe(true);
+    expect(dashboard.getPlaylists).not.toHaveBeenCalled();
+    expect(dashboard.getReviews).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('#popular-playlists-title')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.featured-art').getAttribute('href')).toBe(
+      '/releases/9',
+    );
+  });
+  it('loads real private rankings only on the dashboard', () => {
+    const fixture = TestBed.createComponent(Home);
+    fixture.componentRef.setInput('privateHome', true);
+    fixture.detectChanges();
+    expect(dashboard.getPlaylists).toHaveBeenCalledTimes(1);
+    expect(dashboard.getReviews).toHaveBeenCalledTimes(1);
+    expect(auth.loadSession).not.toHaveBeenCalled();
+  });
+  it('derives static covers from playlist tracks and keeps a fallback on request failure', () => {
+    const entry = {
+      id: 1,
+      name: 'Playlist',
+      author: { id: 8, username: 'listener', fullName: 'Listener' },
+      trackCount: 4,
+      saveCount: 2,
+      savedByMe: false,
+      isOwnPlaylist: false,
+    };
+    dashboard.getPlaylists.mockReturnValue(of({ data: [entry, { ...entry, id: 2 }] }));
+    playlists.getDetail
+      .mockReturnValueOnce(
+        of({
+          data: {
+            tracks: [
+              { release: { imageUrl: '/cover-a.jpg' } },
+              { release: { imageUrl: '/cover-a.jpg' } },
+              { release: { imageUrl: null } },
+              { release: { imageUrl: '/cover-b.jpg' } },
+            ],
+          },
+        }),
+      )
+      .mockReturnValueOnce(throwError(() => new Error('offline')));
+    const fixture = TestBed.createComponent(Home);
+    fixture.componentRef.setInput('privateHome', true);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.playlistCovers()).toEqual({
+      1: ['/cover-a.jpg', '/cover-b.jpg'],
+      2: [],
+    });
+    expect(fixture.componentInstance.popularPlaylists()).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('.cover-stack img')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('.empty-cover')).toHaveLength(1);
+    fixture.componentInstance.hidePlaylistCover(1, '/cover-a.jpg');
+    expect(fixture.componentInstance.playlistCovers()[1]).toEqual(['/cover-b.jpg']);
+  });
+  it('keeps all ten tracks with review links and unavailable actions disabled', () => {
+    catalog.getPopularTracks.mockReturnValue(
+      of({
+        data: Array.from({ length: 10 }, (_, i) => ({
+          track: {
+            id: i + 1,
+            name: 'Track',
+            artists: [{ name: 'Artist' }],
+            release: { imageUrl: null },
+          },
+          reviewCount: i,
+        })),
+      }),
+    );
+    const fixture = render();
+    expect(fixture.nativeElement.querySelectorAll('.song-row')).toHaveLength(10);
+    expect(fixture.nativeElement.querySelectorAll('.song-actions button:disabled')).toHaveLength(
+      20,
+    );
+    expect(
+      fixture.nativeElement.querySelector('.song-review-count').getAttribute('href'),
+    ).toContain('returnUrl=%2Ftracks%2F1');
   });
 });

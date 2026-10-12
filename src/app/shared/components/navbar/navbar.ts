@@ -1,22 +1,35 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service.js';
+import { environment } from '../../../../environments/environments';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [RouterLink],
   templateUrl: './navbar.html',
-  styleUrl: './navbar.scss',
+  styleUrls: ['./navbar.scss', './navbar-home.scss'],
+  host: { '[class.home-nav]': 'home' },
 })
 export class Navbar {
+  @Input() home = false;
+  @Input() sessionLoading = false;
+  @Input() sessionError: string | null = null;
+  @Output() retrySession = new EventEmitter<void>();
+  readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent('/dashboard')}`;
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly loggingOut = signal(false);
   readonly logoutError = signal('');
+
+  scrollToTrends(event: Event): void {
+    if (!this.home) return;
+    event.preventDefault();
+    document.getElementById('tendencias')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
 
   // El backend elimina la sesión; después volvemos a la portada pública.
   logout(): void {
