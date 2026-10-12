@@ -19,17 +19,40 @@ import { CommentService } from '../../../../core/services/comments-service.js';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { CommentItem } from '../../../../models/comment.js';
 import type { ReviewListItem } from '../../../../models/review.js';
+import { ReleaseCover } from '../../../catalog/components/release-cover/release-cover';
 
 @Component({
-  imports: [FormsModule, RouterLink, ReviewEditor
+  imports: [FormsModule, RouterLink, ReviewEditor, ReleaseCover
   ],
   selector: 'app-review-card',
-  styleUrl: './review-card.scss',
+  styleUrls: ['./review-card.scss', './review-card-compact.scss'],
   templateUrl: './review-card.html',
 })
 export class ReviewCard implements OnChanges {
   @Input({ required: true }) review!: ReviewListItem;
   @Input() openCommentsOnLoad = false;
+  @Input() compact = false;
+  @Input() targetCover: string | null = null;
+  @Input() targetName = '';
+
+  canLike(): boolean {
+    const user = this.auth.currentUser();
+    return user !== null && user.id !== this.review.author.id;
+  }
+
+  relativeDate(): string {
+    const timestamp = Date.parse(this.review.createdAt);
+    if (!Number.isFinite(timestamp)) return 'Fecha no disponible';
+    const days = Math.max(0, Math.floor((Date.now() - timestamp) / 86400000));
+    if (days === 0) return 'Hoy';
+    if (days === 1) return 'Hace 1 día';
+    if (days < 7) return `Hace ${days} días`;
+    if (days < 30) {
+      const weeks = Math.floor(days / 7);
+      return `Hace ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+    }
+    return new Date(timestamp).toLocaleDateString('es-AR');
+  }
   private readonly reviewService = inject(ReviewService);
   private readonly commentService = inject(CommentService);
   private readonly reportService = inject(ReportService);
@@ -93,7 +116,7 @@ onReviewSaved(update: ReviewTextUpdate): void {
     this.likeCount.set(this.review.likeCount);
 
     if (
-      this.openCommentsOnLoad &&
+      !this.compact && this.openCommentsOnLoad &&
       !this.commentsLoaded() &&
       !this.commentsLoading()
     ) {
@@ -111,6 +134,7 @@ onReviewSaved(update: ReviewTextUpdate): void {
   }
 
   toggleLike(): void {
+    if (this.compact && !this.canLike()) return;
     if (this.likeLoading()) return;
 
     this.likeLoading.set(true);
@@ -133,6 +157,7 @@ onReviewSaved(update: ReviewTextUpdate): void {
 
   // Carga los comentarios solo cuando la persona abre la sección.
   toggleComments(): void {
+    if (this.compact) return;
     const opening = !this.commentsOpen();
     this.commentsOpen.set(opening);
 
@@ -142,6 +167,7 @@ onReviewSaved(update: ReviewTextUpdate): void {
   }
 
   loadComments(): void {
+    if (this.compact) return;
     this.commentsLoading.set(true);
     this.commentsError.set(null);
 

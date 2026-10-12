@@ -37,6 +37,12 @@ body {
   background-repeat: no-repeat;
 }
 
+// El home pinta su propia imagen una sola vez, incluidas sus áreas laterales.
+// Las otras rutas conservan la configuración general del proyecto.
+body:has(app-home) {
+  background: #101110;
+}
+
 // Conexión con las pantallas. No hace falta editar este bloque.
 $pages: (
   home: 'app-home',

@@ -2,7 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal, Input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { finalize, Subscription } from 'rxjs';
+import { catchError, finalize, from, map, mergeMap, of, Subscription } from 'rxjs';
+import { PlaylistService } from '../../../../core/services/playlist.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environments.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
@@ -15,10 +16,7 @@ import { ReviewCard } from '../../../reviews/components/review-card/review-card'
 import { ReleaseCover } from '../../components/release-cover/release-cover';
 import { PopularCarousel } from '../../components/popular-carousel/popular-carousel';
 import { DashboardService } from '../../../../core/services/dashboard.service.js';
-import type {
-  PopularPlaylist,
-  PopularReview,
-} from '../../../../models/dashboard.js';
+import type { PopularPlaylist, PopularReview } from '../../../../models/dashboard.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 @Component({
   selector: 'app-home',
@@ -34,6 +32,9 @@ export class Home implements OnInit {
   private reviewsRequest?: Subscription;
   private statsRequest?: Subscription;
   private tracksRequest?: Subscription;
+  private coversRequest?: Subscription;
+  private readonly playlistService = inject(PlaylistService);
+  readonly playlistCovers = signal<Record<number, string[]>>({});
 
   readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent('/dashboard')}`;
   readonly albums = signal<PopularAlbum[]>([]);
@@ -50,59 +51,58 @@ export class Home implements OnInit {
   readonly tracksLoading = signal(true);
   readonly tracksErrorMessage = signal<string | null>(null);
   readonly auth = inject(AuthService);
-readonly sessionLoading = signal(false);
-readonly sessionError = signal<string | null>(null);
+  readonly sessionLoading = signal(false);
+  readonly sessionError = signal<string | null>(null);
 
-get canAccess(): boolean {
-  return this.auth.currentUser() !== null;
-}
+  get canAccess(): boolean {
+    return this.auth.currentUser() !== null;
+  }
 
-loadPublicSession(): void {
-  this.sessionLoading.set(true);
-  this.sessionError.set(null);
+  loadPublicSession(): void {
+    this.sessionLoading.set(true);
+    this.sessionError.set(null);
 
-  this.auth.loadSession()
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.sessionLoading.set(false)),
-    )
-    .subscribe({
-      error: (error: unknown) => {
-        // Sin sesión es un estado normal de la portada.
-        if (error instanceof HttpErrorResponse && error.status === 401) {
-          return;
-        }
+    this.auth
+      .loadSession()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.sessionLoading.set(false)),
+      )
+      .subscribe({
+        error: (error: unknown) => {
+          // Sin sesión es un estado normal de la portada.
+          if (error instanceof HttpErrorResponse && error.status === 401) {
+            return;
+          }
 
-        this.sessionError.set(
-          'No pudimos verificar tu sesión. Intentá nuevamente.',
-        );
-      },
-    });
-}
+          this.sessionError.set('No pudimos verificar tu sesión. Intentá nuevamente.');
+        },
+      });
+  }
 
   @Input() privateHome = false;
 
-private readonly dashboardService = inject(DashboardService);
+  private readonly dashboardService = inject(DashboardService);
 
-readonly popularPlaylists = signal<PopularPlaylist[]>([]);
-readonly playlistsLoading = signal(false);
-readonly playlistsError = signal<string | null>(null);
+  readonly popularPlaylists = signal<PopularPlaylist[]>([]);
+  readonly playlistsLoading = signal(false);
+  readonly playlistsError = signal<string | null>(null);
 
-readonly popularReviews = signal<PopularReview[]>([]);
-readonly popularReviewsLoading = signal(false);
-readonly popularReviewsError = signal<string | null>(null);
+  readonly popularReviews = signal<PopularReview[]>([]);
+  readonly popularReviewsLoading = signal(false);
+  readonly popularReviewsError = signal<string | null>(null);
 
-ngOnInit(): void {
-  this.loadPopularAlbums();
-  this.loadPopularTracks();
+  ngOnInit(): void {
+    this.loadPopularAlbums();
+    this.loadPopularTracks();
 
-  if (this.privateHome) {
-    this.loadPopularPlaylists();
-    this.loadPopularReviews();
-  } else {
-    this.loadPublicSession();
+    if (this.privateHome) {
+      this.loadPopularPlaylists();
+      this.loadPopularReviews();
+    } else {
+      this.loadPublicSession();
+    }
   }
-}
   loadPopularAlbums(): void {
     this.catalogRequest?.unsubscribe();
     this.reviewsRequest?.unsubscribe();
@@ -136,53 +136,89 @@ ngOnInit(): void {
       });
   }
 
-loadPopularPlaylists(): void {
-  if (!this.privateHome || this.playlistsLoading()) return;
+  loadPopularPlaylists(): void {
+    if (!this.privateHome || this.playlistsLoading()) return;
 
-  this.playlistsLoading.set(true);
-  this.playlistsError.set(null);
+    this.playlistsLoading.set(true);
+    this.playlistsError.set(null);
 
-  this.dashboardService.getPlaylists()
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.playlistsLoading.set(false)),
-    )
-    .subscribe({
-      next: response => {
-        this.popularPlaylists.set(response.data);
-      },
-      error: () => {
-        this.playlistsError.set(
-          'No pudimos cargar las playlists. Intentá nuevamente.',
-        );
-      },
-    });
-}
+    this.dashboardService
+      .getPlaylists()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.playlistsLoading.set(false)),
+      )
+      .subscribe({
+        next: (response) => {
+          this.popularPlaylists.set(response.data);
+          this.loadPlaylistCovers(response.data);
+        },
+        error: () => {
+          this.playlistsError.set('No pudimos cargar las playlists. Intentá nuevamente.');
+        },
+      });
+  }
 
-loadPopularReviews(): void {
-  if (!this.privateHome || this.popularReviewsLoading()) return;
+  private loadPlaylistCovers(playlists: PopularPlaylist[]): void {
+    this.coversRequest?.unsubscribe();
+    this.playlistCovers.set({});
+    // Only enrich the bounded ranking already displayed, with at most two requests at once.
+    this.coversRequest = from(playlists.filter((playlist) => playlist.trackCount > 0))
+      .pipe(
+        mergeMap(
+          (playlist) =>
+            this.playlistService.getDetail(playlist.id).pipe(
+              map((response) => ({
+                id: playlist.id,
+                covers: [
+                  ...new Set(
+                    response.data.tracks
+                      .map((track) => track.release.imageUrl)
+                      .filter((url): url is string => Boolean(url)),
+                  ),
+                ].slice(0, 3),
+              })),
+              catchError(() => of({ id: playlist.id, covers: [] })),
+            ),
+          2,
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ id, covers }) =>
+        this.playlistCovers.update((current) => ({ ...current, [id]: covers })),
+      );
+  }
 
-  this.popularReviewsLoading.set(true);
-  this.popularReviewsError.set(null);
+  hidePlaylistCover(id: number, url: string): void {
+    this.playlistCovers.update((current) => ({
+      ...current,
+      [id]: (current[id] ?? []).filter((cover) => cover !== url),
+    }));
+  }
 
-  this.dashboardService.getReviews()
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.popularReviewsLoading.set(false)),
-    )
-    .subscribe({
-      next: response => {
-        this.popularReviews.set(response.data);
-      },
-      error: () => {
-        this.popularReviewsError.set(
-          'No pudimos cargar las reseñas populares. Intentá nuevamente.',
-        );
-      },
-    });
-}
+  loadPopularReviews(): void {
+    if (!this.privateHome || this.popularReviewsLoading()) return;
 
+    this.popularReviewsLoading.set(true);
+    this.popularReviewsError.set(null);
 
+    this.dashboardService
+      .getReviews()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.popularReviewsLoading.set(false)),
+      )
+      .subscribe({
+        next: (response) => {
+          this.popularReviews.set(response.data);
+        },
+        error: () => {
+          this.popularReviewsError.set(
+            'No pudimos cargar las reseñas populares. Intentá nuevamente.',
+          );
+        },
+      });
+  }
 
   loadFeaturedReviews(): void {
     const release = this.featured();

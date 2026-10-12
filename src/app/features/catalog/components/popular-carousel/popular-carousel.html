@@ -8,59 +8,16 @@
   (focusin)="focus()"
   (focusout)="blur($event)"
 >
-  <div class="controls">
-    <p>Los discos más reseñados en Jukeboxd.</p>
-    <div class="buttons">
-      <button
-        type="button"
-        (click)="toggle()"
-        [disabled]="reduced() || !overflow()"
-        [attr.aria-label]="
-          reduced()
-            ? 'Movimiento reducido activado'
-            : paused()
-              ? 'Reanudar movimiento automático'
-              : 'Pausar movimiento automático'
-        "
-      >
-        {{ paused() || reduced() ? '▶' : 'Ⅱ' }}
-      </button>
-      <button
-        type="button"
-        (click)="move(-1)"
-        [disabled]="!overflow()"
-        aria-label="Álbumes anteriores"
-      >
-        ←
-      </button>
-      <button
-        type="button"
-        (click)="move(1)"
-        [disabled]="!overflow()"
-        aria-label="Álbumes siguientes"
-      >
-        →
-      </button>
-    </div>
-  </div>
-  <div #rail class="rail" (pointerdown)="pause()" (wheel)="pause()">
+  <div #rail class="rail">
     <div class="track">
       <div #originals class="group" role="list">
         @for (album of albums; track album.id; let position = $index) {
           <div class="item" role="listitem">
             <a
               class="card"
-             [routerLink]="
-  directNavigation ? ['/releases', album.id] : ['/login']
-"
-[queryParams]="
-  directNavigation ? null : { returnUrl: '/releases/' + album.id }
-"
-[attr.aria-label]="
-  directNavigation
-    ? 'Ver ' + album.name
-    : 'Iniciar sesión para ver ' + album.name
-"
+              [routerLink]="directNavigation ? ['/releases', album.id] : ['/login']"
+              [queryParams]="directNavigation ? null : { returnUrl: '/releases/' + album.id }"
+              [attr.aria-label]="'Ver ' + album.name"
             >
               <ng-container
                 [ngTemplateOutlet]="content"
@@ -86,9 +43,6 @@
       }
     </div>
   </div>
-  <p class="hint">
-    Ranking histórico por cantidad de reseñas. Deslizá o usá las flechas para explorar.
-  </p>
 </div>
 <ng-template #content let-album let-position="position">
   <div class="art">
@@ -97,8 +51,4 @@
   </div>
   <h3>{{ album.name }}</h3>
   <p class="artist">{{ artists(album) }}</p>
-  <p class="meta">
-    <span>{{ album.releaseDate.slice(0, 4) }}</span
-    ><span>{{ album.reviewCount }} {{ album.reviewCount === 1 ? 'reseña' : 'reseñas' }}</span>
-  </p>
 </ng-template>

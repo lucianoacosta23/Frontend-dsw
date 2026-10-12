@@ -54,7 +54,7 @@ describe('PopularCarousel: motion and accessibility', () => {
     const fixture = TestBed.createComponent(PopularCarousel);
     fixture.componentRef.setInput(
       'albums',
-      Array.from({ length: 6 }, (_, i) => ({
+      Array.from({ length: 10 }, (_, i) => ({
         id: i + 1,
         name: 'Album ' + i,
         artists: [],
@@ -89,9 +89,9 @@ describe('PopularCarousel: motion and accessibility', () => {
     step(200);
     expect(rail.scrollLeft).toBeCloseTo(1.8);
     const gap = parseFloat(getComputedStyle(group.parentElement!).columnGap) || 0;
-    component.pause();
+    component.hover(true);
     rail.scrollLeft = 1200 + gap - 0.4;
-    component.toggle();
+    component.hover(false);
     step(300);
     step(350);
     expect(rail.scrollLeft).toBeCloseTo(0.5);
@@ -102,9 +102,11 @@ describe('PopularCarousel: motion and accessibility', () => {
     expect(copy.getAttribute('aria-hidden')).toBe('true');
     expect(copy.hasAttribute('inert')).toBe(true);
     expect(copy.querySelectorAll('a,button,[tabindex],[id]')).toHaveLength(0);
-    expect(fixture.nativeElement.querySelectorAll('a')).toHaveLength(6);
+    expect(fixture.nativeElement.querySelectorAll('a')).toHaveLength(10);
+    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelector('.group .item:last-child .rank').textContent).toContain('#10');
   });
-  it('stops on hover, keyboard focus and manual interaction', () => {
+  it('pauses on hover and keyboard focus, then resumes', () => {
     const { component, rail, fixture } = render();
     component.hover(true);
     expect(frames.size).toBe(0);
@@ -117,11 +119,6 @@ describe('PopularCarousel: motion and accessibility', () => {
       .dispatchEvent(new FocusEvent('focusout', { relatedTarget: null, bubbles: true }));
     fixture.detectChanges();
     expect(frames.size).toBe(1);
-    component.move(1);
-    fixture.detectChanges();
-    expect(frames.size).toBe(0);
-    expect(component.paused()).toBe(true);
-    expect(rail.scrollTo).toHaveBeenCalledWith({ left: 450, behavior: 'smooth' });
   });
   it('disables automatic motion when reduced motion is requested', () => {
     const { component, rail, fixture } = render();
@@ -129,8 +126,9 @@ describe('PopularCarousel: motion and accessibility', () => {
     fixture.detectChanges();
     expect(component.reduced()).toBe(true);
     expect(frames.size).toBe(0);
-    component.move(1);
-    expect(rail.scrollTo).toHaveBeenCalledWith({ left: 450, behavior: 'instant' });
+    component.hover(true);
+    component.hover(false);
+    expect(frames.size).toBe(0);
   });
   it('does not duplicate or animate a group that fits', () => {
     const { fixture, component } = render(400);

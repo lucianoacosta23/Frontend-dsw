@@ -31,7 +31,6 @@ export class PopularCarousel implements AfterViewInit, OnChanges, OnDestroy {
 
   private readonly zone = inject(NgZone);
 
-  readonly paused = signal(false);
   readonly reduced = signal(false);
   readonly overflow = signal(false);
 
@@ -103,7 +102,6 @@ export class PopularCarousel implements AfterViewInit, OnChanges, OnDestroy {
     return (
       this.cycle > 0 &&
       this.overflow() &&
-      !this.paused() &&
       !this.reduced() &&
       !this.hovered &&
       !this.focused &&
@@ -170,37 +168,6 @@ export class PopularCarousel implements AfterViewInit, OnChanges, OnDestroy {
       this.focused = false;
       this.updateAnimation();
     }
-  }
-
-  pause(): void {
-    this.paused.set(true);
-    this.updateAnimation();
-  }
-
-  toggle(): void {
-    this.paused.update(value => !value);
-    this.updateAnimation();
-  }
-
-  move(direction: number): void {
-    this.pause();
-
-    const rail = this.rail.nativeElement;
-    const max = Math.max(
-      0,
-      this.originals.nativeElement.scrollWidth - rail.clientWidth,
-    );
-
-    rail.scrollTo({
-      left: Math.max(
-        0,
-        Math.min(
-          max,
-          rail.scrollLeft + direction * rail.clientWidth * 0.75,
-        ),
-      ),
-      behavior: this.reduced() ? 'instant' : 'smooth',
-    });
   }
 
   artists(album: PopularAlbum): string {
