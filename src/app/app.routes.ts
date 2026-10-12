@@ -8,6 +8,7 @@ import { PlaylistDetail } from './features/playlists/pages/playlist-detail/playl
 import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
 import { adminGuard } from './core/guards/admin-guard.js';
 import { AdminDashboard } from './features/admin/pages/admin-dashboard/admin-dashboard.js';
+import { AdminCriticalReviews } from './features/admin/pages/admin-critical-reviews/admin-critical-reviews.js';
 import { Activity } from './features/activity/pages/activity/activity.js';
 import { OwnProfile } from './features/users/pages/own-profile/own-profile.js';
 import { EditProfile } from './features/users/pages/edit-profile/edit-profile.js';
@@ -75,12 +76,25 @@ export const routes: Routes = [
 
     // El guard comprueba tanto la sesión como el rol ADMIN.
   {
+    path: 'admin/critical-reviews',
+    component: AdminCriticalReviews,
+    canActivate: [adminGuard],
+  },
+
+  {
+    path: 'admin/reports/minor',
+    component: AdminCriticalReviews,
+    data: { minorReports: true },
+    canActivate: [adminGuard],
+  },
+
+  {
     path: 'admin',
     component: AdminDashboard,
     canActivate: [adminGuard],
   },
 
-    {
+  {
     path: 'playlists/new',
     component: CreatePlaylist,
     canActivate: [authGuard],

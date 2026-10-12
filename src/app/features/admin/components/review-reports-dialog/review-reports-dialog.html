@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Reportes de la reseña #{{ review.id }}</h2>
+<mat-dialog-content>
+  <div class="review-summary">
+    <strong>{{ review.author.username }}</strong> · {{ review.rating }} / 5
+    <p>{{ review.text || 'Reseña sin texto.' }}</p>
+  </div>
+  @if (loading()) {
+    <p role="status">Cargando reportes...</p>
+  } @else if (error()) {
+    <div role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="loadReports()">Reintentar</button>
+    </div>
+  } @else if (reports().length === 0) {
+    <p>No hay reportes para esta reseña.</p>
+  } @else {
+    <p>{{ reports().length }} {{ reports().length === 1 ? 'reporte registrado' : 'reportes registrados' }}. Se incluye el historial de moderación.</p>
+    <ol class="report-list">
+      @for (report of reports(); track report.id) {
+        <li>
+          <div class="report-heading">
+            <strong>{{ reasonLabel(report.reason) }}</strong>
+            <span class="status" [class.pending]="report.status === 'PENDING'">{{ statusLabel(report.status) }}</span>
+          </div>
+          <p class="report-meta">{{ report.reporter.username }} · {{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p class="report-details">{{ report.details || 'Sin detalles adicionales.' }}</p>
+        </li>
+      }
+    </ol>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

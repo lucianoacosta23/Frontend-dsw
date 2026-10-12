@@ -1,7 +1,7 @@
 <app-navbar />
 
 <main class="admin-page">
-  <a class="back-link" routerLink="/dashboard">Volver al inicio</a>
+  <!--<a class="back-link" routerLink="/dashboard">Volver al inicio</a> -->
 
   <header class="page-heading">
     <p class="eyebrow">Administración</p>
@@ -15,19 +15,52 @@
     }
   </header>
 
-  <section class="admin-options" aria-label="Herramientas de administración">
-    <article class="admin-card">
-      <span class="card-icon" aria-hidden="true">⚑</span>
-      <h2>Reportes de reseñas</h2>
+  <section class="admin-grid" aria-label="Herramientas de administración">
+    
+    <!-- CARD 1: Reseñas Críticas -->
+    <article class="admin-card card-critical">
+      <div class="card-header">
+        <span class="card-icon" aria-hidden="true">🚨</span>
+        <span class="badge danger">Urgente</span>
+      </div>
+      <h2>Reseñas críticas</h2>
       <p>
-        Revisar reportes, descartarlos o dar de baja las reseñas
-        que incumplan las reglas.
+        Reseñas que acumulan <strong>3 o más reportes pendientes</strong>. Requieren revisión para ignorar sus reportes o dar de baja la reseña.
       </p>
-
-      <!-- El backend existe; falta conectar su pantalla. -->
-      <button type="button" disabled>
-        Moderación pendiente de conectar
+      <button type="button" routerLink="/admin/critical-reviews" class="btn-action">
+        Revisar críticas
       </button>
     </article>
+
+    <!-- CARD 2: Reportes Menores -->
+    <article class="admin-card card-warning">
+      <div class="card-header">
+        <span class="card-icon" aria-hidden="true">⚑</span>
+        <span class="badge warning">Atención</span>
+      </div>
+      <h2>Reportes menores</h2>
+      <p>
+        Reseñas con <strong>1 o 2 reportes pendientes</strong>. Para revisar de forma preventiva o descartar falsas denuncias.
+      </p>
+      <button type="button" routerLink="/admin/reports/minor" class="btn-action">
+        Ver reportes menores
+      </button>
+    </article>
+
+    <!-- CARD 3: Gestión de Usuarios (Futuro) -->
+    <article class="admin-card card-disabled">
+      <div class="card-header">
+        <span class="card-icon" aria-hidden="true">🛡️</span>
+        <span class="badge info">Próximamente</span>
+      </div>
+      <h2>Gestión de usuarios</h2>
+      <p>
+        Apartado reservado para aplicar suspensiones, advertencias y control de cuentas infractoras.
+      </p>
+      <button type="button" routerLink="/admin/users" class="btn-action" disabled>
+        Módulo en desarrollo
+      </button>
+    </article>
+
   </section>
 </main>
