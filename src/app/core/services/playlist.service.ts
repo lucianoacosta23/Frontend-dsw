@@ -38,6 +38,11 @@ export interface PlaylistData extends CreatedPlaylist {
 
 export interface PlaylistDetailData extends PlaylistData {
   author: { id: number; username: string; fullName: string };
+  isOwnPlaylist: boolean;
+  savedByMe: boolean;
+  saveCount: number;
+}
+
 export interface OwnPlaylistItem extends CreatedPlaylist {
   author: { id: number; username: string; fullName: string };
   trackCount: number;
@@ -64,6 +69,8 @@ export interface PlaylistSaveResponse {
 export interface PlaylistDetailResponse {
   message: string;
   data: PlaylistDetailData;
+}
+
 export interface OwnPlaylistsResponse {
   message: string;
   data: OwnPlaylistItem[];
@@ -118,14 +125,8 @@ export interface PlaylistSearchResults {
 export class PlaylistService {
   private readonly http = inject(HttpClient);
 
-  getDetail(playlistId: number): Observable<{
-    message: string;
-    data: PlaylistData & { isOwnPlaylist: boolean };
-  }> {
-    return this.http.get<{
-      message: string;
-      data: PlaylistData & { isOwnPlaylist: boolean };
-    }>(`${environment.apiBaseUrl}/playlist/${playlistId}`, {
+  getDetail(playlistId: number): Observable<PlaylistDetailResponse> {
+    return this.http.get<PlaylistDetailResponse>(`${environment.apiBaseUrl}/playlist/${playlistId}`, {
       withCredentials: true,
     });
   }
