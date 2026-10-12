@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import type {
   CreateReviewRequest,
+  ReviewSort,
   ReviewApiResponse,
   ReviewListResponse,
   ReviewLikeResponse,
@@ -32,27 +33,28 @@ export class ReviewService {
     );
   }
 
-getPopularReviews(
-  targetType: 'release' | 'track',
-  targetId: number,
-  page = 1,
-  pageSize = 10,
-): Observable<ReviewListResponse> {
-  let params = new HttpParams()
-    .set('sort', 'popular')
-    .set('page', page)
-    .set('pageSize', pageSize);
+  getPopularReviews(
+    targetType: 'release' | 'track', targetId: number, page = 1, pageSize = 10,
+  ): Observable<ReviewListResponse> {
+    return this.getReviews(targetType, targetId, 'popular', page, pageSize);
+  }
 
-  params = params.set(
-    targetType === 'release' ? 'releaseId' : 'trackId',
-    targetId,
-  );
-
-  return this.http.get<ReviewListResponse>(
-    `${environment.apiBaseUrl}/reviews`,
-    { params, withCredentials: true },
-  );
-}
+  getReviews(
+    targetType: 'release' | 'track',
+    targetId: number,
+    sort: ReviewSort = 'popular',
+    page = 1,
+    pageSize = 10,
+  ): Observable<ReviewListResponse> {
+    const params = new HttpParams()
+      .set('sort', sort)
+      .set('page', page)
+      .set('pageSize', pageSize)
+      .set(targetType === 'release' ? 'releaseId' : 'trackId', targetId);
+    return this.http.get<ReviewListResponse>(`${environment.apiBaseUrl}/reviews`, {
+      params, withCredentials: true,
+    });
+  }
 
   // Consulta el promedio y la distribución sin limitarse
   // a las diez reseñas populares que mostramos en pantalla.

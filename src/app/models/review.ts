@@ -13,7 +13,7 @@ export interface ReviewApiResponse {
   message: string;
   data: unknown;
 }
-export type ReviewSort = 'newest' | 'popular';
+export type ReviewSort = 'newest' | 'popular' | 'oldest';
 
 export interface ReviewListItem {
   id: number;

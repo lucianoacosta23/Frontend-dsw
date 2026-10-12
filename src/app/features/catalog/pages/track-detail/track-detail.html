@@ -86,13 +86,22 @@
       </aside>
     </section>
 
-    <!-- Reseñas que el backend devuelve ordenadas por popularidad. -->
+    <!-- El orden se aplica en el backend antes de paginar. -->
     <section class="reviews" aria-labelledby="reviews-title">
       <div class="reviews-heading">
         <div>
           <p class="eyebrow">Lo que opina la comunidad</p>
-          <h2 id="reviews-title">Reseñas populares</h2>
+          <h2 id="reviews-title">Reseñas de la comunidad</h2>
         </div>
+        <label class="reviews-sort">
+          <span>Ordenar por</span>
+          <select #reviewSortSelect [value]="reviewsSort()"
+            (change)="changeReviewsSort(reviewSortSelect.value)">
+            <option value="popular">Más populares</option>
+            <option value="newest">Más recientes</option>
+            <option value="oldest">Más antiguas</option>
+          </select>
+        </label>
       </div>
 
       @if (reviews().length > 0) {
@@ -110,7 +119,7 @@
           <div class="status error" role="alert">
             <p>{{ message }}</p>
             <button type="button" class="load-reviews-button"
-              (click)="loadPopularReviews(item.id)">
+              (click)="loadReviews(item.id)">
               Volver a intentar
             </button>
           </div>
