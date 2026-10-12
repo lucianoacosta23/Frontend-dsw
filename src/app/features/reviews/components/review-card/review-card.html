@@ -14,11 +14,22 @@
   </div>
 
   @if (review.text) {
-    <p class="review-text">{{ review.text }}</p>
+    <p class="review-text">
+      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+        {{ review.text }}
+      </a>
+    </p>
   } @else {
-    <p class="review-text review-text-empty">Solo puntuación.</p>
+    <p class="review-text review-text-empty">
+      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
+        Solo puntuación. Ver reseña →
+      </a>
+    </p>
   }
-
+<app-review-editor
+  [review]="review"
+  (saved)="onReviewSaved($event)"
+/>
   <div class="review-actions">
     <button
       type="button"
@@ -42,9 +53,10 @@
         · {{ commentsTotal() }}
       }
     </button>
-
+@if (canReport()) {
     <button
       type="button"
+
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"
@@ -52,7 +64,7 @@
       (click)="toggleReport()"
     >
       {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>
+    </button>}
   </div>
 
   @if (likeError(); as message) {
@@ -154,9 +166,10 @@
         · {{ repliesCountFor(comment.id) }}
       }
     </button>
-
+@if (canReport()) {
     <button
       type="button"
+
       class="report-button"
       [attr.aria-expanded]="reportOpen()"
       [attr.aria-controls]="'report-form-' + review.id"
@@ -164,7 +177,7 @@
       (click)="toggleReport()"
     >
       {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-    </button>
+    </button>}
   </div>
 
   @if (isReplyFormOpen(comment.id)) {

@@ -1,0 +1,164 @@
+.critical-reviews-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+
+  .header-section {
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 1.5rem;
+}
+
+.review-preview {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 4px;
+}
+.review-preview:focus-visible { outline: 3px solid #4f46e5; outline-offset: 4px; }
+.reports-link { color: #4f46e5; text-decoration: underline; }
+.card-actions { margin-top: 1rem; }
+
+.review-card {
+  background: #ffffff;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .album-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4f46e5;
+  }
+
+  .badge-reports {
+    background-color: #fee2e2;
+    color: #991b1b;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    &.badge-minor {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+  }
+}
+
+.card-body {
+  margin-bottom: 1.5rem;
+
+  .review-content {
+    font-size: 1rem;
+    color: #374151;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    margin-bottom: 0.75rem;
+  }
+
+  .review-author {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.75rem;
+
+  button {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+
+    &.btn-danger {
+      background-color: #dc2626;
+      color: white;
+
+      &:hover {
+        background-color: #b91c1c;
+      }
+    }
+
+    &.btn-secondary {
+      background-color: #f3f4f6;
+      color: #374151;
+
+      &:hover {
+        background-color: #e5e7eb;
+      }
+    }
+  }
+}
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.error-message, .success-message {
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #166534;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

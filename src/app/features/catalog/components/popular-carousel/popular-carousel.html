@@ -50,9 +50,17 @@
           <div class="item" role="listitem">
             <a
               class="card"
-              [routerLink]="['/login']"
-              [queryParams]="{ returnUrl: '/releases/' + album.id }"
-              [attr.aria-label]="'Iniciar sesión para ver ' + album.name"
+             [routerLink]="
+  directNavigation ? ['/releases', album.id] : ['/login']
+"
+[queryParams]="
+  directNavigation ? null : { returnUrl: '/releases/' + album.id }
+"
+[attr.aria-label]="
+  directNavigation
+    ? 'Ver ' + album.name
+    : 'Iniciar sesión para ver ' + album.name
+"
             >
               <ng-container
                 [ngTemplateOutlet]="content"

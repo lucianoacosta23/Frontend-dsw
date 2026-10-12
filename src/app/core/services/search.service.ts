@@ -8,6 +8,9 @@ import type { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environments.js';
 import type {
+  SpotifyMusicSearchResponse,
+  SpotifyTrackImportResponse,
+  SpotifyArtistImportResponse,
   SearchResponse,
   SearchType,
   SpotifyAlbumSearchResponse,
@@ -51,6 +54,42 @@ export class SearchService {
       {
         params,
         withCredentials: true,
+      },
+    );
+  }
+
+  searchSpotifyMusic(
+    query: string,
+    types: Array<'album' | 'track' | 'artist'>,
+  ): Observable<SpotifyMusicSearchResponse> {
+    const params = new HttpParams()
+      .set('q', query.trim())
+      .set('type', types.join(','));
+
+    return this.http.get<SpotifyMusicSearchResponse>(
+      `${environment.apiBaseUrl}/spotify/search`,
+      { params, withCredentials: true },
+    );
+  }
+
+  importSpotifyArtist(spotifyId: string): Observable<SpotifyArtistImportResponse> {
+    return this.http.post<SpotifyArtistImportResponse>(
+      `${environment.apiBaseUrl}/spotify/artists/${encodeURIComponent(spotifyId)}/import`,
+      {},
+      {
+        withCredentials: true,
+        headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+      },
+    );
+  }
+
+  importSpotifyTrack(spotifyId: string): Observable<SpotifyTrackImportResponse> {
+    return this.http.post<SpotifyTrackImportResponse>(
+      `${environment.apiBaseUrl}/spotify/tracks/${encodeURIComponent(spotifyId)}/import`,
+      {},
+      {
+        withCredentials: true,
+        headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
       },
     );
   }

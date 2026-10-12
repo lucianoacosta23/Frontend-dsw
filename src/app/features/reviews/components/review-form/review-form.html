@@ -1,22 +1,229 @@
-<form class="review-form" (ngSubmit)="submit()">
-  <label for="review-rating">Tu puntuación</label>
-  <select id="review-rating" name="rating" [(ngModel)]="rating">
-    @for (value of ratings; track value) {
-      <option [ngValue]="value">{{ value }}</option>
+<ng-template #ratingStars let-openDialog="openDialog">
+  <div class="stars" role="group" aria-label="Elegir puntuación">
+    @for (star of stars; track star) {
+      <span class="star">
+        <svg class="star-empty" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2 15 8.5 22 9.5 17 14.5 18.2 22 12 18.5 5.8 22 7 14.5 2 9.5 9 8.5Z" />
+</svg>
+
+<span
+  class="star-filled"
+  aria-hidden="true"
+  [style.width.%]="fill(star)"
+>
+  <svg viewBox="0 0 24 24">
+    <path d="M12 2 15 8.5 22 9.5 17 14.5 18.2 22 12 18.5 5.8 22 7 14.5 2 9.5 9 8.5Z" />
+  </svg>
+</span>
+
+        <button
+          class="star-half left"
+          type="button"
+          [disabled]="submitting"
+          [attr.aria-label]="(star - 0.5) + ' de 5'"
+          [attr.aria-pressed]="rating === star - 0.5"
+          (click)="selectRating(star - 0.5, openDialog)"
+        ></button>
+
+        <button
+          class="star-half right"
+          type="button"
+          [disabled]="submitting"
+          [attr.aria-label]="star + ' de 5'"
+          [attr.aria-pressed]="rating === star"
+          (click)="selectRating(star, openDialog)"
+        ></button>
+      </span>
     }
-  </select>
+  </div>
+</ng-template>
 
-  <label for="review-text">Tu reseña</label>
-  <textarea
-    id="review-text"
-    name="text"
-    [(ngModel)]="text"
-    rows="5"
-    maxlength="2000"
-    placeholder="¿Qué te pareció?"
-  ></textarea>
+<section class="rating-panel">
+  <p class="rating-label">Tu puntuación</p>
 
-  <button type="submit" [disabled]="submitting">
-    {{ submitting ? 'Publicando…' : 'Publicar reseña' }}
+  <ng-container
+    [ngTemplateOutlet]="ratingStars"
+    [ngTemplateOutletContext]="{ openDialog: true }"
+  />
+
+  <p class="rating-value">{{ rating }} / 5</p>
+
+  <button
+    class="review-trigger"
+    type="button"
+    [disabled]="submitting"
+    (click)="open()"
+  >
+    Escribir reseña…
   </button>
-</form>
+
+  @if (target.type === 'track') {
+    <button class="review-trigger" type="button" (click)="openPlaylists()">
+      + Agregar a lista
+    </button>
+  }
+</section>
+
+<dialog
+  #reviewDialog
+  class="review-dialog"
+  [attr.aria-labelledby]="'review-dialog-title-' + target.type + target.id"
+  (cancel)="onCancel($event)"
+>
+  <header class="dialog-header">
+    <h2 [id]="'review-dialog-title-' + target.type + target.id">
+      Tu reseña
+    </h2>
+
+    <button
+      class="close-button"
+      type="button"
+      aria-label="Cerrar formulario"
+      [disabled]="submitting"
+      (click)="close()"
+    >
+      ×
+    </button>
+  </header>
+
+  <form (ngSubmit)="submit()">
+    <div class="dialog-body">
+      <div class="dialog-cover">
+        @if (imageUrl) {
+          <img [src]="imageUrl" [alt]="'Portada de ' + title" />
+        } @else {
+          <span aria-hidden="true">♫</span>
+        }
+      </div>
+
+      <div class="dialog-content">
+        <p class="eyebrow">
+          {{ target.type === 'release' ? 'Lanzamiento' : 'Canción' }}
+        </p>
+        <h3>{{ title || 'Compartí tu opinión' }}</h3>
+
+        <label [for]="'review-text-' + target.type + target.id">
+          Tu opinión <span>(opcional)</span>
+        </label>
+
+        <textarea
+          [id]="'review-text-' + target.type + target.id"
+          name="text"
+          [(ngModel)]="text"
+          [disabled]="submitting"
+          rows="6"
+          placeholder="¿Qué te pareció?"
+          autofocus
+        ></textarea>
+
+        <small>Hasta 2000 caracteres.</small>
+
+        <div class="modal-rating">
+          <p>Tu puntuación</p>
+
+          <ng-container
+            [ngTemplateOutlet]="ratingStars"
+            [ngTemplateOutletContext]="{ openDialog: false }"
+          />
+
+          <span class="rating-value">{{ rating }} / 5</span>
+        </div>
+
+        @if (validationError(); as message) {
+          <p class="error-message" role="alert">{{ message }}</p>
+        }
+
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+      </div>
+    </div>
+
+    <footer class="dialog-footer">
+      <button
+        class="cancel-button"
+        type="button"
+        [disabled]="submitting"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="publish-button"
+        type="submit"
+        [disabled]="submitting"
+      >
+        {{ submitting ? 'Publicando…' : 'Publicar reseña' }}
+      </button>
+    </footer>
+  </form>
+</dialog>
+<dialog #playlistDialog class="review-dialog playlist-dialog"
+  [attr.aria-labelledby]="'playlist-dialog-title-' + target.id"
+  (cancel)="cancelPlaylists($event)">
+  <header class="dialog-header">
+    <h2 [id]="'playlist-dialog-title-' + target.id">Agregar a una playlist</h2>
+    <button type="button" class="close-button" aria-label="Cerrar selector"
+      [disabled]="addingPlaylistId() !== null" (click)="closePlaylists()">×</button>
+  </header>
+
+  <section class="playlist-selector">
+    <p class="playlist-target">{{ title }}</p>
+    <p class="playlist-help">Elegí una de tus playlists.</p>
+
+    @if (playlistSuccess(); as message) {
+      <p class="playlist-success" role="status">{{ message }}</p>
+    }
+    @if (playlistAddError(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    <ul class="playlist-options">
+      @for (playlist of playlistOptions(); track playlist.id) {
+        <li>
+          <span class="playlist-icon" aria-hidden="true">♫</span>
+          <div class="playlist-option-info">
+            <strong>{{ playlist.name }}</strong>
+            <span>{{ playlist.trackCount }} canciones</span>
+            @if (playlist.unavailable) {
+              <small>No pudimos verificar esta playlist. Actualizá la lista.</small>
+            }
+          </div>
+          <button type="button" class="cancel-button"
+            [disabled]="addingPlaylistId() !== null || playlistsLoading() || playlist.alreadyAdded || playlist.unavailable"
+            [attr.aria-label]="'Agregar a ' + playlist.name"
+            (click)="addToPlaylist(playlist)">
+            {{ addingPlaylistId() === playlist.id ? 'Agregando…' : playlist.alreadyAdded ? 'Ya agregada ✓' : '+ Agregar' }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (playlistsLoading()) {
+      <p role="status">Cargando tus playlists…</p>
+    }
+    @if (playlistsError(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+      <button type="button" class="cancel-button" [disabled]="playlistsLoading()"
+        (click)="loadPlaylists(playlistPage() > 0)">Volver a intentar</button>
+    } @else if (!playlistsLoading() && playlistPage() > 0 && playlistOptions().length === 0) {
+      <p class="playlist-help">Todavía no creaste playlists.</p>
+      <a routerLink="/playlists/new" (click)="closePlaylists()">Crear playlist →</a>
+    }
+
+    @if (playlistPage() < playlistTotalPages() && !playlistsError()) {
+      <button type="button" class="cancel-button"
+        [disabled]="playlistsLoading() || addingPlaylistId() !== null"
+        (click)="loadPlaylists(true)">Cargar más playlists</button>
+    }
+  </section>
+
+  <footer class="dialog-footer">
+    <button type="button" class="cancel-button"
+      [disabled]="addingPlaylistId() !== null || playlistsLoading()"
+      (click)="loadPlaylists()">Actualizar listas</button>
+    <button type="button" class="publish-button"
+      [disabled]="addingPlaylistId() !== null" (click)="closePlaylists()">Listo</button>
+  </footer>
+</dialog>

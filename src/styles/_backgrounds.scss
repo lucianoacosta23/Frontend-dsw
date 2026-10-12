@@ -1,0 +1,67 @@
+// CONFIGURACIÓN DE FONDOS
+// General: cambiá --jb-background. Todas las pantallas lo heredan.
+// Admite color, degradado o imagen, por ejemplo:
+// --jb-background: linear-gradient(#101110bb, #101110ee), url('/backgrounds/fondo.webp');
+// Guardá las imágenes en public/backgrounds/ (la URL no incluye "public").
+:root {
+  --jb-background: url('/backgrounds/fondo4.jpg');
+  --jb-background-size: cover;
+  --jb-background-position: center;
+
+  // Descomentá solo las secciones que deban tener otro fondo.
+  // --jb-home-background: #181510;
+  // --jb-profile-background: #171b20;
+  // --jb-edit-profile-background: #171b20;
+  // --jb-login-background: #101110;
+  // --jb-register-background: #101110;
+  // --jb-spotify-register-background: #101110;
+  // --jb-search-background: #101110;
+  // --jb-activity-background: #101110;
+  // --jb-release-background: #101110;
+  // --jb-track-background: #101110;
+  // --jb-artist-background: #101110;
+  // --jb-review-background: #101110;
+  // --jb-create-playlist-background: #101110;
+  // --jb-playlist-background: #101110;
+  // --jb-admin-background: #101110;
+
+  // Poné ambos valores en "none" para quitar la decoración de la home.
+  --jb-home-ambient-display: none;
+  --jb-home-ambient-background:none;
+}
+
+body {
+  background: var(--jb-background);
+  background-size: var(--jb-background-size);
+  background-position: var(--jb-background-position);
+  background-repeat: no-repeat;
+}
+
+// Conexión con las pantallas. No hace falta editar este bloque.
+$pages: (
+  home: 'app-home',
+  profile: 'app-own-profile',
+  edit-profile: 'app-edit-profile',
+  login: 'app-login',
+  register: 'app-register',
+  spotify-register: 'app-spotify-register',
+  search: 'app-search',
+  activity: 'app-activity',
+  release: 'app-release-detail',
+  track: 'app-track-detail',
+  artist: 'app-artist-profile',
+  review: 'app-review-detail',
+  create-playlist: 'app-create-playlist',
+  playlist: 'app-playlist-detail',
+  admin: 'app-admin-dashboard'
+);
+@each $section, $element in $pages {
+  #{$element} {
+    display: block;
+    min-height: 100dvh;
+    background: var(--jb-#{$section}-background, var(--jb-background));
+    background-size: var(--jb-background-size);
+    background-position: var(--jb-background-position);
+    background-repeat: no-repeat;
+  }
+}

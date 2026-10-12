@@ -3,10 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import type {
   CreateReviewRequest,
+  ReviewSort,
   ReviewApiResponse,
   ReviewListResponse,
   ReviewLikeResponse,
   ReviewDetailResponse,
+  ReviewEditResponse,
+ReviewHistoryResponse,
 } from '../../models/review.js';
 import { environment } from '../../../environments/environments.js';
 import type { RatingStatsResponse } from '../../models/rating-stats.js';
@@ -15,6 +18,14 @@ import type { RatingStatsResponse } from '../../models/rating-stats.js';
 export class ReviewService {
   private readonly http = inject(HttpClient);
 
+  getReviewsByAuthor(authorId: number, page = 1, pageSize = 6): Observable<ReviewListResponse> {
+    const params = new HttpParams().set('authorId', authorId).set('sort', 'newest')
+      .set('page', page).set('pageSize', pageSize);
+    return this.http.get<ReviewListResponse>(`${environment.apiBaseUrl}/reviews`, {
+      params, withCredentials: true,
+    });
+  }
+
   getReviewById(id: number): Observable<ReviewDetailResponse> {
     return this.http.get<ReviewDetailResponse>(
       `${environment.apiBaseUrl}/reviews/${id}`,
@@ -22,27 +33,28 @@ export class ReviewService {
     );
   }
 
-getPopularReviews(
-  targetType: 'release' | 'track',
-  targetId: number,
-  page = 1,
-  pageSize = 10,
-): Observable<ReviewListResponse> {
-  let params = new HttpParams()
-    .set('sort', 'popular')
-    .set('page', page)
-    .set('pageSize', pageSize);
+  getPopularReviews(
+    targetType: 'release' | 'track', targetId: number, page = 1, pageSize = 10,
+  ): Observable<ReviewListResponse> {
+    return this.getReviews(targetType, targetId, 'popular', page, pageSize);
+  }
 
-  params = params.set(
-    targetType === 'release' ? 'releaseId' : 'trackId',
-    targetId,
-  );
-
-  return this.http.get<ReviewListResponse>(
-    `${environment.apiBaseUrl}/reviews`,
-    { params, withCredentials: true },
-  );
-}
+  getReviews(
+    targetType: 'release' | 'track',
+    targetId: number,
+    sort: ReviewSort = 'popular',
+    page = 1,
+    pageSize = 10,
+  ): Observable<ReviewListResponse> {
+    const params = new HttpParams()
+      .set('sort', sort)
+      .set('page', page)
+      .set('pageSize', pageSize)
+      .set(targetType === 'release' ? 'releaseId' : 'trackId', targetId);
+    return this.http.get<ReviewListResponse>(`${environment.apiBaseUrl}/reviews`, {
+      params, withCredentials: true,
+    });
+  }
 
   // Consulta el promedio y la distribución sin limitarse
   // a las diez reseñas populares que mostramos en pantalla.
@@ -84,6 +96,7 @@ likeReview(reviewId: number): Observable<ReviewLikeResponse> {
       headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
     },
   );
+
 }
 
 // Quita el like del usuario de la sesión.
@@ -93,6 +106,37 @@ unlikeReview(reviewId: number): Observable<ReviewLikeResponse> {
     {
       withCredentials: true,
       headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
+editReview(
+  reviewId: number,
+  text: string,
+): Observable<ReviewEditResponse> {
+  return this.http.patch<ReviewEditResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}`,
+    { text },
+    {
+      withCredentials: true,
+      headers: new HttpHeaders({ 'X-Jukeboxd-Request': '1' }),
+    },
+  );
+}
+
+getReviewHistory(
+  reviewId: number,
+  page = 1,
+  pageSize = 10,
+): Observable<ReviewHistoryResponse> {
+  const params = new HttpParams()
+    .set('page', page)
+    .set('pageSize', pageSize);
+
+  return this.http.get<ReviewHistoryResponse>(
+    `${environment.apiBaseUrl}/reviews/${reviewId}/history`,
+    {
+      params,
+      withCredentials: true,
     },
   );
 }

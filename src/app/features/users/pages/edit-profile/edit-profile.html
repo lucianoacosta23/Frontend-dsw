@@ -1,8 +1,185 @@
 <app-navbar />
-
 <main class="edit-page">
-  <a routerLink="/profile">Volver a mi perfil</a>
-
   <h1>Editar perfil</h1>
-  <p>Acá vamos a conectar el formulario para actualizar tus datos.</p>
+  @if (loading()) {
+    <p role="status">Cargando tu perfil…</p>
+  } @else if (loadError()) {
+    <div role="alert">
+      <p>{{ loadError() }}</p>
+      <button type="button" (click)="load()">Reintentar perfil</button
+      ><a routerLink="/profile">Volver al perfil</a>
+    </div>
+  } @else if (profile(); as user) {
+    <p class="intro">
+      Elegí las imágenes y la música que te representan. Los cambios se confirman al guardar.
+    </p>
+    <section aria-labelledby="images-title">
+      <h2 id="images-title">Avatar y portada</h2>
+      <p class="hint">
+        JPEG, PNG o WebP estático. Hasta 5 MiB y 20 millones de píxeles por imagen.
+      </p>
+      <div class="image-grid">
+        @for (purpose of purposes; track purpose) {
+          <div>
+            <h3>{{ purpose === 'avatar' ? 'Avatar' : 'Portada' }}</h3>
+            <div class="image-preview" [class.avatar-preview]="purpose === 'avatar'">
+              @if (images()[purpose].preview?.startsWith('blob:')) {
+                <img [src]="images()[purpose].preview" [alt]="'Previsualización de ' + purpose" />
+              } @else {
+                <app-profile-image
+                  [src]="images()[purpose].preview"
+                  [alt]="purpose === 'avatar' ? 'Avatar' : 'Portada'"
+                  [fallback]="purpose === 'avatar' ? user.username.slice(0, 1).toUpperCase() : '♫'"
+                />
+              }
+            </div>
+            <label class="file-label" [for]="purpose + '-file'"
+              >Elegir {{ purpose === 'avatar' ? 'avatar' : 'portada' }}</label
+            >
+            <input
+              type="file"
+              [id]="purpose + '-file'"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="fileChange($event, purpose)"
+              [disabled]="busy()"
+            />
+            <button
+              type="button"
+              (click)="removeImage(purpose)"
+              [disabled]="busy() || !images()[purpose].preview"
+            >
+              Quitar {{ purpose === 'avatar' ? 'avatar' : 'portada' }}
+            </button>
+            @if (images()[purpose].error) {
+              <p role="alert" class="error">{{ images()[purpose].error }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+    <div class="favorites-grid">
+      <section aria-labelledby="release-title">
+        <h2 id="release-title">
+          Proyectos favoritos <small>{{ releases().length }}/5</small>
+        </h2>
+        <p class="hint">
+          Hasta cinco proyectos únicos. Los singles quedan fuera de esta categoría.
+        </p>
+        <ol>
+          @for (release of releases(); track release.id; let i = $index) {
+            <li>
+              <span>{{ release.name }}</span>
+              <div class="order-actions">
+                <button
+                  type="button"
+                  (click)="moveFavorite('release', i, -1)"
+                  [disabled]="busy() || i === 0"
+                  [attr.aria-label]="'Subir ' + release.name"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  (click)="moveFavorite('release', i, 1)"
+                  [disabled]="busy() || i === releases().length - 1"
+                  [attr.aria-label]="'Bajar ' + release.name"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  (click)="removeFavorite('release', i)"
+                  [disabled]="busy()"
+                  [attr.aria-label]="'Quitar ' + release.name"
+                >
+                  Quitar
+                </button>
+              </div>
+            </li>
+          } @empty {
+            <li class="hint">Todavía no elegiste proyectos.</li>
+          }
+        </ol>
+        <app-favorite-picker
+          kind="release"
+          [selectedIds]="releaseIds()"
+          [disabled]="saving()"
+          (busyChange)="setPickerBusy('release', $event)"
+          (picked)="addFavorite($event)"
+        />
+      </section>
+      <section aria-labelledby="track-title">
+        <h2 id="track-title">
+          Canciones favoritas <small>{{ tracks().length }}/5</small>
+        </h2>
+        <p class="hint">Hasta cinco canciones únicas, incluidas las que pertenecen a singles.</p>
+        <ol>
+          @for (track of tracks(); track track.id; let i = $index) {
+            <li>
+              <span>{{ track.name }}</span>
+              <div class="order-actions">
+                <button
+                  type="button"
+                  (click)="moveFavorite('track', i, -1)"
+                  [disabled]="busy() || i === 0"
+                  [attr.aria-label]="'Subir ' + track.name"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  (click)="moveFavorite('track', i, 1)"
+                  [disabled]="busy() || i === tracks().length - 1"
+                  [attr.aria-label]="'Bajar ' + track.name"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  (click)="removeFavorite('track', i)"
+                  [disabled]="busy()"
+                  [attr.aria-label]="'Quitar ' + track.name"
+                >
+                  Quitar
+                </button>
+              </div>
+            </li>
+          } @empty {
+            <li class="hint">Todavía no elegiste canciones.</li>
+          }
+        </ol>
+        <app-favorite-picker
+          kind="track"
+          [selectedIds]="trackIds()"
+          [disabled]="saving()"
+          (busyChange)="setPickerBusy('track', $event)"
+          (picked)="addFavorite($event)"
+        />
+      </section>
+    </div>
+    <div class="save-actions">
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (sessionExpired()) {
+        <a
+          routerLink="/login"
+          [queryParams]="{ returnUrl: '/profile' }"
+          target="_blank"
+          rel="noopener"
+          >Iniciar sesión en otra pestaña</a
+        >
+      }
+      @if (success()) {
+        <p class="success" role="status">{{ success() }} <a routerLink="/profile">Ver perfil</a></p>
+      }
+      @if (validating()) {
+        <p role="status">Comprobando imagen…</p>
+      }
+      <button class="primary" type="button" (click)="save()" [disabled]="busy()">
+        {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+      <button type="button" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    </div>
+  }
 </main>

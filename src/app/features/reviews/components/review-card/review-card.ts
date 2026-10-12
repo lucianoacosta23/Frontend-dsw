@@ -10,17 +10,19 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-
+import { ReviewEditor } from '../review-editor/review-editor';
+import type { ReviewTextUpdate } from '../../../../models/review';
 import { ReportService } from '../../../../core/services/report.service.js';
 import type { CreateReportRequest, ReportReason } from '../../../../models/report.js';
-
+import { AuthService } from '../../../../core/services/auth.service.js';
 import { CommentService } from '../../../../core/services/comments-service.js';
 import { ReviewService } from '../../../../core/services/review.service';
 import type { CommentItem } from '../../../../models/comment.js';
 import type { ReviewListItem } from '../../../../models/review.js';
 
 @Component({
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ReviewEditor
+  ],
   selector: 'app-review-card',
   styleUrl: './review-card.scss',
   templateUrl: './review-card.html',
@@ -31,6 +33,7 @@ export class ReviewCard implements OnChanges {
   private readonly reviewService = inject(ReviewService);
   private readonly commentService = inject(CommentService);
   private readonly reportService = inject(ReportService);
+private readonly auth = inject(AuthService);
 
   readonly liked = signal(false);
   readonly likeCount = signal(0);
@@ -78,7 +81,12 @@ export class ReviewCard implements OnChanges {
     { value: 'SPOILER', label: 'Spoiler' },
     { value: 'OTHER', label: 'Otro motivo' },
   ];
-
+onReviewSaved(update: ReviewTextUpdate): void {
+  this.review = {
+    ...this.review,
+    ...update,
+  };
+}
   // Copia a la tarjeta el estado inicial recibido del backend.
     ngOnChanges(): void {
     this.liked.set(this.review.likedByMe);
@@ -92,6 +100,14 @@ export class ReviewCard implements OnChanges {
       this.commentsOpen.set(true);
       this.loadComments();
     }
+  }
+
+    canReport(): boolean {
+    const user = this.auth.currentUser();
+
+    return Boolean(
+      user && user.id !== this.review.author.id,
+    );
   }
 
   toggleLike(): void {
@@ -289,12 +305,14 @@ export class ReviewCard implements OnChanges {
   }
 
   toggleReport(): void {
+    if (!this.canReport()) return;
     if (this.reportSubmitting() || this.reportSent()) return;
     this.reportOpen.update(open => !open);
     this.reportError.set(null);
   }
 
   submitReport(): void {
+    if (!this.canReport()) return;
     if (this.reportSubmitting() || this.reportSent()) return;
 
     const details = this.reportDetails.trim();

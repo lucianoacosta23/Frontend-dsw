@@ -1,3 +1,4 @@
+<app-navbar />
 <main class="detail-page">
   @if (loading()) {
     <p class="status" role="status">Cargando lanzamiento…</p>
@@ -44,10 +45,13 @@
         <h2>Tu puntuación y reseña</h2>
 
         <app-review-form
-          [target]="{ type: 'release', id: item.id }"
-          [submitting]="reviewSubmitting()"
-          (submitReview)="createReview($event)"
-        />
+  [target]="{ type: 'release', id: item.id }"
+  [title]="item.name"
+  [imageUrl]="item.imageUrl"
+  [submitting]="reviewSubmitting()"
+  [errorMessage]="reviewError()"
+  (submitReview)="createReview($event)"
+/>
 
         @if (reviewMessage(); as message) {
           <p class="success-message" role="status">{{ message }}</p>
@@ -63,34 +67,63 @@
       </aside>
     </section>
 
-    <!-- Reseñas que el backend devuelve ordenadas por popularidad. -->
+    <!-- El orden se aplica en el backend antes de paginar. -->
     <section class="reviews" aria-labelledby="reviews-title">
       <div class="reviews-heading">
         <div>
           <p class="eyebrow">Lo que opina la comunidad</p>
-          <h2 id="reviews-title">Reseñas populares</h2>
+          <h2 id="reviews-title">Reseñas de la comunidad</h2>
         </div>
+        <label class="reviews-sort">
+          <span>Ordenar por</span>
+          <select #reviewSortSelect [value]="reviewsSort()"
+            (change)="changeReviewsSort(reviewSortSelect.value)">
+            <option value="popular">Más populares</option>
+            <option value="newest">Más recientes</option>
+            <option value="oldest">Más antiguas</option>
+          </select>
+        </label>
       </div>
 
-      @if (reviewsLoading()) {
-        <p class="status" role="status">Cargando reseñas…</p>
-      } @else if (reviewsError(); as message) {
-        <div class="status error" role="alert">
-          <p>{{ message }}</p>
-          <button
-            type="button"
-            class="text-button"
-            (click)="loadPopularReviews(item.id)"
-          >
-            Volver a intentar
-          </button>
-        </div>
-      } @else if (reviews().length === 0) {
-        <p class="status">Todavía no hay reseñas para este lanzamiento.</p>
-      } @else {
+      @if (reviews().length > 0) {
         <div class="review-list">
           @for (review of reviews(); track review.id) {
             <app-review-card [review]="review" />
+          }
+        </div>
+      }
+
+      @if (reviewsPage() === 0) {
+        @if (reviewsLoading()) {
+          <p class="status" role="status">Cargando reseñas…</p>
+        } @else if (reviewsError(); as message) {
+          <div class="status error" role="alert">
+            <p>{{ message }}</p>
+            <button type="button" class="load-reviews-button"
+              (click)="loadReviews(item.id)">
+              Volver a intentar
+            </button>
+          </div>
+        }
+      } @else if (reviews().length === 0) {
+        <p class="status">Todavía no hay reseñas para este lanzamiento.</p>
+      }
+
+      @if (reviewsPage() > 0 && reviews().length > 0) {
+        <div class="reviews-pagination">
+          <span role="status">
+            Mostrando {{ reviews().length }} de {{ reviewsTotal() }} reseñas
+          </span>
+
+          @if (reviewsMoreError(); as message) {
+            <p class="error-message" role="alert">{{ message }}</p>
+          }
+
+          @if (reviewsPage() < reviewsTotalPages()) {
+            <button type="button" class="load-reviews-button"
+              [disabled]="reviewsLoading()" (click)="loadMoreReviews()">
+              {{ reviewsLoading() ? 'Cargando…' : reviewsMoreError() ? 'Volver a intentar' : 'Cargar más reseñas' }}
+            </button>
           }
         </div>
       }

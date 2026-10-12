@@ -1,0 +1,89 @@
+:host {
+  display: block;
+  margin-block: 1rem;
+}
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+}
+
+button {
+  padding: .6rem .9rem;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: .5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: #e9bd63;
+    color: #e9bd63;
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: default;
+  }
+}
+
+.edit-date,
+small {
+  color: #aeb7c4;
+  font-size: .85rem;
+}
+
+.edit-form {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .85rem;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: .5rem;
+  background: rgba(255, 255, 255, .05);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+
+  &:focus {
+    outline: 2px solid #e9bd63;
+    outline-offset: 2px;
+  }
+}
+
+.history {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-radius: .6rem;
+
+  h3 {
+    margin-top: 0;
+    font-size: 1rem;
+  }
+}
+
+.revision {
+  padding-block: .75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+
+.revision-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  color: #ff9999;
+}
+
+.success {
+  color: #94d9a4;
+}

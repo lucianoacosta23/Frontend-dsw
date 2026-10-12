@@ -1,11 +1,14 @@
 ﻿import { Routes } from '@angular/router';
-
-
+import { guestGuard } from './core/guards/guest-guard';
+import {
+  SpotifyRegister,
+} from './features/auth/pages/spotify-register/spotify-register.js';
 import { ReviewDetail } from './features/reviews/pages/review-detail/review-detail.js';
 import { PlaylistDetail } from './features/playlists/pages/playlist-detail/playlist-detail.js';
 import { CreatePlaylist } from './features/playlists/pages/create-playlist/create-playlist.js';
 import { adminGuard } from './core/guards/admin-guard.js';
 import { AdminDashboard } from './features/admin/pages/admin-dashboard/admin-dashboard.js';
+import { AdminCriticalReviews } from './features/admin/pages/admin-critical-reviews/admin-critical-reviews.js';
 import { Activity } from './features/activity/pages/activity/activity.js';
 import { OwnProfile } from './features/users/pages/own-profile/own-profile.js';
 import { EditProfile } from './features/users/pages/edit-profile/edit-profile.js';
@@ -38,7 +41,11 @@ export const routes: Routes = [
   { path: 'users/:username', component: UserProfile },
 
   // Acceso y registro.
-  { path: 'login', component: Login },
+  {
+  path: 'login',
+  component: Login,
+  canActivate: [guestGuard],
+},
   { path: 'register', component: Register },
 
     // La búsqueda requiere una sesión válida.
@@ -69,12 +76,25 @@ export const routes: Routes = [
 
     // El guard comprueba tanto la sesión como el rol ADMIN.
   {
+    path: 'admin/critical-reviews',
+    component: AdminCriticalReviews,
+    canActivate: [adminGuard],
+  },
+
+  {
+    path: 'admin/reports/minor',
+    component: AdminCriticalReviews,
+    data: { minorReports: true },
+    canActivate: [adminGuard],
+  },
+
+  {
     path: 'admin',
     component: AdminDashboard,
     canActivate: [adminGuard],
   },
 
-    {
+  {
     path: 'playlists/new',
     component: CreatePlaylist,
     canActivate: [authGuard],
@@ -91,6 +111,11 @@ export const routes: Routes = [
     component: ReviewDetail,
     canActivate: [authGuard],
   },
+
+{
+  path: 'register/spotify',
+  component: SpotifyRegister,
+},
 
   // Debe quedar última: captura las direcciones desconocidas.
   { path: '**', redirectTo: '' },
