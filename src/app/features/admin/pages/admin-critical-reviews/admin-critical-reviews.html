@@ -1,0 +1,58 @@
+<app-navbar></app-navbar>
+
+<main class="critical-reviews-container">
+  <div class="header-section">
+    <a routerLink="/admin">Volver al panel de administrador</a>
+    <h1>{{ title }}</h1>
+    <p class="subtitle">{{ description }}</p>
+    <button type="button" (click)="loadCriticalReviews()" [disabled]="loading() || processingId() !== null">Actualizar</button>
+  </div>
+
+  @if (actionError()) {
+    <p class="error-message" role="alert">{{ actionError() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="success-message" role="status">{{ successMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="loading-state" role="status">Cargando reseñas reportadas...</div>
+  } @else if (loadError()) {
+    <div class="error-message" role="alert">
+      <p>{{ loadError() }}</p>
+      <button type="button" (click)="loadCriticalReviews()">Reintentar</button>
+    </div>
+  } @else if (criticalReviews().length === 0) {
+    <div class="empty-state">{{ minorReports ? 'No hay reseñas con 1 o 2 reportes pendientes de moderación.' : '¡Excelente! No hay reseñas críticas pendientes de moderación.' }}</div>
+  } @else {
+    <div class="reviews-grid">
+      @for (review of criticalReviews(); track review.id) {
+        <article class="review-card">
+          <button type="button" class="review-preview" (click)="openReports(review)" [disabled]="processingId() !== null" aria-haspopup="dialog" [attr.aria-label]="'Ver reportes de la reseña de ' + review.author.username">
+          <div class="card-header">
+            <span class="review-author">Por: <strong>{{ review.author.username }}</strong></span>
+            <span class="badge-reports" [class.badge-minor]="minorReports">⚠️ {{ review.reportCount }} {{ review.reportCount === 1 ? 'reporte' : 'reportes' }}</span>
+          </div>
+          
+          <div class="card-body">
+            <p class="review-content">{{ review.text || 'Reseña sin texto.' }}</p>
+            <div class="review-meta">
+              <span>Calificación: ⭐ {{ review.rating }} / 5</span>
+            </div>
+            <span class="reports-link">Ver reportes uno por uno</span>
+          </div>
+          </button>
+          <a [routerLink]="['/reviews', review.id]">Ver reseña completa</a>
+
+          <div class="card-actions">
+            <button type="button" class="btn-secondary" [disabled]="processingId() !== null" (click)="dismissReports(review.id)">Ignorar reportes</button>
+            <button type="button" class="btn-danger" [disabled]="processingId() !== null" (click)="deleteReview(review.id)">Dar de baja</button>
+          </div>
+          @if (processingId() === review.id) {
+            <p role="status">Procesando decisión...</p>
+          }
+        </article>
+      }
+    </div>
+  }
+</main>

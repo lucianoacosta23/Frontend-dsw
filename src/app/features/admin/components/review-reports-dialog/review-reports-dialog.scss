@@ -1,0 +1,10 @@
+:host { display: block; }
+.review-summary { padding: 1rem; background: #f3f4f6; border-radius: 8px; }
+.review-summary p, .report-details { white-space: pre-wrap; overflow-wrap: anywhere; }
+.report-list { padding-left: 1.5rem; }
+.report-list li { padding: 1rem 0; border-bottom: 1px solid #e5e7eb; }
+.report-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.status { padding: 0.2rem 0.6rem; border-radius: 16px; background: #e5e7eb; font-size: 0.8rem; }
+.status.pending { background: #fef3c7; color: #92400e; }
+.report-meta { color: #666; font-size: 0.85rem; }
+button { cursor: pointer; padding: 0.6rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; }
