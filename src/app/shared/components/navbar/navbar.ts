@@ -28,6 +28,8 @@ import { SearchBox } from '../search-box/search-box';
 })
 export class Navbar implements AfterViewInit {
   @Input() home = false;
+  // Appearance does not change the Trends link's navigation behavior.
+  @Input() appearance: 'default' | 'home' = 'default';
   @Input() sessionLoading = false;
   @Input() sessionError: string | null = null;
   @Output() retrySession = new EventEmitter<void>();

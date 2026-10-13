@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -58,7 +59,11 @@ const page = (data: unknown[], total = data.length, current = 1) => ({
 });
 
 describe('OwnProfile', () => {
-  const auth = { currentUser: signal<typeof user | null>(user) };
+  const auth = {
+    currentUser: signal<typeof user | null>(user),
+    restriction: signal(null),
+    loadSession: () => auth.currentUser() ? of({ data: user }) : throwError(() => new HttpErrorResponse({ status: 401 })),
+  };
   let users: { getOwnProfile: ReturnType<typeof vi.fn> };
   let reviews: {
     getReviewsByAuthor: ReturnType<typeof vi.fn>;

@@ -4,6 +4,7 @@
   </p>
 }
 
+@if (showActions) {
 <div class="editor-actions">
   @if (canEdit() && !editing()) {
     <button type="button" (click)="startEdit()">
@@ -27,6 +28,8 @@
   <p class="edit-date">
     El plazo de 24 horas para editar terminó.
   </p>
+}
+
 }
 
 @if (editing()) {

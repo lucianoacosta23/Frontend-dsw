@@ -1,11 +1,19 @@
 <app-navbar />
 <main class="profile-page">
-  @if (loading()) {
+  @if (restriction(); as restriction) {
+    <app-account-restriction-notice [restriction]="restriction" />
+    <div class="restriction-actions">
+      <a routerLink="/">Ir a la portada</a>
+      @if (restriction.scope === 'account') { <a routerLink="/login">Ir al login</a> }
+      <button type="button" (click)="loadProfile()" [disabled]="loading()">{{ loading() ? 'Consultando…' : 'Volver a consultar' }}</button>
+    </div>
+  } @else if (loading()) {
     <p class="status" role="status">Cargando perfil…</p>
   } @else if (errorMessage(); as message) {
     <div class="status error" role="alert">
       <p>{{ message }}</p>
       <button type="button" (click)="loadProfile()">Volver a intentar</button>
+      <a routerLink="/login">Ir al login</a>
     </div>
   } @else if (profile(); as user) {
     <section class="profile-header" aria-labelledby="profile-title">

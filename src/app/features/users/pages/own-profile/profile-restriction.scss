@@ -1,0 +1,3 @@
+.restriction-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 1.25rem; }
+.restriction-actions a, .restriction-actions button { border: 1px solid var(--jb-border, rgba(240,232,208,.15)); border-radius: 8px; padding: .75rem 1rem; color: var(--jb-gold, #ffb455); background: var(--jb-surface, #151718); font: inherit; text-decoration: none; cursor: pointer; }
+.restriction-actions button:disabled { opacity: .6; cursor: wait; }

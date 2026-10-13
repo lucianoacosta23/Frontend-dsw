@@ -8,3 +8,14 @@
 .status.pending { background: #fef3c7; color: #92400e; }
 .report-meta { color: #666; font-size: 0.85rem; }
 button { cursor: pointer; padding: 0.6rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; }
+
+.user-review-group { margin:1rem 0; padding:1rem; border:1px solid var(--jb-border); border-radius:8px; }
+.user-review-group > p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.removed { color:var(--jb-error); }
+.review-summary { background:var(--jb-surface); color:var(--jb-text); }
+.report-meta { color:var(--jb-muted); }
+
+.status { background:var(--jb-surface-raised); color:var(--jb-copy); }
+.status.pending { background:#443821; color:var(--jb-gold); }
+.report-list li { border-color:var(--jb-border); }
+button { background:var(--jb-surface); color:var(--jb-text); border-color:var(--jb-control-border); }

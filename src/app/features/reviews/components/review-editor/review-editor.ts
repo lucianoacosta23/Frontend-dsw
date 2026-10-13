@@ -28,9 +28,11 @@ import type {
   imports: [FormsModule, DatePipe],
   templateUrl: './review-editor.html',
   styleUrl: './review-editor.scss',
+  host: { '[class.embedded-editor]': '!showActions' },
 })
 export class ReviewEditor implements OnChanges {
   @Input({ required: true }) review!: ReviewListItem;
+  @Input() showActions = true;
   @Output() saved = new EventEmitter<ReviewTextUpdate>();
 
   private readonly auth = inject(AuthService);

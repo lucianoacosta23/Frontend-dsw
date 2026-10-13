@@ -1,0 +1,65 @@
+<app-navbar />
+<main class="admin-users-page">
+  <a routerLink="/admin" class="back-link">← Panel de administrador</a>
+  <header><p class="eyebrow">Moderación de cuentas</p><h1>Gestión de usuarios</h1>
+    <p>Prioridad por reseñas críticas y reportes pendientes válidos. La búsqueda incluye usuarios con reseñas dadas de baja.</p>
+  </header>
+  <form class="search-form" (submit)="$event.preventDefault(); search(searchInput.value)">
+    <label for="user-search">Buscar usuarios</label>
+    <div class="search-controls"><input #searchInput id="user-search" type="search" maxlength="255" [value]="query()" placeholder="Nombre o username" [disabled]="submitting()" />
+      <button type="submit" [disabled]="submitting()" aria-label="Buscar usuarios"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg> Buscar</button>
+      @if (query()) { <button type="button" (click)="clearSearch()" [disabled]="submitting()">Limpiar</button> }
+    </div>
+  </form>
+  @if (loading()) { <p class="status" role="status">Cargando usuarios…</p> }
+  @else if (error()) { <div class="status error" role="alert"><p>{{ error() }}</p><button type="button" (click)="load()">Reintentar</button></div> }
+  @else {
+    <div class="table-wrap"><table><caption>{{ total() }} usuarios encontrados</caption>
+      <thead><tr><th>Usuario</th><th>Reportes pendientes válidos</th><th>Reseñas críticas</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>@for (user of users(); track user.id) {
+        <tr><td><button class="user-link" type="button" (click)="openUser(user)" [disabled]="submitting()">{{ user.username }}</button><span class="full-name">{{ user.fullName }}</span></td>
+          <td><button class="reports-link" type="button" (click)="openReports(user)" [attr.aria-label]="'Ver reportes de ' + user.username">{{ user.pendingReportCount }} reportes</button></td>
+          <td>{{ user.criticalReviewCount }}</td><td><span class="badge" [class.suspended]="user.status === 'SUSPENDED'" [class.banned]="user.status === 'BANNED'">{{ statusLabel(user.status) }}</span>
+            @if (user.status === 'SUSPENDED' && user.suspendedUntil) { <small>Hasta {{ user.suspendedUntil | date:'dd/MM/yyyy HH:mm' }}</small> }
+          </td><td><button type="button" (click)="openUser(user)" [disabled]="submitting()">Gestionar</button></td></tr>
+      } @empty { <tr><td colspan="5" class="status">No encontramos usuarios con esa búsqueda.</td></tr> }</tbody>
+    </table></div>
+    @if (pages() > 1) { <nav class="pagination" aria-label="Páginas de usuarios"><button type="button" (click)="load(page() - 1)" [disabled]="page() <= 1 || submitting()">Anterior</button><span>Página {{ page() }} de {{ pages() }}</span><button type="button" (click)="load(page() + 1)" [disabled]="page() >= pages() || submitting()">Siguiente</button></nav> }
+  }
+  @if (selectedId() !== null) {
+    <section id="account-detail" class="detail-panel" tabindex="-1" aria-labelledby="user-detail-title">
+      <div class="section-heading"><h2 id="user-detail-title">Cuenta de {{ selectedName() }}</h2><button type="button" (click)="closeDetail()" [disabled]="submitting()">Cerrar detalle</button></div>
+      @if (detailLoading()) { <p role="status">Cargando detalle…</p> }
+      @else if (detailError()) { <div role="alert" class="error"><p>{{ detailError() }}</p><button type="button" (click)="retryDetail()">Reintentar</button></div> }
+      @else if (detail(); as user) {
+        <p><span class="badge">{{ statusLabel(user.status) }}</span> · {{ user.removedReviewCount }} reseñas dadas de baja</p>
+        @if (user.status === 'SUSPENDED' && user.suspendedUntil) { <p>Suspensión hasta {{ user.suspendedUntil | date:'dd/MM/yyyy HH:mm' }} ({{ timezone }}).</p> }
+        @if (user.activeSanction; as sanction) { <p>Motivo vigente: {{ sanction.reason }}</p> }
+        <button type="button" (click)="openReports(user)">Ver reseñas reportadas y sus motivos</button>
+        <div class="account-actions">
+          @if (user.id !== auth.currentUser()?.id) {
+            @if (user.status !== 'BANNED') { <button type="button" (click)="choose('SUSPEND')" [disabled]="submitting()">Suspender</button><button type="button" class="danger-button" (click)="choose('BAN')" [disabled]="submitting()">Banear</button> }
+            @if (user.status !== 'ENABLED') { <button type="button" (click)="choose('REACTIVATE')" [disabled]="submitting()">Reactivar</button> }
+          } @else { <p class="muted">No podés sancionar tu propia cuenta.</p> }
+        </div>
+        @if (action(); as chosen) {
+          <form class="sanction-form" (submit)="$event.preventDefault(); submitAction()">
+            <h3>{{ actionLabel(chosen) }} a {{ user.username }}</h3>
+            @if (chosen === 'BAN') { <p>El baneo conserva los datos y sigue vigente hasta que un administrador lo revierta.</p> }
+            <label for="sanction-reason">Motivo obligatorio</label><textarea #reasonInput id="sanction-reason" rows="3" maxlength="1000" [value]="reason()" (input)="reason.set(reasonInput.value)" [disabled]="submitting()" required></textarea>
+            <small>Hasta 500 caracteres. El motivo queda en el historial administrativo.</small>
+            @if (chosen === 'SUSPEND') { <label for="sanction-until">Finalización ({{ timezone }})</label><input #untilInput id="sanction-until" type="datetime-local" [value]="until()" (input)="until.set(untilInput.value)" [disabled]="submitting()" required /> }
+            @if (actionError()) { <p class="error" role="alert">{{ actionError() }}</p> }
+            <div class="account-actions"><button type="submit" class="primary-button" [disabled]="submitting()">{{ submitting() ? 'Aplicando…' : 'Confirmar ' + actionLabel(chosen).toLowerCase() }}</button><button type="button" (click)="cancelAction()" [disabled]="submitting()">Cancelar</button></div>
+          </form>
+        }
+        @if (success()) { <p class="success" role="status">{{ success() }}</p> }
+        <h3>Historial de sanciones</h3>
+        <ol class="history">@for (entry of history(); track entry.id) { <li><strong>{{ actionLabel(entry.action) }}</strong> · {{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ entry.administrator.username }}<p>{{ entry.reason }}</p>@if (entry.suspendedUntil) { <small>Hasta {{ entry.suspendedUntil | date:'dd/MM/yyyy HH:mm' }}</small> }</li> } @empty { @if (!historyLoading() && !historyError()) { <li>No hay sanciones anteriores.</li> } }</ol>
+        @if (historyLoading()) { <p role="status">Cargando historial…</p> }
+        @if (historyError()) { <p class="error" role="alert">{{ historyError() }}</p><button type="button" (click)="loadHistory(historyPage() + 1)">Reintentar historial</button> }
+        @if (historyPage() < historyPages()) { <button type="button" (click)="loadHistory(historyPage() + 1)" [disabled]="historyLoading()">Cargar más historial</button> }
+      }
+    </section>
+  }
+</main>

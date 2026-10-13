@@ -1,0 +1,40 @@
+.review-card-social {
+  padding: 18px 20px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.review-card-social .review-text { margin: 12px 0 8px; font-size: 13px; line-height: 1.6; }
+.social-actions { display: flex; align-items: center; gap: 16px; }
+.review-card-social .social-actions > button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-width: 44px; min-height: 44px; padding: 0 4px; border: 0;
+  background: transparent; color: var(--jb-muted); font-size: 12px;
+}
+.social-actions svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.review-card-social .social-actions > button:hover:not(:disabled),
+.review-card-social .social-actions .is-liked,
+.review-card-social .social-actions .is-active { color: var(--jb-gold); background: transparent; }
+.social-actions .is-liked svg { fill: currentColor; }
+.review-card-social .like-button:disabled { cursor: default; }
+.review-options { position: relative; margin-left: auto; }
+.review-options summary {
+  display: grid; place-items: center; list-style: none; cursor: pointer;
+  width: 44px; height: 44px; border-radius: 6px; color: var(--jb-copy);
+  font-size: 22px; line-height: 1;
+}
+.review-options summary::-webkit-details-marker { display: none; }
+.review-options summary:hover, .review-options[open] summary { color: var(--jb-gold); background: #ffb4550c; }
+.review-options summary:focus-visible { outline: 2px solid var(--jb-gold); outline-offset: 3px; }
+.options-panel {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 30;
+  box-sizing: border-box; width: 240px; max-width: calc(100vw - 48px);
+  padding: 6px; border: 1px solid var(--jb-border); border-radius: 8px;
+  background: var(--jb-surface); box-shadow: 0 12px 32px #0006;
+}
+.review-card-social .options-panel button {
+  display: block; width: 100%; min-height: 44px; border: 0; text-align: left;
+  padding: 10px 12px; font-size: 13px; color: var(--jb-copy); background: transparent;
+}
+.review-card-social .options-panel button:hover:not(:disabled) { background: #ffb4550c; color: var(--jb-gold); }
+.option-hint { margin: 0 12px 8px; font-size: 11px; line-height: 1.5; color: var(--jb-muted); }
+@media (max-width: 600px) { .review-card-social { padding: 16px; } }

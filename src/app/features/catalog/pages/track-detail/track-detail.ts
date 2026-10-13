@@ -1,3 +1,4 @@
+import { ReleaseCover } from '../../components/release-cover/release-cover.js';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,7 +18,7 @@ import { ReviewCard } from '../../../reviews/components/review-card/review-card'
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 
 @Component({
-  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats, Navbar],
+  imports: [ReviewForm, ReviewCard, RouterLink, RatingStats, Navbar, ReleaseCover],
   selector: 'app-track-detail',
   styleUrl: './track-detail.scss',
   templateUrl: './track-detail.html',

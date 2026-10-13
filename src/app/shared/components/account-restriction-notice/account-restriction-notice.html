@@ -1,0 +1,21 @@
+<section class="restriction-notice" role="alert" aria-labelledby="restriction-title">
+  <p class="eyebrow">{{ restriction.scope === 'account' ? 'Estado de tu cuenta' : 'Perfil no disponible' }}</p>
+  <h2 id="restriction-title">{{ restriction.status === 'SUSPENDED' ? 'Cuenta suspendida' : 'Cuenta baneada' }}</h2>
+  @if (restriction.status === 'SUSPENDED') {
+    @if (restriction.suspendedUntil; as until) {
+      <p>{{ restriction.scope === 'account' ? 'Tu cuenta está suspendida' : 'Esta cuenta está suspendida' }}
+        hasta el <strong>{{ until | date: 'dd/MM/yyyy' }}</strong> a las
+        <strong>{{ until | date: 'HH:mm' }}</strong>.</p>
+      <p class="muted">Horario de tu zona: {{ timeZone }}.</p>
+    } @else {
+      <p>{{ restriction.scope === 'account' ? 'Tu cuenta está suspendida temporalmente.' : 'Esta cuenta está suspendida temporalmente.' }}</p>
+    }
+    @if (restriction.scope === 'account') {
+      <p>Cuando finalice la suspensión, podrás volver a iniciar sesión.</p>
+    } @else {
+      <p>Su perfil y sus reseñas no están disponibles durante la suspensión.</p>
+    }
+  } @else {
+    <p>{{ restriction.scope === 'account' ? 'Tu cuenta tiene un baneo por tiempo indefinido. No podés iniciar sesión mientras esté vigente.' : 'Este perfil no está disponible por un baneo por tiempo indefinido.' }}</p>
+  }
+</section>

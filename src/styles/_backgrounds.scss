@@ -74,3 +74,10 @@ $pages: (
     background-attachment: var(--jb-background-attachment) !important;
   }
 }
+
+// These detail routes reuse the shared background renderer. Other pages keep their configuration.
+body:has(app-release-detail, app-track-detail) {
+  --jb-background: var(--jb-home-background, url('/backgrounds/home-aprobado.jpg'));
+  background-attachment: fixed;
+  background-position: center top;
+}

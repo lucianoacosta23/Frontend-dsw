@@ -31,6 +31,7 @@ const empty = { data: [], pagination: { page: 1, pageSize: 6, total: 0, totalPag
 describe('Public profile integration', () => {
   const auth = {
     currentUser: signal<any>(null),
+    restriction: signal(null),
     loadSession: vi.fn(() => throwError(() => new HttpErrorResponse({ status: 401 }))),
   };
   let users: any, playlists: any, reviews: any;

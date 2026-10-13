@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 
+import { readAccountRestriction, type AccountRestriction } from '../../models/account-restriction';
 import { environment } from '../../../environments/environments.js';
 import {
   ApiResponse,
@@ -18,17 +19,32 @@ export class AuthService {
 
   private readonly currentUserState = signal<AuthUser | null>(null);
   readonly currentUser = this.currentUserState.asReadonly();
+  private readonly restrictionState = signal<AccountRestriction | null>(null);
+  readonly restriction = this.restrictionState.asReadonly();
+
+  rememberRestriction(error: unknown): void {
+    const restriction = readAccountRestriction(error);
+    if (restriction?.scope !== 'account') return;
+    this.currentUserState.set(null);
+    this.restrictionState.set(restriction);
+  }
+
+  private acceptUser(user: AuthUser): void {
+    this.restrictionState.set(null);
+    this.currentUserState.set(user);
+  }
 
   login(
     credentials: LoginCredentials,
   ): Observable<ApiResponse<AuthUser>> {
+    this.restrictionState.set(null);
     return this.http
       .post<ApiResponse<AuthUser>>(
         `${environment.apiBaseUrl}/auth/login`,
         credentials,
         { withCredentials: true },
       )
-      .pipe(tap(response => this.currentUserState.set(response.data)));
+      .pipe(tap(response => this.acceptUser(response.data)));
   }
 
   register(data: RegisterData): Observable<ApiResponse<AuthUser>> {
@@ -45,9 +61,11 @@ export class AuthService {
         withCredentials: true,
       })
       .pipe(
-        tap(response => this.currentUserState.set(response.data)),
+        tap(response => this.acceptUser(response.data)),
         catchError(error => {
           this.currentUserState.set(null);
+          this.restrictionState.set(null);
+          this.rememberRestriction(error);
           return throwError(() => error);
         }),
       );
@@ -60,7 +78,7 @@ export class AuthService {
         {},
         { withCredentials: true },
       )
-      .pipe(tap(() => this.currentUserState.set(null)));
+      .pipe(tap(() => { this.currentUserState.set(null); this.restrictionState.set(null); }));
   }
   getSpotifyRegistration(): Observable<
   ApiResponse<{ displayName: string | null }>
@@ -89,7 +107,7 @@ completeSpotifyRegistration(data: {
       },
     },
   ).pipe(
-    tap(response => this.currentUserState.set(response.data)),
+    tap(response => this.acceptUser(response.data)),
   );
 }
 }
