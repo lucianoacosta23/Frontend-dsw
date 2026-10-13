@@ -19,7 +19,11 @@ import { Navbar } from '../../../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-login',
-imports: [AccountRestrictionNotice, Navbar, RouterLink,
+  imports: [
+    AccountRestrictionNotice,
+    Navbar,
+    RouterLink,
+    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
