@@ -6,6 +6,9 @@
     </mat-card-header>
 
     <mat-card-content>
+      @if (auth.restriction(); as restriction) {
+        <app-account-restriction-notice [restriction]="restriction" />
+      }
       <form [formGroup]="form" (ngSubmit)="submit()">
         <!-- Ofrece registro y acceso con Spotify debajo del login por email. -->
 <div class="login-alternatives">

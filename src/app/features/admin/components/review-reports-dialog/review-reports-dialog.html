@@ -1,9 +1,21 @@
-<h2 mat-dialog-title>Reportes de la reseña #{{ review.id }}</h2>
+<h2 mat-dialog-title>{{ userMode ? "Reportes de las reseñas de " + userName : "Reportes de la reseña #" + review?.id }}</h2>
 <mat-dialog-content>
-  <div class="review-summary">
-    <strong>{{ review.author.username }}</strong> · {{ review.rating }} / 5
-    <p>{{ review.text || 'Reseña sin texto.' }}</p>
-  </div>
+  @if (review; as item) {
+    <div class="review-summary"><strong>{{ item.author.username }}</strong> · {{ item.rating }} / 5<p>{{ item.text || 'Reseña sin texto.' }}</p></div>
+  }
+  @if (userMode) {
+    <p>Incluye evidencia de reseñas dadas de baja y reportes descartados o resueltos. El contador del listado solo cuenta pendientes válidos.</p>
+    @for (group of groups(); track group.review.id) {
+      <section class="user-review-group">
+        <h3>Reseña #{{ group.review.id }} · {{ group.review.rating }} / 5</h3>
+        <p>{{ group.review.text || 'Reseña sin texto.' }}</p>
+        @if (group.review.deletedAt) { <p class="removed">Dada de baja el {{ group.review.deletedAt | date:'dd/MM/yyyy HH:mm' }}</p> }
+        <ol class="report-list">@for (report of group.reports; track report.id) {
+          <li><div class="report-heading"><strong>{{ reasonLabel(report.reason) }}</strong><span class="status" [class.pending]="report.status === 'PENDING'">{{ statusLabel(report.status) }}</span></div><p class="report-meta">{{ report.reporter.username }} · {{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</p><p class="report-details">{{ report.details || 'Sin detalles adicionales.' }}</p></li>
+        } @empty { <li>Sin reportes registrados.</li> }</ol>
+      </section>
+    }
+  }
   @if (loading()) {
     <p role="status">Cargando reportes...</p>
   } @else if (error()) {
@@ -11,6 +23,10 @@
       <p>{{ error() }}</p>
       <button type="button" (click)="loadReports()">Reintentar</button>
     </div>
+  } @else if (userMode) {
+    @if (!groups().length) { <p>No hay reseñas reportadas registradas para este usuario.</p> }
+    @if (page() < pages()) { <button type="button" (click)="loadReports()">Cargar más reseñas reportadas</button> }
+    @if (total()) { <p>{{ groups().length }} de {{ total() }} reseñas reportadas.</p> }
   } @else if (reports().length === 0) {
     <p>No hay reportes para esta reseña.</p>
   } @else {

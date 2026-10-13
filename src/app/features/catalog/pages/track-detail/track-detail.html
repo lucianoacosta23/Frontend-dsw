@@ -1,4 +1,4 @@
-<app-navbar />
+<app-navbar appearance="home" />
 <main class="detail-page">
   @if (loading()) {
     <p class="status" role="status">Cargando pista…</p>
@@ -13,16 +13,7 @@
     <section class="detail-layout" aria-labelledby="track-title">
       <!-- La portada de la pista se toma del lanzamiento al que pertenece. -->
       <div class="cover">
-        @if (item.release.imageUrl) {
-          <img
-            [src]="item.release.imageUrl"
-            [alt]="'Portada de ' + item.release.name"
-          />
-        } @else {
-          <div class="cover-placeholder" aria-label="Portada no disponible">
-            ♪
-          </div>
-        }
+        <app-release-cover [src]="item.release.imageUrl" [alt]="'Portada de ' + item.release.name" loading="eager" />
       </div>
 
       <!-- Información principal de la pista y su lanzamiento. -->

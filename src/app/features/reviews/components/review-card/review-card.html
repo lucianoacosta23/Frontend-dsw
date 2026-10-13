@@ -60,68 +60,60 @@
     </div>
   </article>
 } @else {
-  <article class="review-card">
-    <div class="review-card-heading">
-      <p class="review-author">
-        Reseña de
-        <a class="review-author-link" [routerLink]="['/users', review.author.username]">
-          {{ review.author.username }}
-        </a>
-      </p>
+  <article class="review-card review-card-social">
+    <header class="compact-heading">
+      <span class="compact-avatar" aria-hidden="true">{{ review.author.username.slice(0, 2).toUpperCase() }}</span>
+      <div class="compact-author">
+        <a [routerLink]="['/users', review.author.username]">{{ review.author.username }}</a>
+        <time [attr.datetime]="review.createdAt">{{ relativeDate() }}</time>
+      </div>
+      <p class="compact-rating"><span aria-hidden="true">★</span> {{ review.rating }} <small>/ 5</small></p>
+    </header>
 
-      <p class="review-rating">★ {{ review.rating }} / 5</p>
-    </div>
+    <p class="review-text" [class.review-text-empty]="!review.text">
+      <a class="review-detail-link" [routerLink]="['/reviews', review.id]">{{ review.text || 'Solo puntuación.' }}</a>
+    </p>
 
-    @if (review.text) {
-      <p class="review-text">
-        <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
-          {{ review.text }}
-        </a>
-      </p>
-    } @else {
-      <p class="review-text review-text-empty">
-        <a class="review-detail-link" [routerLink]="['/reviews', review.id]">
-          Solo puntuación. Ver reseña →
-        </a>
-      </p>
-    }
-    <app-review-editor [review]="review" (saved)="onReviewSaved($event)" />
-    <div class="review-actions">
-      <button
-        type="button"
-        class="like-button"
-        [class.is-liked]="liked()"
-        [attr.aria-pressed]="liked()"
-        [disabled]="likeLoading()"
-        (click)="toggleLike()"
-      >
-        {{ liked() ? 'Quitar like' : 'Me gusta' }} · {{ likeCount() }}
+    <app-review-editor #editor [review]="review" [showActions]="false" (saved)="onReviewSaved($event)" />
+
+    <footer class="social-actions">
+      <button type="button" class="like-button" [class.is-liked]="liked()"
+        [attr.aria-pressed]="liked()" [disabled]="!canLike() || likeLoading()"
+        [attr.aria-label]="(liked() ? 'Quitar like' : 'Me gusta') + ' · ' + likeCount()"
+        [title]="liked() ? 'Quitar like' : 'Me gusta'" (click)="toggleLike()">
+        <svg aria-hidden="true"><use href="/icons.svg#heart" /></svg>
+        <span>{{ likeCount() }}</span>
       </button>
 
-      <button
-        type="button"
-        class="comments-button"
-        [attr.aria-expanded]="commentsOpen()"
-        (click)="toggleComments()"
-      >
-        {{ commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios' }}
-        @if (commentsLoaded()) {
-          · {{ commentsTotal() }}
-        }
+      <button type="button" class="comments-button" [class.is-active]="commentsOpen()"
+        [attr.aria-expanded]="commentsOpen()" [attr.aria-controls]="'review-comments-' + review.id"
+        [attr.aria-label]="(commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios') + (commentsLoaded() ? ' · ' + commentsTotal() : '')"
+        [title]="commentsOpen() ? 'Ocultar comentarios' : 'Ver comentarios'" (click)="toggleComments()">
+        <svg aria-hidden="true"><use href="/icons.svg#comment" /></svg>
+        @if (commentsLoaded()) { <span>{{ commentsTotal() }}</span> }
       </button>
-      @if (canReport()) {
-        <button
-          type="button"
-          class="report-button"
-          [attr.aria-expanded]="reportOpen()"
-          [attr.aria-controls]="'report-form-' + review.id"
-          [disabled]="reportSubmitting() || reportSent()"
-          (click)="toggleReport()"
-        >
-          {{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar' }}
-        </button>
-      }
-    </div>
+
+      <details #reviewOptions class="review-options">
+        <summary aria-label="Más opciones de la reseña" title="Más opciones"><span aria-hidden="true">···</span></summary>
+        <div class="options-panel" aria-label="Acciones de la reseña">
+          @if (editor.isOwner()) {
+            <button type="button" class="edit-option" [disabled]="!editor.canEdit() || editor.saving() || editor.editing()"
+              [title]="editor.canEdit() ? 'Editar el texto de tu reseña' : 'El plazo de 24 horas para editar terminó.'"
+              (click)="editor.startEdit(); reviewOptions.open = false">Editar reseña</button>
+            @if (!editor.canEdit()) { <p class="option-hint">El plazo de 24 horas para editar terminó.</p> }
+          }
+          @if (canReport()) {
+            <button type="button" class="report-button" [disabled]="reportSubmitting() || reportSent()"
+              [attr.aria-expanded]="reportOpen()" [attr.aria-controls]="'report-form-' + review.id"
+              (click)="toggleReport(); reviewOptions.open = false">{{ reportSent() ? 'Reporte enviado' : reportOpen() ? 'Cancelar reporte' : 'Reportar reseña' }}</button>
+          }
+          <button type="button" class="history-option" [disabled]="!editor.canReadHistory() || editor.saving()"
+            [attr.aria-expanded]="editor.historyOpen()" [title]="editor.canReadHistory() ? 'Ver versiones anteriores' : 'Iniciá sesión para ver el historial'"
+            (click)="editor.toggleHistory(); reviewOptions.open = false">{{ editor.historyOpen() ? 'Ocultar historial' : 'Ver historial' }}</button>
+          @if (!editor.canReadHistory()) { <p class="option-hint">Iniciá sesión para ver el historial.</p> }
+        </div>
+      </details>
+    </footer>
 
     @if (likeError(); as message) {
       <p class="action-error" role="alert">{{ message }}</p>
@@ -175,7 +167,7 @@
     }
 
     @if (commentsOpen()) {
-      <section class="comments" aria-label="Comentarios de la reseña">
+      <section class="comments" [id]="'review-comments-' + review.id" aria-label="Comentarios de la reseña">
         @if (commentsLoading()) {
           <p role="status">Cargando comentarios…</p>
         } @else if (commentsError(); as message) {
@@ -218,24 +210,6 @@
                       · {{ repliesCountFor(comment.id) }}
                     }
                   </button>
-                  @if (canReport()) {
-                    <button
-                      type="button"
-                      class="report-button"
-                      [attr.aria-expanded]="reportOpen()"
-                      [attr.aria-controls]="'report-form-' + review.id"
-                      [disabled]="reportSubmitting() || reportSent()"
-                      (click)="toggleReport()"
-                    >
-                      {{
-                        reportSent()
-                          ? 'Reporte enviado'
-                          : reportOpen()
-                            ? 'Cancelar reporte'
-                            : 'Reportar'
-                      }}
-                    </button>
-                  }
                 </div>
 
                 @if (isReplyFormOpen(comment.id)) {

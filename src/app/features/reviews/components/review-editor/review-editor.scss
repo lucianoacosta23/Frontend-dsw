@@ -3,6 +3,8 @@
   margin-block: 1rem;
 }
 
+:host(.embedded-editor) { margin-block: 0; }
+
 .editor-actions {
   display: flex;
   flex-wrap: wrap;
@@ -11,7 +13,7 @@
 
 button {
   padding: .6rem .9rem;
-  border: 1px solid rgba(255, 255, 255, .25);
+  border: 1px solid var(--jb-control-border);
   border-radius: .5rem;
   background: transparent;
   color: inherit;
@@ -19,8 +21,8 @@ button {
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    border-color: #e9bd63;
-    color: #e9bd63;
+    border-color: var(--jb-gold);
+    color: var(--jb-gold);
   }
 
   &:disabled {
@@ -31,7 +33,7 @@ button {
 
 .edit-date,
 small {
-  color: #aeb7c4;
+  color: var(--jb-muted);
   font-size: .85rem;
 }
 
@@ -45,15 +47,15 @@ textarea {
   box-sizing: border-box;
   width: 100%;
   padding: .85rem;
-  border: 1px solid rgba(255, 255, 255, .25);
+  border: 1px solid var(--jb-control-border);
   border-radius: .5rem;
-  background: rgba(255, 255, 255, .05);
+  background: var(--jb-surface);
   color: inherit;
   font: inherit;
   resize: vertical;
 
   &:focus {
-    outline: 2px solid #e9bd63;
+    outline: 2px solid var(--jb-gold);
     outline-offset: 2px;
   }
 }
@@ -61,7 +63,7 @@ textarea {
 .history {
   margin-top: 1rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, .15);
+  border: 1px solid var(--jb-border);
   border-radius: .6rem;
 
   h3 {
@@ -72,7 +74,7 @@ textarea {
 
 .revision {
   padding-block: .75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  border-bottom: 1px solid var(--jb-border);
 }
 
 .revision-text {
@@ -81,9 +83,9 @@ textarea {
 }
 
 .error {
-  color: #ff9999;
+  color: var(--jb-error);
 }
 
 .success {
-  color: #94d9a4;
+  color: var(--jb-success);
 }

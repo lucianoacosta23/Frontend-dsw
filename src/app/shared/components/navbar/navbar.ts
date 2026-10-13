@@ -11,10 +11,12 @@ import { environment } from '../../../../environments/environments';
   imports: [RouterLink],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss', './navbar-home.scss'],
-  host: { '[class.home-nav]': 'home' },
+  host: { '[class.home-nav]': "home || appearance === 'home'" },
 })
 export class Navbar {
   @Input() home = false;
+  // Appearance does not change the Trends link's navigation behavior.
+  @Input() appearance: 'default' | 'home' = 'default';
   @Input() sessionLoading = false;
   @Input() sessionError: string | null = null;
   @Output() retrySession = new EventEmitter<void>();

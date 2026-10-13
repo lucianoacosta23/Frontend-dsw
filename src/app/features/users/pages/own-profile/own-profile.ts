@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import {
   Component,
+  computed,
   inject,
   Input,
   OnChanges,
@@ -34,6 +35,9 @@ import type { UserProfile as UserProfileData } from '../../../../models/user-pro
 import type { ReviewListItem, ReviewDetailData } from '../../../../models/review.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
 
+import { AccountRestrictionNotice } from '../../../../shared/components/account-restriction-notice/account-restriction-notice';
+import { readAccountRestriction, type AccountRestriction } from '../../../../models/account-restriction';
+
 interface ProfileReview {
   review: ReviewListItem;
   target: ReviewDetailData['target'] | null;
@@ -44,9 +48,9 @@ interface ProfileReview {
 
 @Component({
   selector: 'app-own-profile',
-  imports: [Navbar, RouterLink, DatePipe, ProfileImage],
+  imports: [AccountRestrictionNotice, Navbar, RouterLink, DatePipe, ProfileImage],
   templateUrl: './own-profile.html',
-  styleUrls: ['./own-profile.scss', './profile-media.scss'],
+  styleUrls: ['./own-profile.scss', './profile-media.scss', './profile-restriction.scss'],
 })
 export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   @Input() publicUsername: string | null = null;
@@ -61,6 +65,9 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   private sessionRequest?: Subscription;
   private followRequest?: Subscription;
   private authorId: number | null = null;
+
+  private readonly profileRestriction = signal<AccountRestriction | null>(null);
+  readonly restriction = computed(() => this.profileRestriction() ?? this.auth.restriction());
 
   readonly pageSize = 6;
   readonly favoriteSlots = [1, 2, 3, 4, 5];
@@ -104,6 +111,7 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     this.cancelRequests();
     this.authorId = null;
     this.profile.set(null);
+    this.profileRestriction.set(null);
     this.errorMessage.set('');
     this.followError.set('');
     this.playlists.set([]);
@@ -112,15 +120,9 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     this.playlistsTotal.set(null);
     this.reviewsPages.set(0);
     this.playlistsPages.set(0);
-    const user = this.auth.currentUser();
-    if (!user && this.publicUsername === null) {
-      this.loading.set(false);
-      this.errorMessage.set('No pudimos recuperar tu sesión.');
-      return;
-    }
     const request =
       this.publicUsername === null
-        ? this.userService.getOwnProfile()
+        ? this.auth.loadSession().pipe(switchMap(() => this.userService.getOwnProfile()))
         : this.userService
             .getProfileByUsername(this.publicUsername)
             .pipe(switchMap((response) => this.userService.getProfileById(response.data.id)));
@@ -132,12 +134,16 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
         this.loadPlaylists(1);
         this.loadReviews(1);
       },
-      error: (error: unknown) =>
+      error: (error: unknown) => {
+        this.profileRestriction.set(readAccountRestriction(error));
         this.errorMessage.set(
           error instanceof HttpErrorResponse && error.status === 404
             ? 'No encontramos ese usuario.'
-            : 'No pudimos cargar el perfil. Intentá nuevamente.',
-        ),
+            : error instanceof HttpErrorResponse && error.status === 401
+              ? 'Tu sesión ya no es válida. Volvé a iniciar sesión.'
+              : 'No pudimos cargar el perfil. Intentá nuevamente.',
+        );
+      },
     });
   }
 

@@ -12,11 +12,13 @@ import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environments.js';
+import { readAccountRestriction } from '../../../../models/account-restriction';
+import { AccountRestrictionNotice } from '../../../../shared/components/account-restriction-notice/account-restriction-notice';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ RouterLink,
+  imports: [ AccountRestrictionNotice, RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -66,7 +68,7 @@ private readonly router = inject(Router);
   void this.router.navigateByUrl(this.getReturnUrl());
 },
         error: (error: unknown) => {
-          this.errorMessage.set(this.getErrorMessage(error));
+          this.errorMessage.set(readAccountRestriction(error) ? null : this.getErrorMessage(error));
         },
       });
   }

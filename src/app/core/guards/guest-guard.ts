@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router, type CanActivateFn } from '@angular/router';
 import { catchError, map, of, throwError } from 'rxjs';
 
+import { readAccountRestriction } from '../../models/account-restriction';
 import { AuthService } from '../services/auth.service';
 
 export const guestGuard: CanActivateFn = () => {
@@ -12,7 +13,7 @@ export const guestGuard: CanActivateFn = () => {
   return auth.loadSession().pipe(
     map(() => router.createUrlTree(['/dashboard'])),
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
+      if ((error instanceof HttpErrorResponse && error.status === 401) || readAccountRestriction(error)?.scope === 'account') {
         return of(true);
       }
 

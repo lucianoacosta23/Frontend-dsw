@@ -2,6 +2,10 @@
   display: block;
   min-width: 0;
   color: var(--jb-text);
+  --jb-surface: #151718;
+  --jb-glass: #151718;
+  --jb-gold: #ffb455;
+  --jb-border: rgba(240, 232, 208, .1);
 }
 .review-card {
   padding: var(--review-card-padding, var(--jb-space-3));

@@ -1,6 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  ElementRef,
+  HostListener,
+  ViewChild,
   Input,
   OnChanges,
   inject,
@@ -25,7 +28,7 @@ import { ReleaseCover } from '../../../catalog/components/release-cover/release-
   imports: [FormsModule, RouterLink, ReviewEditor, ReleaseCover
   ],
   selector: 'app-review-card',
-  styleUrls: ['./review-card.scss', './review-card-compact.scss'],
+  styleUrls: ['./review-card.scss', './review-card-compact.scss', './review-card-social.scss'],
   templateUrl: './review-card.html',
 })
 export class ReviewCard implements OnChanges {
@@ -34,6 +37,21 @@ export class ReviewCard implements OnChanges {
   @Input() compact = false;
   @Input() targetCover: string | null = null;
   @Input() targetName = '';
+  @ViewChild('reviewOptions') private reviewOptions?: ElementRef<HTMLDetailsElement>;
+
+  @HostListener('document:click', ['$event'])
+  closeOptionsOutside(event: MouseEvent): void {
+    const menu = this.reviewOptions?.nativeElement;
+    if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOptionsWithEscape(): void {
+    const menu = this.reviewOptions?.nativeElement;
+    if (!menu?.open) return;
+    menu.open = false;
+    menu.querySelector<HTMLElement>('summary')?.focus();
+  }
 
   canLike(): boolean {
     const user = this.auth.currentUser();
@@ -134,7 +152,7 @@ onReviewSaved(update: ReviewTextUpdate): void {
   }
 
   toggleLike(): void {
-    if (this.compact && !this.canLike()) return;
+    if (!this.canLike()) return;
     if (this.likeLoading()) return;
 
     this.likeLoading.set(true);

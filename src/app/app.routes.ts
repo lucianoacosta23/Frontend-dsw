@@ -1,3 +1,4 @@
+import { AdminUsers } from './features/admin/pages/admin-users/admin-users.js';
 ﻿import { Routes } from '@angular/router';
 import { guestGuard } from './core/guards/guest-guard';
 import {
@@ -54,7 +55,7 @@ export const routes: Routes = [
     component: Search,
     canActivate: [authGuard],
   },
-  
+
   // Ambas páginas trabajan con la cuenta autenticada.
   {
     path: 'profile/edit',
@@ -64,6 +65,7 @@ export const routes: Routes = [
   {
     path: 'profile',
     component: OwnProfile,
+    data: { restrictionView: true },
     canActivate: [authGuard],
   },
 
@@ -87,6 +89,8 @@ export const routes: Routes = [
     data: { minorReports: true },
     canActivate: [adminGuard],
   },
+
+  { path: 'admin/users', component: AdminUsers, canActivate: [adminGuard] },
 
   {
     path: 'admin',
