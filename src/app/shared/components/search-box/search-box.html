@@ -1,0 +1,87 @@
+<div class="search-control" (focusout)="focusOut($event)">
+  <form class="search-field" role="search" aria-label="Buscar en Jukeboxd" (ngSubmit)="submitAll()">
+    <button type="submit" class="search-submit" aria-label="Buscar" [disabled]="opening()">
+      <svg aria-hidden="true"><use href="/icons.svg#search" /></svg>
+    </button>
+    <input
+      name="navQuery"
+      type="search"
+      [ngModel]="query"
+      (ngModelChange)="updateQuery($event)"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-haspopup="listbox"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="expanded() ? 'nav-suggestions' : null"
+      [attr.aria-activedescendant]="
+        expanded() && activeIndex() >= 0 ? 'nav-option-' + activeIndex() : null
+      "
+      aria-label="Buscar música, playlists o usuarios"
+      placeholder="Buscar música…"
+      maxlength="255"
+      required
+      (focus)="focus()"
+      (keydown)="keydown($event)"
+    />
+  </form>
+  @if (opening()) {
+    <p class="opening-status" role="status">Abriendo resultado…</p>
+  }
+  @if (expanded()) {
+    <div class="suggestion-panel">
+      <p class="panel-caption">Encontrá tu próxima escucha</p>
+      @if (!auth.currentUser()) {
+        <p class="suggestion-message" role="status">
+          Iniciá sesión para ver sugerencias. Tu búsqueda se conservará.
+        </p>
+      } @else if (loading() || pending()) {
+        <p class="suggestion-message" role="status">Buscando sugerencias…</p>
+      } @else if (message()) {
+        <p class="suggestion-message" role="status">{{ message() }}</p>
+      } @else if (!suggestions().length) {
+        <p class="suggestion-message" role="status">
+          No hay sugerencias para este texto. Probá la búsqueda completa.
+        </p>
+      }
+      <ul id="nav-suggestions" role="listbox" aria-label="Resultados sugeridos">
+        @for (item of suggestions(); track item.key; let index = $index) {
+          <li role="presentation">
+            <button
+              [id]="'nav-option-' + index"
+              type="button"
+              role="option"
+              tabindex="-1"
+              [attr.aria-selected]="activeIndex() === index"
+              [class.active]="activeIndex() === index"
+              (mousedown)="$event.preventDefault()"
+              (click)="openResult(item)"
+            >
+              <span
+                class="suggestion-cover"
+                [class.artist]="item.type === 'artists' || item.type === 'users'"
+              >
+                @if (item.imageUrl) {
+                  <app-release-cover [src]="item.imageUrl" [alt]="''" />
+                } @else {
+                  <span class="suggestion-initial" aria-hidden="true">
+                    {{ item.name.slice(0, 2).toUpperCase() }}
+                  </span>
+                }
+              </span>
+              <span class="suggestion-copy">
+                <strong>{{ item.name }}</strong>
+                <small>
+                  {{ item.label }}{{ item.subtitle !== item.label ? ' · ' + item.subtitle : '' }}
+                </small>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+      <button class="all-results" type="button" (click)="submitAll()">
+        Ver todos los resultados
+        <span aria-hidden="true">↗</span>
+      </button>
+    </div>
+  }
+</div>

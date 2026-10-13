@@ -1,319 +1,137 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { finalize, type Subscription } from 'rxjs';
+import { SearchDiscoveryService } from '../../../../core/services/search-discovery.service';
+import type { SearchType } from '../../../../models/search';
 import {
-  Component,
-  computed,
-  inject,
-  OnDestroy,
-  signal,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import {
-  catchError,
-  finalize,
-  forkJoin,
-  of,
-} from 'rxjs';
-import type { Subscription } from 'rxjs';
-
-import { SearchService } from '../../../../core/services/search.service.js';
-import type {
-  SearchResults,
-  SearchType,
-  SpotifyAlbumResult,
-  SpotifyMusicSearchResponse,
-  SpotifyTrackResult,
-  SpotifyArtistResult,
-} from '../../../../models/search.js';
-import { Navbar } from '../../../../shared/components/navbar/navbar.js';
+  searchCategories,
+  type SearchEntry,
+  type SearchGroup,
+} from '../../../../models/search-view';
+import { Navbar } from '../../../../shared/components/navbar/navbar';
+import { SearchResult } from '../../components/search-result/search-result';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [FormsModule, RouterLink, Navbar],
+  imports: [Navbar, SearchResult],
   templateUrl: './search.html',
   styleUrl: './search.scss',
 })
-export class Search implements OnDestroy {
-  private readonly searchService = inject(SearchService);
+export class Search implements OnInit {
+  private readonly discovery = inject(SearchDiscoveryService);
   private readonly router = inject(Router);
-
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   private request?: Subscription;
-  private importRequest?: Subscription;
 
   query = '';
-
-  readonly filters: Array<{ type: SearchType; label: string }> = [
-    { type: 'tracks', label: 'Canciones' },
-    { type: 'releases', label: 'Releases' },
-    { type: 'artists', label: 'Artistas' },
-    { type: 'playlists', label: 'Playlists' },
-    { type: 'users', label: 'Usuarios' },
-  ];
-
+  readonly filters = searchCategories;
   readonly selectedTypes = signal<SearchType[]>([]);
-  readonly results = signal<SearchResults | null>(null);
-  readonly spotifyAlbums = signal<SpotifyAlbumResult[]>([]);
-  readonly spotifyTracks = signal<SpotifyTrackResult[]>([]);
-  readonly spotifyArtists = signal<SpotifyArtistResult[]>([]);
-
+  readonly groups = signal<SearchGroup[]>([]);
+  readonly visibleGroups = computed(() => this.groups().filter((group) => group.entries.length));
+  readonly totalResults = computed(() =>
+    this.groups().reduce((total, group) => total + group.entries.length, 0),
+  );
   readonly loading = signal(false);
   readonly errorMessage = signal('');
-  readonly spotifyError = signal('');
+  readonly warning = signal<string | null>(null);
   readonly hasSearched = signal(false);
+  readonly openingKey = signal<string | null>(null);
+  readonly openError = signal('');
 
-  readonly importingId = signal<string | null>(null);
-  readonly importError = signal('');
-
-  // Suma resultados locales y música externa sin duplicados.
-  readonly totalResults = computed(() => {
-    const results = this.results();
-
-    const localCount = results
-      ? results.tracks.length
-        + results.releases.length
-        + results.artists.length
-        + results.playlists.length
-        + results.users.length
-      : 0;
-
-    return localCount + this.spotifyAlbums().length + this.spotifyTracks().length + this.spotifyArtists().length;
-  });
+  ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.query = params.get('q') ?? '';
+      if (params.has('q')) this.search();
+      else {
+        this.request?.unsubscribe();
+        this.groups.set([]);
+        this.hasSearched.set(false);
+        this.errorMessage.set('');
+        this.warning.set(null);
+      }
+    });
+  }
 
   isSelected(type: SearchType): boolean {
     return this.selectedTypes().includes(type);
   }
 
   toggleFilter(type: SearchType): void {
-    this.selectedTypes.update(current =>
-      current.includes(type)
-        ? current.filter(item => item !== type)
-        : [...current, type],
+    this.selectedTypes.update((current) =>
+      current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
     );
-
-    this.refreshSearch();
+    if (this.hasSearched()) this.search();
   }
 
   selectAll(): void {
     this.selectedTypes.set([]);
-    this.refreshSearch();
-  }
-
-  private refreshSearch(): void {
-    if (this.hasSearched()) {
-      this.search();
-    }
+    if (this.hasSearched()) this.search();
   }
 
   search(): void {
     this.request?.unsubscribe();
-
-    this.loading.set(false);
+    this.groups.set([]);
     this.errorMessage.set('');
-    this.spotifyError.set('');
-    this.importError.set('');
-    this.results.set(null);
-    this.spotifyAlbums.set([]);
-    this.spotifyTracks.set([]);
-    this.spotifyArtists.set([]);
-
+    this.warning.set(null);
+    this.openError.set('');
+    this.loading.set(false);
     const query = this.query.trim();
-
     if (!query || query.length > 255) {
       this.hasSearched.set(false);
       this.errorMessage.set('Escribí entre 1 y 255 caracteres para buscar.');
       return;
     }
-
-    const types = this.selectedTypes();
-
-    const spotifyTypes: Array<'album' | 'track' | 'artist'> = [];
-    if (types.length === 0 || types.includes('releases')) spotifyTypes.push('album');
-    if (types.length === 0 || types.includes('tracks')) spotifyTypes.push('track');
-    if (types.length === 0 || types.includes('artists')) spotifyTypes.push('artist');
-
-    const emptySpotifyResponse: SpotifyMusicSearchResponse = {
-      message: '',
-      data: { albums: [], tracks: [], artists: [] },
-    };
-
-    const spotifyRequest = spotifyTypes.length > 0
-      ? this.searchService.searchSpotifyMusic(query, spotifyTypes).pipe(
-          catchError(() => {
-            // Un fallo externo no oculta los resultados locales.
-            this.spotifyError.set(
-              'No pudimos consultar Spotify. Se muestran los resultados locales.',
-            );
-
-            return of(emptySpotifyResponse);
-          }),
-        )
-      : of(emptySpotifyResponse);
-
     this.loading.set(true);
     this.hasSearched.set(true);
-
-    // Consulta las dos fuentes y combina sus resultados.
-    this.request = forkJoin({
-      local: this.searchService.search(query, types),
-      spotify: spotifyRequest,
-    })
-      .pipe(finalize(() => this.loading.set(false)))
+    this.request = this.discovery
+      .search(query, this.selectedTypes())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
-        next: ({ local, spotify }) => {
-          this.results.set(local.data);
-
-          const localArtistIds = new Set(
-            local.data.artists.map(artist => artist.spotifyId)
-              .filter((id): id is string => typeof id === 'string'),
-          );
-          const seenArtists = new Set<string>();
-          this.spotifyArtists.set((spotify.data.artists ?? []).filter(artist => {
-            if (localArtistIds.has(artist.id) || seenArtists.has(artist.id)) return false;
-            seenArtists.add(artist.id);
-            return true;
-          }));
-
-          const localTrackIds = new Set(
-            local.data.tracks.map(track => track.spotifyId)
-              .filter((id): id is string => typeof id === 'string'),
-          );
-          const seenTracks = new Set<string>();
-          this.spotifyTracks.set((spotify.data.tracks ?? []).filter(track => {
-            if (localTrackIds.has(track.id) || seenTracks.has(track.id)) return false;
-            seenTracks.add(track.id);
-            return true;
-          }));
-
-          const localSpotifyIds = new Set(
-            local.data.releases
-              .map(release => release.spotifyId)
-              .filter(id => id !== null),
-          );
-
-          const seen = new Set<string>();
-
-          this.spotifyAlbums.set(
-            spotify.data.albums.filter(album => {
-              if (
-                localSpotifyIds.has(album.id) ||
-                seen.has(album.id)
-              ) {
-                return false;
-              }
-
-              seen.add(album.id);
-              return true;
-            }),
-          );
+        next: (response) => {
+          this.groups.set(response.groups);
+          this.warning.set(response.warning);
         },
-        error: (error: unknown) => {
+        error: (error: unknown) =>
           this.errorMessage.set(
-            error instanceof HttpErrorResponse &&
-              error.status === 401
+            error instanceof HttpErrorResponse && error.status === 401
               ? 'Tu sesión venció. Iniciá sesión nuevamente.'
               : 'No pudimos completar la búsqueda. Intentá nuevamente.',
-          );
-        },
+          ),
       });
   }
 
-  // Importa el resultado elegido y abre su detalle con el ID local.
-  openSpotifyAlbum(album: SpotifyAlbumResult): void {
-    if (this.importingId() !== null) return;
-
-    this.importingId.set(album.id);
-    this.importError.set('');
-
-    this.importRequest = this.searchService
-      .importSpotifyAlbum(album.id)
-      .pipe(finalize(() => this.importingId.set(null)))
+  openResult(entry: SearchEntry): void {
+    if (this.openingKey() !== null) return;
+    this.openError.set('');
+    this.openingKey.set(entry.key);
+    this.discovery
+      .open(entry)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.openingKey.set(null)),
+      )
       .subscribe({
-        next: response => {
-          void this.router.navigate([
-            '/releases',
-            response.data.releaseId,
-          ]);
+        next: (url) => {
+          void this.router.navigateByUrl(url);
         },
         error: (error: unknown) => {
-          this.importError.set(
-            error instanceof HttpErrorResponse &&
-              typeof error.error?.message === 'string'
-              ? error.error.message
-              : 'No pudimos importar el lanzamiento. Intentá nuevamente.',
+          const body: unknown = error instanceof HttpErrorResponse ? error.error : null;
+          this.openError.set(
+            body &&
+              typeof body === 'object' &&
+              'message' in body &&
+              typeof body.message === 'string'
+              ? body.message
+              : 'No pudimos abrir este resultado. Intentá nuevamente.',
           );
         },
       });
-  }
-
-  openSpotifyTrack(track: SpotifyTrackResult): void {
-    if (this.importingId() !== null) return;
-
-    this.importingId.set(`track:${track.id}`);
-    this.importError.set('');
-    this.importRequest = this.searchService.importSpotifyTrack(track.id)
-      .pipe(finalize(() => this.importingId.set(null)))
-      .subscribe({
-        next: response => {
-          void this.router.navigate(['/tracks', response.data.trackId]);
-        },
-        error: (error: unknown) => {
-          this.importError.set(
-            error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
-              ? error.error.message
-              : 'No pudimos importar la canción. Intentá nuevamente.',
-          );
-        },
-      });
-  }
-
-  openSpotifyArtist(artist: SpotifyArtistResult): void {
-    if (this.importingId() !== null) return;
-
-    this.importingId.set(`artist:${artist.id}`);
-    this.importError.set('');
-    this.importRequest = this.searchService.importSpotifyArtist(artist.id)
-      .pipe(finalize(() => this.importingId.set(null)))
-      .subscribe({
-        next: response => {
-          void this.router.navigate(['/artists', response.data.artistId]);
-        },
-        error: (error: unknown) => {
-          this.importError.set(
-            error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
-              ? error.error.message
-              : 'No pudimos importar el artista. Intentá nuevamente.',
-          );
-        },
-      });
-  }
-
-  spotifyReleaseTypeLabel(release: SpotifyAlbumResult): string {
-    switch (release.album_type) {
-      case 'album': return 'Álbum';
-      case 'single': return 'Single';
-      case 'compilation': return 'Compilación';
-      default: return 'Release';
-    }
-  }
-
-  localReleaseTypeLabel(type: string): string {
-    switch (type) {
-      case 'ALBUM': return 'Álbum';
-      case 'EP': return 'EP';
-      case 'SINGLE': return 'Single';
-      case 'MIXTAPE': return 'Mixtape';
-      case 'COMPILATION': return 'Compilación';
-      default: return 'Release';
-    }
-  }
-
-  spotifyArtistsLabel(album: { artists: Array<{ name: string }> }): string {
-    return album.artists.map(artist => artist.name).join(', ');
-  }
-
-  ngOnDestroy(): void {
-    this.request?.unsubscribe();
-    this.importRequest?.unsubscribe();
   }
 }

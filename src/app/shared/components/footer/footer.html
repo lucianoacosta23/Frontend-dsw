@@ -1,0 +1,11 @@
+<footer class="site-footer">
+  <a class="footer-brand"
+    (click)="scrollToTop()"
+    [routerLink]="auth.currentUser() ? '/dashboard' : '/'"
+    aria-label="Jukeboxd, inicio"
+  >
+    <img src="/jukeboxd-logo.svg" alt="" />
+    jukeboxd
+  </a>
+  <p>La música también se conversa.</p>
+</footer>
