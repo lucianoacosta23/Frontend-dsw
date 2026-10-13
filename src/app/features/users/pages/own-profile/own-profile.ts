@@ -21,7 +21,7 @@ import {
   Subscription,
   switchMap,
 } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ProfileImage } from '../../../../shared/components/profile-image/profile-image';
 import { AuthService } from '../../../../core/services/auth.service.js';
 import { UserService } from '../../../../core/services/user-service.js';
@@ -51,6 +51,7 @@ interface ProfileReview {
 export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   @Input() publicUsername: string | null = null;
   readonly auth = inject(AuthService);
+  private readonly http = inject(HttpClient);
   private readonly userService = inject(UserService);
   private readonly playlistService = inject(PlaylistService);
   private readonly reviewService = inject(ReviewService);
@@ -82,22 +83,45 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   readonly followSubmitting = signal(false);
   readonly followError = signal('');
 
+  // Signal para almacenar las carátulas por ID de playlist
+  readonly playlistCovers = signal<Record<string | number, string[]>>({});
+
   isOwner(): boolean {
     return this.publicUsername === null || this.profile()?.isOwnProfile === true;
   }
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['publicUsername'] && !changes['publicUsername'].firstChange) this.loadProfile();
+    if (changes['publicUsername'] && !changes['publicUsername'].firstChange) {
+      this.loadProfile();
+    }
   }
 
   ngOnInit(): void {
     if (this.publicUsername !== null) {
-      // Optional session enriches navigation; a 401 never redirects the public route.
       this.sessionRequest = this.auth
         .loadSession()
         .pipe(catchError(() => of(null)))
         .subscribe();
     }
     this.loadProfile();
+  }
+
+  getCovers(playlist: any): string[] {
+    if (!playlist) return [];
+    const id = playlist.id;
+    if (id !== undefined && id !== null && this.playlistCovers()[id]?.length) {
+      return this.playlistCovers()[id];
+    }
+    if (playlist.covers?.length) return playlist.covers;
+    if (playlist.coverUrls?.length) return playlist.coverUrls;
+    if (playlist.imageUrl) return [playlist.imageUrl];
+    if (playlist.coverUrl) return [playlist.coverUrl];
+    if (playlist.tracks?.length) {
+      return playlist.tracks
+        .map((t: any) => t.track?.release?.imageUrl || t.release?.imageUrl || t.imageUrl || t.coverUrl)
+        .filter(Boolean);
+    }
+    return [];
   }
 
   loadProfile(): void {
@@ -112,18 +136,21 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     this.playlistsTotal.set(null);
     this.reviewsPages.set(0);
     this.playlistsPages.set(0);
+
     const user = this.auth.currentUser();
     if (!user && this.publicUsername === null) {
       this.loading.set(false);
       this.errorMessage.set('No pudimos recuperar tu sesión.');
       return;
     }
+
     const request =
       this.publicUsername === null
         ? this.userService.getOwnProfile()
         : this.userService
             .getProfileByUsername(this.publicUsername)
             .pipe(switchMap((response) => this.userService.getProfileById(response.data.id)));
+
     this.loading.set(true);
     this.request = request.pipe(finalize(() => this.loading.set(false))).subscribe({
       next: (response) => {
@@ -147,24 +174,117 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     this.playlistsPage.set(page);
     this.playlistsLoading.set(true);
     this.playlistsError.set('');
-    this.playlists.set([]);
-    this.playlistsTotal.set(null);
-    const request =
-      this.publicUsername === null
-        ? this.playlistService.getMine(page, this.pageSize)
-        : this.playlistService.getByAuthor(this.authorId, page, this.pageSize);
-    this.playlistRequest = request
+
+    const service = this.playlistService as any;
+
+    // Busca cualquier método que tenga el servicio o usa HTTP directo
+    const serviceMethod =
+      service.getPlaylistsByAuthor?.bind(service) ||
+      service.getPlaylistsByUser?.bind(service) ||
+      service.getPlaylistsByUserId?.bind(service) ||
+      service.getAuthorPlaylists?.bind(service) ||
+      service.getUserPlaylists?.bind(service) ||
+      service.getOwnPlaylists?.bind(service) ||
+      service.getPlaylists?.bind(service) ||
+      service.getByAuthor?.bind(service) ||
+      service.getByUser?.bind(service);
+
+    let request$: Observable<any>;
+
+    if (serviceMethod) {
+      request$ = serviceMethod(this.authorId, page, this.pageSize);
+    } else {
+      request$ = this.http
+        .get<any>(`/playlists?authorId=${this.authorId}&page=${page}&limit=${this.pageSize}`)
+        .pipe(
+          catchError(() =>
+            this.http.get<any>(
+              `/api/playlists?authorId=${this.authorId}&page=${page}&limit=${this.pageSize}`,
+            ),
+          ),
+          catchError(() => this.http.get<any>(`/playlists/author/${this.authorId}`)),
+          catchError(() => this.http.get<any>(`/api/playlists/author/${this.authorId}`)),
+        );
+    }
+
+    this.playlistRequest = request$
       .pipe(finalize(() => this.playlistsLoading.set(false)))
       .subscribe({
-        next: (response) => {
-          this.playlists.set(response.data);
-          this.playlistsTotal.set(response.pagination.total);
-          this.playlistsPage.set(response.pagination.page);
-          this.playlistsPages.set(response.pagination.totalPages);
+        next: (response: any) => {
+          const items: OwnPlaylistItem[] =
+            response?.data || response?.items || (Array.isArray(response) ? response : []);
+
+          this.playlists.set(items);
+
+          if (response?.pagination) {
+            this.playlistsTotal.set(response.pagination.total ?? items.length);
+            this.playlistsPage.set(response.pagination.page ?? page);
+            this.playlistsPages.set(response.pagination.totalPages ?? 1);
+          } else {
+            this.playlistsTotal.set(items.length);
+            this.playlistsPages.set(1);
+          }
+
+          this.enrichPlaylistCovers(items);
         },
-        error: () =>
-          this.playlistsError.set('No pudimos cargar tus playlists. Intentá nuevamente.'),
+        error: () => {
+          this.playlistsError.set('No pudimos cargar tus playlists. Intentá nuevamente.');
+        },
       });
+  }
+
+  private enrichPlaylistCovers(items: OwnPlaylistItem[]): void {
+    const service = this.playlistService as any;
+
+    items.forEach((playlist: any) => {
+      const pId = playlist.id;
+      if (!pId) return;
+
+      const directCovers = this.getCovers(playlist);
+      if (directCovers.length > 0) {
+        this.playlistCovers.update((current) => ({
+          ...current,
+          [pId]: directCovers,
+        }));
+        return;
+      }
+
+      const getSingleMethod =
+        service.getPlaylist?.bind(service) ||
+        service.getPlaylistById?.bind(service) ||
+        service.getById?.bind(service);
+
+      let single$: Observable<any>;
+      if (getSingleMethod) {
+        single$ = getSingleMethod(pId);
+      } else {
+        single$ = this.http
+          .get<any>(`/playlists/${pId}`)
+          .pipe(catchError(() => this.http.get<any>(`/api/playlists/${pId}`)));
+      }
+
+      single$.subscribe({
+        next: (res: any) => {
+          const data = res?.data || res;
+          const tracks = data?.tracks || [];
+          const covers = tracks
+            .map(
+              (t: any) =>
+                t.track?.release?.imageUrl || t.release?.imageUrl || t.imageUrl || t.coverUrl,
+            )
+            .filter(Boolean)
+            .slice(0, 4);
+
+          if (covers.length > 0) {
+            this.playlistCovers.update((current) => ({
+              ...current,
+              [pId]: covers,
+            }));
+          }
+        },
+        error: () => {},
+      });
+    });
   }
 
   loadReviews(page = this.reviewsPage()): void {
@@ -181,7 +301,6 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
       .pipe(finalize(() => this.reviewsLoading.set(false)))
       .subscribe({
         next: (response) => {
-          // Enrich only the bounded visible page; the list stays usable while details load.
           this.reviews.set(
             response.data.slice(0, this.pageSize).map((review) => ({
               review,
@@ -236,26 +355,33 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     );
     this.enrichReviews(ids);
   }
+
   hasUnavailableDetails(): boolean {
     return this.reviews().some((card) => card.unavailable);
   }
+
   detailsPending(): boolean {
     return this.reviews().some((card) => card.pending);
   }
+
   imageFailed(id: number): void {
     this.reviews.update((cards) =>
       cards.map((card) => (card.review.id === id ? { ...card, brokenImage: true } : card)),
     );
   }
+
   ratingLabel(rating: number): string {
     return String(rating).replace('.', ',');
   }
+
   starWidth(rating: number): number {
     return Math.min(100, Math.max(0, rating * 20));
   }
+
   artists(card: ProfileReview): string {
     return card.target?.artists.map((artist) => artist.name).join(', ') ?? '';
   }
+
   private cancelRequests(): void {
     this.request?.unsubscribe();
     this.playlistRequest?.unsubscribe();
@@ -263,6 +389,7 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     this.detailRequest?.unsubscribe();
     this.followRequest?.unsubscribe();
   }
+
   followUser(): void {
     const profile = this.profile();
     if (!profile || this.isOwner() || !this.auth.currentUser() || this.followSubmitting()) return;
@@ -282,6 +409,7 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
           this.followError.set('No pudimos actualizar el seguimiento. Intentá nuevamente.'),
       });
   }
+
   ngOnDestroy(): void {
     this.cancelRequests();
     this.sessionRequest?.unsubscribe();
