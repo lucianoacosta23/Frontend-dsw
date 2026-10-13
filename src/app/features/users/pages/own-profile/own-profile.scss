@@ -376,24 +376,6 @@ h2 {
   font-size: 0.8rem;
   margin-top: 1rem;
 }
-.profile-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1.5rem 0 2rem;
-  border-top: 1px solid var(--jb-border);
-  font-size: 0.75rem;
-  color: var(--jb-muted);
-}
-.profile-footer a {
-  color: var(--jb-copy);
-  text-decoration: none;
-  letter-spacing: 0.12em;
-}
-.profile-footer span {
-  color: var(--jb-gold);
-}
 @media (max-width: 1000px) {
   .playlist-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -462,5 +444,518 @@ h2 {
   }
   .pagination button {
     padding-inline: 0.6rem;
+  }
+}
+/* ==========================================================================
+   GRILLA Y TARJETAS DE PLAYLISTS (ESTILO HOME)
+   ========================================================================== */
+
+.playlist-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+  gap: 1.5rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.playlist-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 1.25rem !important;
+  border: 1px solid var(--jb-border) !important;
+  border-radius: var(--jb-radius) !important;
+  background: var(--jb-surface) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+
+  &:hover {
+    border-color: var(--jb-gold) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+.playlist-main {
+  display: flex !important;
+  flex-direction: column !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  width: 100% !important;
+
+  h3 {
+    margin: 1rem 0 0.25rem 0 !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: var(--jb-text) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* PORTADA APILADA / CUBIERTA */
+.cover-stack {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: var(--jb-radius) !important;
+  background: var(--jb-surface-raised) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: var(--jb-radius) !important;
+  }
+
+  .empty-cover {
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    color: var(--jb-gold) !important;
+    font-size: 3.5rem !important;
+    background: linear-gradient(135deg, #51452b 0%, var(--jb-surface-raised) 100%) !important;
+  }
+}
+
+/* PARTE INFERIOR (AUTOR, DATOS Y BOTÓN PLAY) */
+.playlist-bottom {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  margin-top: 1rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid var(--jb-border) !important;
+  width: 100% !important;
+
+  .author-avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 50% !important;
+    background: var(--jb-surface-raised) !important;
+    color: var(--jb-gold) !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    flex-shrink: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+  }
+
+  p {
+    margin: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    font-size: 0.8rem !important;
+    color: var(--jb-muted) !important;
+    line-height: 1.3 !important;
+
+    a {
+      color: var(--jb-gold) !important;
+      text-decoration: none !important;
+      font-weight: 600 !important;
+
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+
+    small {
+      display: block !important;
+      color: var(--jb-muted) !important;
+      font-size: 0.75rem !important;
+      margin-top: 0.15rem !important;
+    }
+
+    .saved-badge {
+      color: var(--jb-gold) !important;
+    }
+  }
+
+  /* RESTRICCIÓN DEL BOTÓN Y DEL SVG PARA EVITAR EL ÍCONO GIGANTE */
+  .play-button {
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: var(--jb-text) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: border-color 0.2s ease, color 0.2s ease !important;
+
+    svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      fill: currentColor !important;
+      display: block !important;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--jb-gold) !important;
+      color: var(--jb-gold) !important;
+    }
+
+    &:disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+    }
+  }
+}
+/* ==========================================================================
+   GRILLA Y TARJETAS DE PLAYLISTS (MISMAS DIMENSIONES DEL HOME)
+   ========================================================================== */
+
+.playlist-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.playlist-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 1.25rem !important;
+  border: 1px solid var(--jb-border) !important;
+  border-radius: var(--jb-radius) !important;
+  background: var(--jb-surface) !important;
+  box-sizing: border-box !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+
+  &:hover {
+    border-color: var(--jb-gold) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+.playlist-main {
+  display: flex !important;
+  flex-direction: column !important;
+  text-decoration: none !important;
+  color: inherit !important;
+
+  h3 {
+    margin: 0.5rem 0 0.25rem 0 !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: var(--jb-text) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* CONTENEDOR DE PORTADAS (TAMAÑO COMPACTO IGUAL AL HOME Y ABANICO EN Z-INDEX) */
+.cover-stack {
+  position: relative !important;
+  width: 110px !important;
+  height: 110px !important;
+  margin-bottom: 0.5rem !important;
+  flex-shrink: 0 !important;
+
+  img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 90px !important;
+    height: 90px !important;
+    object-fit: cover !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+
+    /* Desplazamiento en abanico según el índice de la portada */
+    transform: translate(calc(var(--cover-index, 0) * 10px),
+        calc(var(--cover-index, 0) * 2px)) !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  .empty-cover {
+    display: grid !important;
+    place-items: center !important;
+    width: 90px !important;
+    height: 90px !important;
+    border-radius: 6px !important;
+    background: linear-gradient(135deg, #51452b 0%, var(--jb-surface-raised) 100%) !important;
+    color: var(--jb-gold) !important;
+    font-size: 2.5rem !important;
+  }
+}
+
+/* PARTE INFERIOR (AUTOR, DATOS Y BOTÓN PLAY) */
+.playlist-bottom {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  margin-top: 1rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid var(--jb-border) !important;
+
+  .author-avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 50% !important;
+    background: var(--jb-surface-raised) !important;
+    color: var(--jb-gold) !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    flex-shrink: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+  }
+
+  p {
+    margin: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    font-size: 0.8rem !important;
+    color: var(--jb-muted) !important;
+    line-height: 1.3 !important;
+
+    a {
+      color: var(--jb-gold) !important;
+      text-decoration: none !important;
+      font-weight: 600 !important;
+
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+
+    small {
+      display: block !important;
+      color: var(--jb-muted) !important;
+      font-size: 0.75rem !important;
+      margin-top: 0.15rem !important;
+    }
+
+    .saved-badge {
+      color: var(--jb-gold) !important;
+    }
+  }
+
+  .play-button {
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: var(--jb-text) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+
+    svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      fill: currentColor !important;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--jb-gold) !important;
+      color: var(--jb-gold) !important;
+    }
+
+    &:disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+    }
+  }
+}
+/* ==========================================================================
+   GRILLA DE PLAYLISTS (INSPIRADA EN LA ESTRUCTURA DE RESEÑAS)
+   ========================================================================== */
+
+.collection .playlist-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.collection .playlist-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 1.25rem !important;
+  border: 1px solid var(--jb-border) !important;
+  border-radius: var(--jb-radius) !important;
+  background: var(--jb-surface) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: auto !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+
+  &:hover {
+    border-color: var(--jb-gold) !important;
+    transform: translateY(-2px) !important;
+  }
+}
+
+.collection .playlist-main {
+  display: flex !important;
+  flex-direction: column !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  width: 100% !important;
+
+  h3 {
+    margin: 0.75rem 0 0.25rem 0 !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: var(--jb-text) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* CAJA DE PORTADA COMPACTA Y CONTROLADA (IGUAL A .review-art) */
+.collection .playlist-cover-art,
+.collection .playlist-art {
+  position: relative !important;
+  width: 90px !important;
+  height: 90px !important;
+  min-width: 90px !important;
+  min-height: 90px !important;
+  border-radius: var(--jb-radius) !important;
+  background: var(--jb-surface-raised) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  /* Anula estilos viejos del vinilo que deformaban la caja */
+  .record,
+  .art-label {
+    display: none !important;
+  }
+
+  img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: var(--jb-radius) !important;
+  }
+
+  .empty-cover {
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    color: var(--jb-gold) !important;
+    font-size: 2.5rem !important;
+    background: linear-gradient(135deg, #51452b 0%, var(--jb-surface-raised) 100%) !important;
+  }
+}
+
+/* PARTE INFERIOR (AUTOR Y BOTÓN) */
+.collection .playlist-bottom {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  margin-top: 1rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid var(--jb-border) !important;
+
+  .author-avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 50% !important;
+    background: var(--jb-surface-raised) !important;
+    color: var(--jb-gold) !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    flex-shrink: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+  }
+
+  p {
+    margin: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    font-size: 0.8rem !important;
+    color: var(--jb-muted) !important;
+    line-height: 1.3 !important;
+
+    a {
+      color: var(--jb-gold) !important;
+      text-decoration: none !important;
+      font-weight: 600 !important;
+
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+
+    small {
+      display: block !important;
+      color: var(--jb-muted) !important;
+      font-size: 0.75rem !important;
+      margin-top: 0.15rem !important;
+    }
+
+    .saved-badge {
+      color: var(--jb-gold) !important;
+    }
+  }
+
+  .play-button {
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border: 1px solid var(--jb-border) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: var(--jb-text) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+
+    svg {
+      width: 14px !important;
+      height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      fill: currentColor !important;
+    }
   }
 }

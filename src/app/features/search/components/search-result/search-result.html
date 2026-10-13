@@ -1,0 +1,47 @@
+@if (item.target.source === 'local') {
+  <a
+    class="result"
+    [class.row]="row"
+    [routerLink]="item.target.url"
+    [attr.aria-label]="'Abrir ' + item.name"
+  >
+    <ng-container *ngTemplateOutlet="content" />
+  </a>
+} @else {
+  <button
+    class="result"
+    [class.row]="row"
+    type="button"
+    [disabled]="busy"
+    [attr.aria-busy]="opening"
+    [attr.aria-label]="'Abrir ' + item.name"
+    (click)="open.emit(item)"
+  >
+    <ng-container *ngTemplateOutlet="content" />
+  </button>
+}
+<ng-template #content>
+  <div
+    class="artwork"
+    [class.artist]="item.type === 'artists'"
+    [class.person]="item.type === 'users'"
+  >
+    @if (item.type === 'users') {
+      <span class="initials" aria-hidden="true">{{ item.name.slice(0, 2).toUpperCase() }}</span>
+    } @else {
+      <app-release-cover [src]="item.imageUrl" [alt]="item.name" />
+    }
+  </div>
+  <div class="result-copy">
+    <strong>{{ item.name }}</strong>
+    <span>{{ item.subtitle }}</span>
+    @if (!row && item.type === 'releases') {
+      <small>{{ item.label }}</small>
+    }
+  </div>
+  @if (opening) {
+    <span class="opening" role="status">Abriendo…</span>
+  } @else if (row) {
+    <svg class="open-arrow" aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
+  }
+</ng-template>

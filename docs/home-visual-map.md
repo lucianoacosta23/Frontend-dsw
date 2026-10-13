@@ -12,8 +12,8 @@ Las rutas de la tabla son relativas a `E:\z-jukeboxd\front`.
 | Colores del home | mismo archivo | `:host`: `--jb-bg` es color; `--jb-gold`, `--jb-glass`, `--jb-surface`, `--jb-border` |
 | Ancho y márgenes laterales | mismo archivo | `.home-page`: máximo 1200px; márgenes 32px, 16px en móvil |
 | Títulos y separación de secciones | mismo archivo | `.section-title`, `.section-heading`, `.popular` |
-| Navbar | `src/app/shared/components/navbar/navbar-home.scss` | `:host(.home-nav)`, `.navbar`, `.brand`, `.section-links`, `.nav-search`, `.nav-actions`, `.dropdown` |
-| Accesos de navbar | `src/app/shared/components/navbar/navbar.html` | rama `@if (home)`; los demás usos conservan la variante anterior |
+| Navbar compartida y fija | `src/app/shared/components/navbar/navbar-home.scss` | `:host`, `.site-header`, `.navbar`, `.brand`, `.section-links`, `.nav-search`, `.nav-actions`, `.dropdown` |
+| Accesos y búsqueda de navbar | `src/app/shared/components/navbar/navbar.html` | formulario con Enter; componente compartido en todas las pantallas. Ver `docs/search-navbar-design.md` para la etapa posterior al traspaso |
 | Composición del destacado | `src/app/features/catalog/pages/home/home-hero.scss` | `.hero`, `.disc-layout`, `.featured-art`, `.featured-info` |
 | Nombre y artista | mismo archivo | `.featured-info h2`, `.featured-artists`, `.featured-meta` |
 | Estadísticas | mismo archivo | `.featured-stats`, `.average`, `.review-count` |
@@ -25,7 +25,7 @@ Las rutas de la tabla son relativas a `E:\z-jukeboxd\front`.
 | Canciones | `src/app/features/catalog/pages/home/home.scss` | `.song-list`, `.song-row`, `.song-rank`, `.song-cover`, `.song-info`, `.song-actions`, `.song-review-count` |
 | Playlists | `src/app/features/catalog/pages/home/home-social.scss` | `.playlist-grid`, `.playlist-card`, `.cover-stack`, `.empty-cover`, `.playlist-bottom` |
 | Reseñas populares | `src/app/features/catalog/pages/home/home.scss` | `.popular-reviews-grid` |
-| Footer | `src/app/features/catalog/pages/home/home-social.scss` | `.home-footer`, `.footer-brand` |
+| Footer compartido en todas las pantallas | `src/app/shared/components/footer/footer.scss` | `.site-footer`, `.footer-brand`; contenido en `footer.html`, montado una sola vez en `src/app/app.html` |
 | Orden y contenido de la página | `src/app/features/catalog/pages/home/home.html` | secciones semánticas, bloques Angular de carga/error/vacío y reintento |
 | Fondo general y otras pantallas | `src/styles/_backgrounds.scss` | `--jb-background`, variables por sección; `body:has(app-home)` evita pintar dos fondos sobre el home |
 | Logo e iconos | `public/jukeboxd-logo.svg`, `public/icons.svg` | símbolos `fire`, `bolt`, `heart`, `comment`, `playlist`, `search`, `arrow` |

@@ -10,32 +10,23 @@
   padding: 2rem 0 3rem;
 }
 
+/* ==========================================================================
+   HEADER / HERO SECTION
+   ========================================================================== */
+
 .playlist-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 2rem;
-  padding: 2rem;
+  padding: 2.5rem;
   border: 1px solid var(--jb-border);
   border-radius: var(--jb-radius);
   background:
     radial-gradient(ellipse at 15% 0%, #92674840, transparent 65%),
     radial-gradient(ellipse at 95% 100%, #84734a24, transparent 60%),
     var(--jb-surface);
-
-  h1 {
-    margin: 0;
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    line-height: 1.15;
-    letter-spacing: -.035em;
-    overflow-wrap: anywhere;
-  }
-
-  p:not(.eyebrow) {
-    margin: .75rem 0 0;
-    color: var(--jb-muted);
-    line-height: 1.6;
-  }
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .header-info {
@@ -45,100 +36,219 @@
 
 .playlist-cover {
   display: grid;
-  flex-shrink: 0;
   place-items: center;
-  width: 120px;
-  height: 120px;
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
   border: 1px solid var(--jb-border);
   border-radius: var(--jb-radius);
-  background:
-    linear-gradient(135deg, #51452b, var(--jb-surface-raised));
+  background: linear-gradient(135deg, #51452b, var(--jb-surface-raised));
   color: var(--jb-gold);
-  font-size: 3.5rem;
+  font-size: 4rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .eyebrow {
-  margin: 0 0 .65rem;
+  margin: 0 0 0.5rem;
   color: var(--jb-gold);
-  font-size: .7rem;
-  letter-spacing: .16em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
+.playlist-title {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.header-description {
+  margin: 0.75rem 0 0;
+  color: var(--jb-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Modo Creación (Header con Input Gigante) */
+.creation-header .create-form {
+  max-width: 100%;
+}
+
+.title-input {
+  width: 100%;
+  height: auto;
+  min-height: auto;
+  padding: 0.25rem 0;
+  border: none;
+  border-bottom: 2px solid var(--jb-control-border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--jb-text);
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: var(--jb-muted);
+    opacity: 0.5;
+  }
+
+  &:focus {
+    border-color: var(--jb-gold);
+    outline: none;
+  }
+}
+
+.creation-actions {
+  margin-top: 1.25rem;
+}
+
+/* ==========================================================================
+   PANELES Y CONTENIDO
+   ========================================================================== */
+
 .panel {
-  margin-bottom: 1.5rem;
-  padding: 1.75rem;
+  margin-bottom: 2rem;
+  padding: 1.75rem 2rem;
   border: 1px solid var(--jb-border);
   border-radius: var(--jb-radius);
   background: var(--jb-surface);
 
-  h2 {
-    margin: 0 0 1rem;
-    font-size: 1.2rem;
-    letter-spacing: -.025em;
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+
+    h2 {
+      margin: 0;
+    }
   }
 
-  > p {
-    color: var(--jb-muted);
-    line-height: 1.6;
+  h2 {
+    margin: 0 0 1.25rem;
+    font-size: 1.3rem;
+    letter-spacing: -0.025em;
   }
 }
+
+.track-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  background: var(--jb-surface-raised);
+  color: var(--jb-gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--jb-muted);
+
+  .empty-icon {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--jb-gold);
+    font-size: 2.5rem;
+    opacity: 0.6;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+/* ==========================================================================
+   FORMULARIO Y CONTROLES
+   ========================================================================== */
 
 .create-form,
 .search-form {
   display: grid;
-  gap: .75rem;
-  max-width: 640px;
+  gap: 0.75rem;
+}
+
+.search-form {
+  max-width: 680px;
 }
 
 label {
   color: var(--jb-copy);
-  font-size: .85rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
-input {
+input:not(.title-input) {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
   min-height: 46px;
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--jb-control-border);
-  border-radius: 5px;
+  border-radius: 6px;
   background: var(--jb-bg);
   color: var(--jb-text);
   font: inherit;
+  transition: border-color 0.2s ease;
 
   &::placeholder {
     color: var(--jb-muted);
   }
 
+  &:focus {
+    border-color: var(--jb-gold);
+    outline: none;
+  }
+
   &:disabled {
-    opacity: .55;
+    opacity: 0.55;
   }
 }
+
+.search-controls {
+  display: flex;
+  gap: 0.75rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+/* BOTONES */
 
 button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: .65rem 1rem;
+  padding: 0.65rem 1.25rem;
   border: 1px solid var(--jb-gold);
-  border-radius: 5px;
+  border-radius: 6px;
   background: var(--jb-gold);
   color: var(--jb-on-gold);
   font: inherit;
-  font-size: .85rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    filter: brightness(1.08);
+    filter: brightness(1.1);
+    transform: translateY(-1px);
   }
 
   &:disabled {
-    opacity: .45;
+    opacity: 0.45;
     cursor: default;
   }
 }
@@ -152,40 +262,26 @@ button {
   &:hover:not(:disabled) {
     border-color: var(--jb-gold);
     color: var(--jb-gold);
+    background: rgba(255, 255, 255, 0.03);
   }
+}
+
+.add-button.added {
+  border-color: transparent;
+  background: var(--jb-surface-raised);
+  color: var(--jb-gold);
 }
 
 .new-playlist-button {
   flex-shrink: 0;
 }
 
-.create-form > button {
-  justify-self: start;
-  margin-top: .25rem;
-}
-
-.search-controls {
-  display: flex;
-  gap: .75rem;
-
-  input {
-    flex: 1;
-  }
-
-  button {
-    flex-shrink: 0;
-  }
-}
-
-input:focus-visible,
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--jb-gold);
-  outline-offset: 3px;
-}
+/* ==========================================================================
+   LISTA DE CANCIONES (TRACKLIST)
+   ========================================================================== */
 
 .track-list {
-  margin: 1.25rem 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   list-style: none;
 }
@@ -193,9 +289,15 @@ a:focus-visible {
 .track-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 0;
+  gap: 1.25rem;
+  padding: 0.85rem 0.5rem;
   border-bottom: 1px solid var(--jb-border);
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--jb-surface-raised);
+  }
 
   &:last-child {
     border-bottom: 0;
@@ -204,10 +306,10 @@ a:focus-visible {
 
 .track-image,
 .track-placeholder {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 
 .track-image {
@@ -219,63 +321,111 @@ a:focus-visible {
   place-items: center;
   background: var(--jb-surface-raised);
   color: var(--jb-gold);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
 }
 
 .track-info {
   display: flex;
-  flex: 1;
+  flex: 1.5;
   min-width: 0;
   flex-direction: column;
-  gap: .3rem;
-  overflow-wrap: anywhere;
+  gap: 0.2rem;
 
-  a {
+  .track-title-link,
+  .track-title-text {
     color: var(--jb-text);
+    font-weight: 600;
     text-decoration: none;
-
-    &:hover {
-      color: var(--jb-gold);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  span {
+  .track-title-link:hover {
+    color: var(--jb-gold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .track-artist {
     color: var(--jb-muted);
-    font-size: .85rem;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .spotify-link {
+    display: inline-block;
+    margin-top: 0.1rem;
     color: var(--jb-gold);
-    font-size: .75rem;
+    font-size: 0.75rem;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
 .track-album {
-  flex: 0 1 180px;
+  flex: 1 1 160px;
   color: var(--jb-muted);
-  font-size: .85rem;
-  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .track-duration {
   color: var(--jb-muted);
-  font-size: .85rem;
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
 
-.add-button {
-  flex-shrink: 0;
+/* ==========================================================================
+   MENSAJES DE FEEDBACK
+   ========================================================================== */
+
+.status-message {
+  margin-top: 1rem;
+  color: var(--jb-muted);
+  font-size: 0.9rem;
 }
 
-.panel .error-message {
-  color: var(--jb-error);
+.error-message {
+  margin-top: 0.5rem;
+  color: var(--jb-error, #f44336);
+  font-size: 0.85rem;
 }
 
-.panel .success-message {
-  color: var(--jb-success);
+.warning-message {
+  margin-top: 0.5rem;
+  color: var(--jb-gold);
+  font-size: 0.85rem;
 }
+
+.success-message {
+  margin-top: 0.5rem;
+  color: var(--jb-success, #4caf50);
+  font-size: 0.85rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
 
 @media (max-width: 900px) {
   .playlist-header {
@@ -283,7 +433,8 @@ a:focus-visible {
   }
 
   .new-playlist-button {
-    margin-left: calc(120px + 1.5rem);
+    width: 100%;
+    margin-top: 0.5rem;
   }
 }
 
@@ -293,41 +444,37 @@ a:focus-visible {
     padding-top: 1rem;
   }
 
-  .playlist-header,
+  .playlist-header {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
   .panel {
     padding: 1.25rem;
   }
 
-  .playlist-header {
-    gap: 1rem;
-  }
-
   .playlist-cover {
-    width: 76px;
-    height: 76px;
+    width: 90px;
+    height: 90px;
     font-size: 2.5rem;
-  }
-
-  .playlist-header > div:not(.playlist-cover) {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .new-playlist-button {
-    margin-left: 0;
   }
 
   .track-row {
     flex-wrap: wrap;
-    gap: .75rem;
+    gap: 0.75rem;
   }
 
   .track-info {
-    flex-basis: calc(100% - 64px);
+    flex-basis: calc(100% - 70px);
   }
 
   .track-album {
-    flex: 1;
+    display: none;
+    /* Se oculta en pantallas pequeñas para limpiar la vista */
+  }
+
+  .track-duration {
+    margin-left: auto;
   }
 }
 
@@ -336,7 +483,50 @@ a:focus-visible {
     flex-direction: column;
 
     button {
-      align-self: flex-start;
+      width: 100%;
     }
   }
+}
+/* Contenedor de acciones del header */
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.header-actions .secondary-button {
+  width: 100%;
+  text-decoration: none;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Ajuste responsive para pantallas pequeñas */
+@media (max-width: 900px) {
+  .header-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+.playlist-cover {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius);
+  background: linear-gradient(135deg, #51452b, var(--jb-surface-raised));
+  color: var(--jb-gold);
+  font-size: 4rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  overflow: hidden; /* Evita que la imagen se salga de los bordes redondeados */
+}
+
+.playlist-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

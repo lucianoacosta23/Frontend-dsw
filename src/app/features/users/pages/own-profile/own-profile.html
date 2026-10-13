@@ -182,16 +182,60 @@
         </div>
       } @else {
         <div class="playlist-grid">
-          @for (playlist of playlists(); track playlist.id) {
-            <a class="playlist-card" [routerLink]="['/playlists', playlist.id]">
-              <div class="playlist-art" aria-hidden="true">
-                <span class="record"></span><span class="art-label">JUKEBOXD · PLAYLIST</span>
+          @for (playlist of playlists().slice(0, 4); track playlist.id) {
+          <article class="playlist-card">
+            <!-- PARTE SUPERIOR: PORTADA COMPACTA Y TÍTULO -->
+            <a class="playlist-main" [routerLink]="['/playlists', playlist.id]"
+              [attr.aria-label]="'Ver playlist ' + playlist.name">
+              <div class="playlist-cover-art">
+                @for (
+                cover of playlistCovers()[playlist.id] || [];
+                track cover;
+                let position = $index
+                ) {
+                <img [src]="cover" alt="" loading="lazy" [style.--cover-index]="position" [style.z-index]="4 - position" />
+                }
+                @if (!playlistCovers()[playlist.id]?.length) {
+                <span class="empty-cover" aria-hidden="true">♫</span>
+                }
               </div>
+        
               <h3>{{ playlist.name }}</h3>
-              <p>
-                {{ playlist.trackCount }} {{ playlist.trackCount === 1 ? 'canción' : 'canciones' }}
-              </p>
             </a>
+        
+            <!-- PARTE INFERIOR: AUTOR, CANCIONES Y BOTÓN -->
+            <div class="playlist-bottom">
+              <span class="author-avatar" aria-hidden="true">
+                {{ ($any(playlist).author?.username || user.username).slice(0, 2).toUpperCase() }}
+              </span>
+        
+              <p>
+                por
+                <a [routerLink]="['/users', $any(playlist).author?.username || user.username]">
+                  {{ $any(playlist).author?.username || user.username }}
+                </a>
+        
+                <small>
+                  {{ playlist.trackCount }}
+                  {{ playlist.trackCount === 1 ? 'canción' : 'canciones' }}
+                  @if ($any(playlist).saveCount !== undefined) {
+                  · {{ $any(playlist).saveCount }} guardados
+                  }
+                </small>
+        
+                @if ($any(playlist).savedByMe) {
+                <small class="saved-badge">En tu biblioteca ✓</small>
+                }
+              </p>
+        
+              <button class="play-button" type="button" disabled [attr.aria-label]="'Reproducir ' + playlist.name"
+                title="Disponible próximamente">
+                <svg aria-hidden="true">
+                  <use href="/icons.svg#play" />
+                </svg>
+              </button>
+            </div>
+          </article>
           }
         </div>
       }
@@ -331,8 +375,4 @@
       }
     </section>
   }
-  <footer class="profile-footer">
-    <a routerLink="/dashboard">JUKEBOXD <span aria-hidden="true">·</span></a>
-    <p>La música también se conversa.</p>
-  </footer>
 </main>

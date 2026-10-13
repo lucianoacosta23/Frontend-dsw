@@ -16,10 +16,11 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service.js';
+import { Navbar } from '../../../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-spotify-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [Navbar, ReactiveFormsModule, RouterLink],
   templateUrl: './spotify-register.html',
   styleUrl: './spotify-register.scss',
 })

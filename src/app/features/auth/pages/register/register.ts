@@ -9,10 +9,12 @@ import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { Navbar } from '../../../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-register',
   imports: [
+    Navbar,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,

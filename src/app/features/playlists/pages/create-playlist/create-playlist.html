@@ -2,215 +2,207 @@
 
 <main class="playlist-page">
 
-
   @if (createdPlaylist(); as playlist) {
-    <section class="playlist-header">
-  <div class="playlist-cover" aria-hidden="true">♫</div>
 
-  <div class="header-info">
-    <p class="eyebrow">TU PLAYLIST</p>
-    <h1>{{ playlist.name }}</h1>
-    <p class="header-description">
-      {{ playlist.tracks.length }}
-      {{ playlist.tracks.length === 1 ? 'canción' : 'canciones' }}
-      · Agregá música para completar tu selección.
-    </p>
-  </div>
-
-  <button
-    class="secondary-button new-playlist-button"
-    type="button"
-    [disabled]="addingKey() !== null"
-    (click)="createAnother()"
-  >
-    + Nueva playlist
-  </button>
-</section>
-
-    <section class="panel">
-      <h2>Canciones de la playlist</h2>
-
-      @if (playlist.tracks.length === 0) {
-        <p>Todavía no agregaste canciones. Buscá una para empezar.</p>
+  <!-- BANNER DE PLAYLIST CREADA -->
+  <section class="playlist-header">
+    <div class="playlist-cover">
+      @if (playlist.tracks.length > 0 && playlist.tracks[0].release?.imageUrl) {
+      <img [src]="playlist.tracks[0].release.imageUrl" [alt]="playlist.name" class="playlist-cover-img" />
       } @else {
-        <ol class="track-list">
-          @for (track of playlist.tracks; track track.id) {
-            <li class="track-row">
-              @if (track.release.imageUrl) {
-                <img
-                  class="track-image"
-                  [src]="track.release.imageUrl"
-                  alt=""
-                  loading="lazy"
-                />
-              } @else {
-                <span class="track-placeholder" aria-hidden="true">♫</span>
-              }
-
-              <div class="track-info">
-                <a [routerLink]="['/tracks', track.id]">
-                  {{ track.name }}
-                </a>
-                <span>{{ artistsLabel(track) }}</span>
-              </div>
-
-              <span class="track-album">{{ track.release.name }}</span>
-              <span class="track-duration">
-                {{ duration(track.durationMs) }}
-              </span>
-            </li>
-          }
-        </ol>
+      <span class="cover-icon" aria-hidden="true">♫</span>
       }
+    </div>
+
+    <div class="header-info">
+      <p class="eyebrow">TU PLAYLIST</p>
+      <h1 class="playlist-title">{{ playlist.name }}</h1>
+      <p class="header-description">
+        <strong>{{ playlist.tracks.length }}</strong>
+        {{ playlist.tracks.length === 1 ? 'canción' : 'canciones' }}
+        · Agregá música para completar tu selección.
+      </p>
+    </div>
+
+
+    
+      <!-- CONTENEDOR DE BOTONES DERECHA -->
+      <div class="header-actions">
+        <button class="secondary-button new-playlist-button" type="button" [disabled]="addingKey() !== null"
+          (click)="createAnother()">
+          + Nueva playlist
+        </button>
+    
+        <a routerLink="/profile" class="secondary-button my-playlists-button">
+          Ir a mi perfil
+        </a>
+      </div>
     </section>
+ 
 
-    <section class="panel search-panel">
-      <h2>Encontrá canciones para tu playlist</h2>
+  <!-- TRACKLIST DE LA PLAYLIST -->
+  
 
-      <form class="search-form" (ngSubmit)="search()">
-        <label for="track-search">Buscar canciones</label>
+  <!-- PANEL DE BÚSQUEDA DE CANCIONES -->
+  <section class="panel search-panel">
+    <h2>Encontrá canciones para tu playlist</h2>
 
-        <div class="search-controls">
-          <input
-            id="track-search"
-            name="trackQuery"
-            type="search"
-            [(ngModel)]="query"
-            placeholder="Nombre de una canción"
-            maxlength="255"
-            required
-          />
+    <form class="search-form" (ngSubmit)="search()">
+      <label for="track-search">Buscar por nombre o artista</label>
 
-          <button type="submit" [disabled]="!query.trim()">
-            Buscar
+      <div class="search-controls">
+        <input id="track-search" name="trackQuery" type="search" [(ngModel)]="query"
+          placeholder="Ej: Bohemian Rhapsody, Bad Bunny..." maxlength="255" required />
+
+        <button type="submit" [disabled]="!query.trim() || searching()">
+          {{ searching() ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- MENSAJES DE ESTADO -->
+    @if (searching()) {
+    <p class="status-message" role="status">Buscando canciones en el catálogo…</p>
+    }
+
+    @if (searchError(); as message) {
+    <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    @if (searchWarning(); as message) {
+    <p class="warning-message" role="status">{{ message }}</p>
+    }
+
+    @if (addError(); as message) {
+    <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    @if (successMessage(); as message) {
+    <p class="success-message" role="status">{{ message }}</p>
+    }
+
+    @if (!searching() && searched() && results().length === 0) {
+    <p class="status-message">No encontramos canciones para esa búsqueda.</p>
+    }
+
+    <!-- RESULTADOS DE BÚSQUEDA -->
+    @if (results().length > 0) {
+    <ul class="track-list results-list">
+      @for (track of results(); track track.key) {
+      <li class="track-row">
+        @if (track.imageUrl) {
+        <img class="track-image" [src]="track.imageUrl" alt="" loading="lazy" />
+        } @else {
+        <span class="track-placeholder" aria-hidden="true">♫</span>
+        }
+
+        <div class="track-info">
+          <strong class="track-title-text">{{ track.name }}</strong>
+          <span class="track-artist">{{ track.artists }}</span>
+
+          @if (track.spotifyUrl) {
+          <a class="spotify-link" [href]="track.spotifyUrl" target="_blank" rel="noopener noreferrer">
+            Ver en Spotify ↗
+          </a>
+          }
+        </div>
+
+        <span class="track-album">{{ track.album }}</span>
+
+        <span class="track-duration">
+          {{ duration(track.durationMs) }}
+        </span>
+
+        <button type="button" class="add-button" [class.added]="isAdded(track)"
+          [disabled]="addingKey() !== null || isAdded(track)" [attr.aria-label]="'Agregar ' + track.name"
+          (click)="add(track)">
+          @if (addingKey() === track.key) {
+          Agregando…
+          } @else if (isAdded(track)) {
+          Agregada ✓
+          } @else {
+          + Agregar
+          }
+        </button>
+      </li>
+      }
+    </ul>
+    }
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Canciones de la playlist</h2>
+      <span class="track-count-badge">{{ playlist.tracks.length }}</span>
+    </div>
+  
+    @if (playlist.tracks.length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">♫</span>
+      <p>Todavía no agregaste canciones. Usa el buscador de abajo para empezar a armarla.</p>
+    </div>
+    } @else {
+    <ol class="track-list">
+      @for (track of playlist.tracks; track track.id) {
+      <li class="track-row">
+        @if (track.release.imageUrl) {
+        <img class="track-image" [src]="track.release.imageUrl" alt="" loading="lazy" />
+        } @else {
+        <span class="track-placeholder" aria-hidden="true">♫</span>
+        }
+  
+        <div class="track-info">
+          <a class="track-title-link" [routerLink]="['/tracks', track.id]">
+            {{ track.name }}
+          </a>
+          <span class="track-artist">{{ artistsLabel(track) }}</span>
+        </div>
+  
+        <span class="track-album">{{ track.release.name }}</span>
+  
+        <span class="track-duration">
+          {{ duration(track.durationMs) }}
+        </span>
+      </li>
+      }
+    </ol>
+    }
+  </section>
+
+  } @else {
+
+  <!-- FORMULARIO DE CREACIÓN (HERO HEADER INTERACTIVO) -->
+  <section class="playlist-header creation-header">
+    <div class="playlist-cover" aria-hidden="true">
+      <span class="cover-icon">♫</span>
+    </div>
+
+    <div class="header-info">
+      <p class="eyebrow">CREAR NUEVA PLAYLIST</p>
+
+      <form class="create-form" (ngSubmit)="create()">
+        <label for="playlist-name" class="sr-only">Nombre de la playlist</label>
+        <input id="playlist-name" name="playlistName" type="text" [(ngModel)]="name"
+          placeholder="Nombre de la playlist..." maxlength="255" required class="title-input" [disabled]="saving()"
+          autocomplete="off" />
+
+        <p class="header-description">
+          Escribí el nombre y creá tu playlist para empezar a sumarle canciones.
+        </p>
+
+        @if (errorMessage(); as message) {
+        <p class="error-message" role="alert">{{ message }}</p>
+        }
+
+        <div class="creation-actions">
+          <button type="submit" class="primary-button" [disabled]="saving() || !name.trim()">
+            {{ saving() ? 'Creando…' : 'Crear playlist' }}
           </button>
         </div>
       </form>
+    </div>
+  </section>
 
-      @if (searching()) {
-        <p role="status">Buscando canciones…</p>
-      }
-
-      @if (searchError(); as message) {
-        <p class="error-message" role="alert">{{ message }}</p>
-      }
-
-      @if (searchWarning(); as message) {
-        <p role="status">{{ message }}</p>
-      }
-
-      @if (addError(); as message) {
-        <p class="error-message" role="alert">{{ message }}</p>
-      }
-
-      @if (successMessage(); as message) {
-        <p class="success-message" role="status">{{ message }}</p>
-      }
-
-      @if (!searching() && searched() && results().length === 0) {
-        <p>No encontramos canciones para esa búsqueda.</p>
-      }
-
-      <ul class="track-list">
-        @for (track of results(); track track.key) {
-          <li class="track-row">
-            @if (track.imageUrl) {
-              <img
-                class="track-image"
-                [src]="track.imageUrl"
-                alt=""
-                loading="lazy"
-              />
-            } @else {
-              <span class="track-placeholder" aria-hidden="true">♫</span>
-            }
-
-            <div class="track-info">
-              <strong>{{ track.name }}</strong>
-              <span>{{ track.artists }}</span>
-
-              @if (track.spotifyUrl) {
-                <a
-                  class="spotify-link"
-                  [href]="track.spotifyUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Ver en Spotify
-                </a>
-              }
-            </div>
-
-            <span class="track-album">{{ track.album }}</span>
-
-            <span class="track-duration">
-              {{ duration(track.durationMs) }}
-            </span>
-
-            <button
-              type="button"
-              class="add-button"
-              [disabled]="addingKey() !== null || isAdded(track)"
-              [attr.aria-label]="'Agregar ' + track.name"
-              (click)="add(track)"
-            >
-              @if (addingKey() === track.key) {
-                Agregando…
-              } @else if (isAdded(track)) {
-                Agregada ✓
-              } @else {
-                + Agregar
-              }
-            </button>
-          </li>
-        }
-      </ul>
-    </section>
-
-    <button
-      type="button"
-      [disabled]="addingKey() !== null"
-      (click)="createAnother()"
-    >
-      Crear otra playlist
-    </button>
-  } @else {
-    <section class="playlist-header">
-      <div class="playlist-cover" aria-hidden="true">♫</div>
-
-      <div>
-        <p class="eyebrow">TU MÚSICA, A TU MANERA</p>
-        <h1>Crear playlist</h1>
-        <p>Elegí un nombre para empezar a armar tu selección.</p>
-      </div>
-    </section>
-
-    <section class="panel">
-      <form class="create-form" (ngSubmit)="create()">
-        <label for="playlist-name">Nombre de la playlist</label>
-
-        <input
-          id="playlist-name"
-          name="playlistName"
-          type="text"
-          [(ngModel)]="name"
-          placeholder="Por ejemplo: Música para viajar"
-          maxlength="255"
-          required
-          [disabled]="saving()"
-        />
-
-        @if (errorMessage(); as message) {
-          <p class="error-message" role="alert">{{ message }}</p>
-        }
-
-        <button
-          type="submit"
-          [disabled]="saving() || !name.trim()"
-        >
-          {{ saving() ? 'Creando…' : 'Crear playlist' }}
-        </button>
-      </form>
-    </section>
   }
+
 </main>
