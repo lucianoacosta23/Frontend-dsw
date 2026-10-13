@@ -1,28 +1,20 @@
 <app-navbar />
-
 <main class="search-page">
-  <h1>Buscá en Jukeboxd</h1>
+  <header class="search-heading">
+    <p class="eyebrow">Tu próxima escucha empieza acá</p>
+    <h1>{{ hasSearched() ? 'Resultados de búsqueda' : 'Encontrá tu próxima conexión.' }}</h1>
+    @if (query.trim()) {
+      <p class="query-summary">
+        Buscando
+        <strong>“{{ query.trim() }}”</strong>
+      </p>
+    } @else {
+      <p class="query-summary">
+        Artistas, canciones, discos y personas. Buscá desde la barra de arriba.
+      </p>
+    }
+  </header>
 
-  <!-- La búsqueda se ejecuta al enviar el formulario. -->
-  <form class="search-form" (ngSubmit)="search()">
-    <label for="search-query">Música, playlists o usuarios</label>
-
-    <div class="search-input-row">
-      <input
-        id="search-query"
-        name="query"
-        type="search"
-        [(ngModel)]="query"
-        placeholder="¿Qué querés encontrar?"
-        maxlength="255"
-        required
-      />
-
-      <button type="submit">Buscar</button>
-    </div>
-  </form>
-
-  <!-- Cada filtro indica su selección con aria-pressed. -->
   <div class="filters" role="group" aria-label="Tipos de resultados">
     <button
       type="button"
@@ -32,7 +24,6 @@
     >
       Todo
     </button>
-
     @for (filter of filters; track filter.type) {
       <button
         type="button"
@@ -46,263 +37,71 @@
   </div>
 
   @if (loading()) {
-    <p class="status" role="status">Buscando…</p>
+    <section class="search-state" aria-label="Búsqueda en curso">
+      <p role="status">Buscando conexiones para “{{ query.trim() }}”…</p>
+      <div class="loading-grid" aria-hidden="true">
+        @for (slot of [1, 2, 3, 4, 5, 6]; track slot) {
+          <div class="loading-card"></div>
+        }
+      </div>
+    </section>
   } @else if (errorMessage(); as message) {
-    <p class="status error" role="alert">{{ message }}</p>
-  } @else if (results(); as data) {
-    <p class="status" role="status">
-      {{ totalResults() }}
-      {{ totalResults() === 1 ? 'resultado' : 'resultados' }}
+    <section class="search-state">
+      <p role="alert">{{ message }}</p>
+      <button class="text-button" type="button" (click)="search()">Reintentar búsqueda</button>
+    </section>
+  } @else if (hasSearched()) {
+    <p class="result-count" role="status">
+      {{ totalResults() }} {{ totalResults() === 1 ? 'coincidencia' : 'coincidencias' }}
     </p>
-
+    @if (warning(); as message) {
+      <div class="partial-warning">
+        <p role="status">{{ message }}</p>
+        <button class="text-button" type="button" (click)="search()">Reintentar</button>
+      </div>
+    }
+    @if (openError(); as message) {
+      <p class="open-error" role="alert">{{ message }}</p>
+    }
     @if (totalResults() === 0) {
-      <p class="status">No encontramos coincidencias.</p>
-    }
-
-    @if (data.tracks.length > 0) {
-      <section class="result-section">
-        <h2>Canciones</h2>
-
-        <div class="result-grid">
-          @for (track of data.tracks; track track.id) {
-            <a class="result-card" [routerLink]="['/tracks', track.id]">
-              @if (track.release?.imageUrl) {
-                <img [src]="track.release?.imageUrl"
-                  [alt]="'Portada de ' + track.name" loading="lazy" />
-              } @else {
-                <span class="placeholder" aria-hidden="true">♪</span>
-              }
-              <strong>{{ track.name }}</strong>
-              <span class="result-type">Canción</span>
-            </a>
-          }
-        </div>
+      <section class="search-state empty-state">
+        <svg aria-hidden="true"><use href="/icons.svg#search" /></svg>
+        <h2>No encontramos coincidencias.</h2>
+        <p>Probá con otro nombre o quitá los filtros para ampliar la búsqueda.</p>
+        @if (selectedTypes().length) {
+          <button class="text-button" type="button" (click)="selectAll()">
+            Buscar en todas las categorías
+          </button>
+        }
       </section>
     }
-
-    @if (data.releases.length > 0) {
-      <section class="result-section">
-        <h2>Releases del catálogo</h2>
-
-        <div class="result-grid">
-          @for (release of data.releases; track release.id) {
-            <a
-              class="result-card"
-              [routerLink]="['/releases', release.id]"
-            >
-              @if (release.imageUrl) {
-                <img
-                  [src]="release.imageUrl"
-                  [alt]="'Portada de ' + release.name"
-                  loading="lazy"
-                />
-              } @else {
-                <span class="placeholder" aria-hidden="true">♫</span>
-              }
-
-              <strong>{{ release.name }}</strong>
-              <span class="result-type">
-                {{ localReleaseTypeLabel(release.type) }} · {{ release.releaseDate.slice(0, 4) }}
-              </span>
-            </a>
-          }
+    @for (group of visibleGroups(); track group.type) {
+      <section class="result-section" [attr.aria-labelledby]="'results-' + group.type">
+        <div class="section-heading">
+          <h2 [id]="'results-' + group.type">{{ group.title }}</h2>
+          <span>{{ group.entries.length }}</span>
         </div>
-      </section>
-    }
-
-    @if (data.artists.length > 0) {
-      <section class="result-section">
-        <h2>Artistas</h2>
-
-        <div class="result-grid">
-          @for (artist of data.artists; track artist.id) {
-            <a
-              class="result-card"
-              [routerLink]="['/artists', artist.id]"
-            >
-              @if (artist.imageUrl) {
-                <img
-                  [src]="artist.imageUrl"
-                  [alt]="artist.name"
-                  loading="lazy"
-                />
-              } @else {
-                <span class="placeholder" aria-hidden="true">♫</span>
-              }
-
-              <strong>{{ artist.name }}</strong>
-              <span class="result-type">Artista</span>
-            </a>
-          }
-        </div>
-      </section>
-    }
-
-    @if (data.playlists.length > 0) {
-      <section class="result-section">
-        <h2>Playlists</h2>
-
-        <div class="result-grid">
-          @for (playlist of data.playlists; track playlist.id) {
-            <!-- Todavía no conectamos una página de detalle de playlist. -->
-            <article class="result-card">
-              <span class="placeholder" aria-hidden="true">☷</span>
-              <strong>{{ playlist.name }}</strong>
-              <span class="result-type">Playlist</span>
-            </article>
-          }
-        </div>
-      </section>
-    }
-
-    @if (data.users.length > 0) {
-      <section class="result-section">
-        <h2>Usuarios</h2>
-
-        <div class="result-grid">
-          @for (user of data.users; track user.id) {
-            <a
-              class="result-card"
-              [routerLink]="['/users', user.username]"
-            >
-              <span class="placeholder" aria-hidden="true">
-                {{ user.username.slice(0, 1).toUpperCase() }}
-              </span>
-              <strong>{{ user.fullName }}</strong>
-              <span class="result-type">@{{ user.username }}</span>
-            </a>
+        <div [class]="group.type === 'tracks' ? 'track-list' : 'result-grid'">
+          @for (item of group.entries; track item.key) {
+            <app-search-result
+              [item]="item"
+              [row]="group.type === 'tracks'"
+              [opening]="openingKey() === item.key"
+              [busy]="openingKey() !== null"
+              (open)="openResult($event)"
+            />
           }
         </div>
       </section>
     }
   } @else {
-    <p class="status">Escribí un nombre para comenzar.</p>
-  }
-    @if (!loading()) {
-    @if (spotifyError(); as message) {
-      <p class="status error" role="alert">{{ message }}</p>
-    }
-
-    @if (importError(); as message) {
-      <p class="status error" role="alert">{{ message }}</p>
-    }
-
-    @if (spotifyArtists().length > 0) {
-      <section class="result-section">
-        <h2>Artistas de Spotify</h2>
-        <p class="status">Seleccioná un artista para abrir su perfil.</p>
-        <div class="result-grid">
-          @for (artist of spotifyArtists(); track artist.id) {
-            <article class="result-card">
-              <button class="spotify-result-button" type="button"
-                [disabled]="importingId() !== null" (click)="openSpotifyArtist(artist)">
-                @if (artist.images[0]; as image) {
-                  <img [src]="image.url" [alt]="artist.name" loading="lazy" />
-                } @else {
-                  <span class="placeholder" aria-hidden="true">♫</span>
-                }
-                <strong>{{ artist.name }}</strong>
-                <span class="result-type">Artista</span>
-                <span class="import-label">
-                  {{ importingId() === 'artist:' + artist.id ? 'Importando…' : 'Abrir artista' }}
-                </span>
-              </button>
-              <a class="spotify-source" [href]="artist.external_urls.spotify"
-                target="_blank" rel="noopener noreferrer">Ver en Spotify</a>
-            </article>
-          }
-        </div>
-      </section>
-    }
-
-    @if (spotifyTracks().length > 0) {
-      <section class="result-section">
-        <h2>Canciones de Spotify</h2>
-        <p class="status">Seleccioná una canción para abrir su detalle.</p>
-
-        <div class="result-grid">
-          @for (track of spotifyTracks(); track track.id) {
-            <article class="result-card">
-              <button class="spotify-result-button" type="button"
-                [disabled]="importingId() !== null" (click)="openSpotifyTrack(track)">
-                @if (track.album.images[0]; as image) {
-                  <img [src]="image.url" [alt]="'Portada de ' + track.album.name" loading="lazy" />
-                } @else {
-                  <span class="placeholder" aria-hidden="true">♪</span>
-                }
-                <strong>{{ track.name }}</strong>
-                <span class="result-type">{{ spotifyArtistsLabel(track) }}</span>
-                <span class="result-type">{{ track.album.name }}</span>
-                <span class="import-label">
-                  {{ importingId() === 'track:' + track.id ? 'Importando…' : 'Abrir canción' }}
-                </span>
-              </button>
-              <a class="spotify-source" [href]="track.external_urls.spotify"
-                target="_blank" rel="noopener noreferrer">Ver en Spotify</a>
-            </article>
-          }
-        </div>
-      </section>
-    }
-
-    @if (spotifyAlbums().length > 0) {
-      <section class="result-section">
-        <h2>Releases de Spotify</h2>
-        <p class="status">
-          Álbumes, singles y otros lanzamientos. Seleccioná uno para abrir su detalle.
-        </p>
-
-        <div class="result-grid">
-          @for (album of spotifyAlbums(); track album.id) {
-            <article class="result-card">
-              <!-- Solo se importa cuando se selecciona este resultado. -->
-              <button
-                class="spotify-result-button"
-                type="button"
-                [disabled]="importingId() !== null"
-                (click)="openSpotifyAlbum(album)"
-              >
-                @if (album.images[0]; as image) {
-                  <img
-                    [src]="image.url"
-                    [alt]="'Portada de ' + album.name"
-                    loading="lazy"
-                  />
-                } @else {
-                  <span class="placeholder" aria-hidden="true">♫</span>
-                }
-
-                <strong>{{ album.name }}</strong>
-
-                <span class="result-type">
-                  {{ spotifyArtistsLabel(album) }}
-                </span>
-
-                <span class="result-type">
-                  {{ spotifyReleaseTypeLabel(album) }} · {{ album.release_date.slice(0, 4) }}
-                </span>
-
-                <span class="import-label">
-                  {{
-                    importingId() === album.id
-                      ? 'Importando…'
-                      : 'Abrir release'
-                  }}
-                </span>
-              </button>
-
-              <a
-                class="spotify-source"
-                [href]="album.external_urls.spotify"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ver en Spotify
-              </a>
-            </article>
-          }
-        </div>
-      </section>
-    }
+    <section class="search-state initial-state">
+      <svg aria-hidden="true"><use href="/icons.svg#search" /></svg>
+      <h2>¿Qué te gustaría escuchar?</h2>
+      <p>
+        Escribí un nombre en la navbar. Elegí una sugerencia o presioná Enter para explorar todos
+        los resultados.
+      </p>
+    </section>
   }
 </main>

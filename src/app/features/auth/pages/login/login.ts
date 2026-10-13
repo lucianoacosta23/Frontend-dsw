@@ -13,10 +13,11 @@ import { finalize } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environments.js';
 import { AuthService } from '../../../../core/services/auth.service';
+import { Navbar } from '../../../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-login',
-  imports: [ RouterLink,
+  imports: [ Navbar, RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,

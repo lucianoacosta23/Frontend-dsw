@@ -1,178 +1,193 @@
 :host {
   display: block;
   min-height: 100dvh;
-  color: #eef0f5;
+  color: var(--jb-text);
+  --jb-bg: #101110;
+  --jb-surface: #151718;
+  --jb-glass: #151718;
+  --jb-gold: #ffb455;
+  --jb-border: rgba(240, 232, 208, 0.1);
+  background: var(
+      --jb-search-background,
+      var(--jb-home-background, url('/backgrounds/home-aprobado.jpg'))
+    )
+    center top / cover no-repeat;
 }
-
 .search-page {
-  width: min(1100px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 2rem 0 4rem;
+  width: min(1200px, calc(100% - 64px));
+  margin-inline: auto;
+  padding: 48px 0 40px;
 }
-
+.eyebrow {
+  margin: 0 0 16px;
+  color: var(--jb-gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
 h1 {
-  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  margin: 0;
+  max-width: 850px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -1.5px;
 }
-
-.search-form label {
-  display: block;
-  margin-bottom: 0.6rem;
-  color: #bcc4d3;
+.query-summary {
+  margin: 18px 0 0;
+  color: var(--jb-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
-
-.search-input-row {
-  display: flex;
-  gap: 0.6rem;
-
-  input {
-    flex: 1;
-    min-width: 0;
-    padding: 0.9rem 1rem;
-    border: 1px solid #485064;
-    border-radius: 10px;
-    background: #202530;
-    color: #fff;
-    font: inherit;
-  }
-
-  button {
-    padding: 0.8rem 1rem;
-    border: 0;
-    border-radius: 10px;
-    background: #6258df;
-    color: #fff;
-    font: inherit;
-    cursor: pointer;
-  }
+.query-summary strong {
+  color: var(--jb-copy);
+  font-weight: 500;
 }
-
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 1.25rem 0;
-
-  button {
-    padding: 0.55rem 0.9rem;
-    border: 1px solid #414959;
-    border-radius: 999px;
-    background: #252b36;
-    color: #e4e7ef;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  button.active {
-    background: #eeeaff;
-    border-color: #eeeaff;
-    color: #252036;
-  }
+  gap: 10px;
+  margin: 32px 0;
 }
-
-.status {
-  color: #bcc4d3;
-  line-height: 1.6;
+.filters button {
+  padding: 10px 18px;
+  border: 1px solid var(--jb-border);
+  border-radius: 24px;
+  background: #151718d9;
+  color: var(--jb-copy);
+  cursor: pointer;
+  font: 500 13px var(--jb-body-font);
 }
-
-.error {
-  color: #ffabab;
+.filters button:hover {
+  border-color: var(--jb-gold);
 }
-
+.filters button.active {
+  color: var(--jb-on-gold);
+  background: var(--jb-gold);
+  border-color: var(--jb-gold);
+}
+.result-count {
+  margin: 0 0 32px;
+  color: var(--jb-muted);
+  font-size: 12px;
+}
 .result-section {
-  margin-top: 2rem;
-
-  h2 {
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid #343c4b;
-    font-size: 1.2rem;
-  }
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--jb-border);
 }
-
-.result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
-}
-
-.result-card {
+.section-heading {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  min-width: 0;
+  gap: 16px;
+  align-items: baseline;
+  margin-bottom: 24px;
+}
+.section-heading h2 {
   margin: 0;
-  padding: 0.85rem;
-  border: 1px solid #343c4b;
-  border-radius: 10px;
-  background: #1c212b;
-  color: #eef0f5;
-  text-decoration: none;
-
-  img,
-  .placeholder {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 6px;
-  }
-
-  img {
-    object-fit: cover;
-  }
-
-  strong {
-    overflow-wrap: anywhere;
-  }
+  font-size: 24px;
+  letter-spacing: -0.6px;
 }
-
-a.result-card:hover {
-  border-color: #aaa5ff;
+.section-heading span {
+  color: var(--jb-muted);
+  font-size: 12px;
 }
-
-.placeholder {
+.result-grid,
+.loading-grid {
   display: grid;
-  place-items: center;
-  background: #303749;
-  color: #c4bfff;
-  font-size: 3rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 24px;
 }
-
-.result-type {
-  color: #bcc4d3;
-  font-size: 0.85rem;
+.track-list {
+  display: grid;
+  gap: 10px;
 }
-
-a:focus-visible,
-button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #b5afff;
-  outline-offset: 3px;
+.search-state {
+  padding: 36px 0;
+  line-height: 1.7;
+  color: var(--jb-muted);
 }
-
-.spotify-result-button {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  width: 100%;
-  padding: 0;
+.initial-state,
+.empty-state {
+  padding: 64px 24px;
+  border: 1px solid var(--jb-border);
+  border-radius: 12px;
+  background: #151718bd;
+  text-align: center;
+}
+.search-state h2 {
+  color: var(--jb-text);
+  font-size: 24px;
+  margin: 16px 0 12px;
+}
+.initial-state p,
+.empty-state p {
+  max-width: 490px;
+  margin: 0 auto;
+}
+.search-state svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: var(--jb-gold);
+  stroke-width: 1.4;
+}
+.loading-card {
+  aspect-ratio: 0.8;
+  background: #151718d9;
+  border: 1px solid var(--jb-border);
+  border-radius: 8px;
+}
+.text-button {
+  padding: 8px 0;
   border: 0;
   background: transparent;
-  color: inherit;
+  color: var(--jb-gold);
   font: inherit;
-  text-align: left;
   cursor: pointer;
-
-  &:disabled {
-    cursor: wait;
-    opacity: 0.65;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.partial-warning {
+  padding: 16px 20px;
+  border: 1px solid var(--jb-border);
+  border-radius: 8px;
+  background: #151718d9;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.partial-warning p {
+  margin: 0 0 8px;
+  color: var(--jb-muted);
+}
+.open-error,
+[role='alert'] {
+  color: var(--jb-error);
+}
+@media (max-width: 1000px) {
+  .result-grid,
+  .loading-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
   }
 }
-
-.import-label {
-  color: #c4bfff;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.spotify-source {
-  color: #b7c4d8;
-  font-size: 0.8rem;
+@media (max-width: 650px) {
+  .search-page {
+    width: calc(100% - 32px);
+    padding-top: 32px;
+  }
+  .result-grid,
+  .loading-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .filters {
+    gap: 8px;
+  }
+  .filters button {
+    padding: 10px 14px;
+  }
+  .initial-state,
+  .empty-state {
+    padding: 40px 16px;
+  }
 }

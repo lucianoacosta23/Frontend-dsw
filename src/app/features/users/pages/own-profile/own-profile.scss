@@ -376,24 +376,6 @@ h2 {
   font-size: 0.8rem;
   margin-top: 1rem;
 }
-.profile-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1.5rem 0 2rem;
-  border-top: 1px solid var(--jb-border);
-  font-size: 0.75rem;
-  color: var(--jb-muted);
-}
-.profile-footer a {
-  color: var(--jb-copy);
-  text-decoration: none;
-  letter-spacing: 0.12em;
-}
-.profile-footer span {
-  color: var(--jb-gold);
-}
 @media (max-width: 1000px) {
   .playlist-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
