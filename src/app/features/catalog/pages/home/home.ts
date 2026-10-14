@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal, Input } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject, signal, Input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { catchError, finalize, from, map, mergeMap, of, Subscription } from 'rxjs';
-import { PlaylistService } from '../../../../core/services/playlist.service';
+import { Router, RouterLink } from '@angular/router';
+import { catchError, finalize, forkJoin, from, map, mergeMap, of, Subscription, switchMap, throwError } from 'rxjs';
+import { PlaylistService, type OwnPlaylistItem } from '../../../../core/services/playlist.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environments.js';
 import { CatalogService } from '../../../../core/services/catalog.service';
@@ -18,6 +18,12 @@ import { PopularCarousel } from '../../components/popular-carousel/popular-carou
 import { DashboardService } from '../../../../core/services/dashboard.service.js';
 import type { PopularPlaylist, PopularReview } from '../../../../models/dashboard.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar.js';
+
+interface PlaylistOption extends OwnPlaylistItem {
+  alreadyAdded: boolean;
+  unavailable: boolean;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
@@ -28,13 +34,31 @@ export class Home implements OnInit {
   private readonly catalog = inject(CatalogService);
   private readonly reviewService = inject(ReviewService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
   private catalogRequest?: Subscription;
   private reviewsRequest?: Subscription;
   private statsRequest?: Subscription;
   private tracksRequest?: Subscription;
   private coversRequest?: Subscription;
+  private playlistListRequest?: Subscription;
+  private playlistAddRequest?: Subscription;
+  private selectedTrackKey = '';
+
   private readonly playlistService = inject(PlaylistService);
   readonly playlistCovers = signal<Record<number, string[]>>({});
+
+  @ViewChild('playlistDialog')
+  private playlistDialog!: ElementRef<HTMLDialogElement>;
+
+  readonly selectedTrack = signal<PopularTrackItem['track'] | null>(null);
+  readonly playlistOptions = signal<PlaylistOption[]>([]);
+  readonly playlistsLoading = signal(false);
+  readonly playlistsError = signal<string | null>(null);
+  readonly playlistAddError = signal<string | null>(null);
+  readonly playlistSuccess = signal<string | null>(null);
+  readonly addingPlaylistId = signal<number | null>(null);
+  readonly playlistPage = signal(0);
+  readonly playlistTotalPages = signal(0);
 
   readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent('/dashboard')}`;
   readonly albums = signal<PopularAlbum[]>([]);
@@ -85,9 +109,6 @@ export class Home implements OnInit {
   private readonly dashboardService = inject(DashboardService);
 
   readonly popularPlaylists = signal<PopularPlaylist[]>([]);
-  readonly playlistsLoading = signal(false);
-  readonly playlistsError = signal<string | null>(null);
-
   readonly popularReviews = signal<PopularReview[]>([]);
   readonly popularReviewsLoading = signal(false);
   readonly popularReviewsError = signal<string | null>(null);
@@ -103,6 +124,7 @@ export class Home implements OnInit {
       this.loadPublicSession();
     }
   }
+
   loadPopularAlbums(): void {
     this.catalogRequest?.unsubscribe();
     this.reviewsRequest?.unsubscribe();
@@ -271,6 +293,153 @@ export class Home implements OnInit {
         error: (error: unknown) =>
           this.tracksErrorMessage.set(this.getErrorMessage(error, 'las pistas populares')),
       });
+  }
+
+  openPlaylists(track: PopularTrackItem['track']): void {
+    if (!this.canAccess) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: `/tracks/${track.id}` } });
+      return;
+    }
+
+    this.selectedTrack.set(track);
+    const key = `track:${track.id}`;
+    if (this.selectedTrackKey !== key) {
+      this.selectedTrackKey = key;
+      this.playlistListRequest?.unsubscribe();
+      this.playlistAddRequest?.unsubscribe();
+      this.playlistOptions.set([]);
+      this.playlistPage.set(0);
+      this.playlistTotalPages.set(0);
+      this.playlistsError.set(null);
+    }
+
+    this.playlistAddError.set(null);
+    this.playlistSuccess.set(null);
+
+    if (this.playlistDialog?.nativeElement && !this.playlistDialog.nativeElement.open) {
+      this.playlistDialog.nativeElement.showModal();
+    }
+
+    this.loadPlaylistsForTrack(track);
+  }
+
+  closePlaylists(): void {
+    if (this.addingPlaylistId() !== null) return;
+    this.playlistListRequest?.unsubscribe();
+    this.playlistDialog?.nativeElement.close();
+  }
+
+  cancelPlaylists(event: Event): void {
+    if (this.addingPlaylistId() !== null) event.preventDefault();
+    else this.playlistListRequest?.unsubscribe();
+  }
+
+  loadPlaylistsForTrack(track: PopularTrackItem['track'] | null, append = false): void {
+    if (!track || this.playlistsLoading() || this.addingPlaylistId() !== null) return;
+
+    const trackId = track.id;
+    const key = this.selectedTrackKey;
+    const page = append ? this.playlistPage() + 1 : 1;
+    this.playlistsError.set(null);
+    this.playlistsLoading.set(true);
+
+    if (!append) {
+      this.playlistOptions.set([]);
+      this.playlistPage.set(0);
+      this.playlistTotalPages.set(0);
+    }
+
+    this.playlistListRequest = this.playlistService.getMine(page, 10).pipe(
+      switchMap(response => {
+        const options = response.data.map(playlist =>
+          this.playlistService.getDetail(playlist.id).pipe(
+            map(detail => ({
+              ...playlist,
+              isOwnPlaylist: detail.data.isOwnPlaylist,
+              trackCount: detail.data.tracks.length,
+              alreadyAdded: detail.data.tracks.some(t => t.id === trackId),
+              unavailable: false,
+            })),
+            catchError(() => of({ ...playlist, alreadyAdded: false, unavailable: true })),
+          ),
+        );
+        return (options.length ? forkJoin(options) : of([])).pipe(
+          map(items => ({ items, pagination: response.pagination })),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.playlistsLoading.set(false)),
+    ).subscribe({
+      next: response => {
+        if (this.selectedTrackKey !== key) return;
+        const items = response.items.filter(item => item.isOwnPlaylist);
+        this.playlistOptions.update(current => {
+          const seen = new Set(current.map(item => item.id));
+          return append ? [...current, ...items.filter(item => !seen.has(item.id))] : items;
+        });
+        this.playlistPage.set(response.pagination.page);
+        this.playlistTotalPages.set(response.pagination.totalPages);
+      },
+      error: (error: unknown) => {
+        if (this.selectedTrackKey === key) {
+          this.playlistsError.set(this.playlistErrorMessage(error, 'No pudimos cargar tus playlists.'));
+        }
+      },
+    });
+  }
+
+  addToPlaylist(playlist: PlaylistOption): void {
+    const track = this.selectedTrack();
+    if (!track || !playlist.isOwnPlaylist || playlist.alreadyAdded ||
+        playlist.unavailable || this.addingPlaylistId() !== null || this.playlistsLoading()) return;
+
+    const trackId = track.id;
+    const key = this.selectedTrackKey;
+    this.addingPlaylistId.set(playlist.id);
+    this.playlistAddError.set(null);
+    this.playlistSuccess.set(null);
+
+    this.playlistAddRequest = this.playlistService.getDetail(playlist.id).pipe(
+      switchMap(detail => {
+        if (!detail.data.isOwnPlaylist) {
+          return throwError(() => new Error('Solo podés agregar canciones a tus playlists.'));
+        }
+        if (detail.data.tracks.some(t => t.id === trackId)) {
+          this.markPlaylistAdded(playlist.id, detail.data.tracks.length);
+          return throwError(() => new Error('La canción ya está en esta playlist.'));
+        }
+        return this.playlistService.addTrack(playlist.id, trackId);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.addingPlaylistId.set(null)),
+    ).subscribe({
+      next: response => {
+        if (this.selectedTrackKey !== key) return;
+        this.markPlaylistAdded(playlist.id, response.data.tracks.length);
+        this.playlistSuccess.set(`Agregaste “${track.name}” a “${playlist.name}”.`);
+      },
+      error: (error: unknown) => {
+        if (this.selectedTrackKey === key) {
+          this.playlistAddError.set(this.playlistErrorMessage(error, 'No pudimos agregar la canción.'));
+        }
+      },
+    });
+  }
+
+  private markPlaylistAdded(id: number, trackCount: number): void {
+    this.playlistOptions.update(items => items.map(item =>
+      item.id === id ? { ...item, alreadyAdded: true, trackCount } : item,
+    ));
+  }
+
+  private playlistErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 401) return 'Iniciá sesión para ver tus playlists.';
+      if (error.status === 0) return 'No pudimos conectar con el servidor.';
+      if (typeof error.error?.message === 'string') return error.error.message;
+      return fallback;
+    }
+    return error instanceof Error ? error.message : fallback;
   }
 
   averageLabel(): string | null {
