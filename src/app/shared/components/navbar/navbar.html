@@ -40,7 +40,7 @@
       }
       @if (auth.currentUser(); as user) {
         <details class="user-menu">
-          <summary>{{ user.username }}</summary>
+          <summary [title]="user.username"><span class="menu-label">{{ user.username }}</span></summary>
           <div class="dropdown">
             <a routerLink="/dashboard">Inicio</a>
             <a routerLink="/profile">Mi perfil</a>

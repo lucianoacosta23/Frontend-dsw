@@ -89,6 +89,8 @@ h2,
 h3,
 h4 {
   font-family: var(--jb-heading-font);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 :where(a) {
   color: var(--jb-gold);

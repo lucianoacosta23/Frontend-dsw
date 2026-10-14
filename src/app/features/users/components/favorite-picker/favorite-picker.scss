@@ -73,3 +73,6 @@ li > span {
   flex-shrink: 0;
   background: var(--jb-surface-raised);
 }
+@media (max-width: 700px) {
+  input, select { font-size: 16px; }
+}

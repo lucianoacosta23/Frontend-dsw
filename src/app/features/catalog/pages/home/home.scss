@@ -27,6 +27,7 @@
 }
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
@@ -215,6 +216,7 @@ svg {
   }
   .song-main {
     gap: 12px;
+    flex-basis: calc(100% - 32px);
   }
   .song-actions {
     gap: 4px;

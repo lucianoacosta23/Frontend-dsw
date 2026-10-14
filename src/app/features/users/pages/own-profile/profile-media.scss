@@ -29,3 +29,41 @@
 .favorite-card:hover {
   color: var(--jb-gold);
 }
+
+// One playlist layout for both the owner's profile and public profiles.
+.collection .playlist-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 1.25rem;
+}
+.playlist-card {
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border: 1px solid var(--jb-border);
+  border-radius: var(--jb-radius);
+  background: var(--jb-surface);
+}
+.playlist-main { display: block; color: inherit; text-decoration: none; }
+.playlist-cover-art {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: var(--jb-radius);
+  overflow: hidden;
+  background: var(--jb-surface-raised);
+}
+.playlist-cover-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.empty-cover { display: grid; place-items: center; height: 100%; color: var(--jb-gold); font-size: 2.5rem; }
+.playlist-main h3 { font-size: 1.1rem; }
+.playlist-bottom { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--jb-border); }
+.author-avatar { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 50%; background: var(--jb-surface-raised); color: var(--jb-gold); font-size: .75rem; }
+.playlist-bottom p { min-width: 0; overflow-wrap: anywhere; }
+.playlist-bottom small { display: block; margin-top: .2rem; }
+.section-heading { flex-wrap: wrap; }
+.section-heading > div { min-width: 0; overflow-wrap: anywhere; }
+.profile-stats div { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .favorite-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+  .status { padding: 1rem; }
+  .section-note { flex-shrink: 1; }
+}

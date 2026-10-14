@@ -18,8 +18,8 @@
       <thead><tr><th>Usuario</th><th>Reportes pendientes válidos</th><th>Reseñas críticas</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>@for (user of users(); track user.id) {
         <tr><td><button class="user-link" type="button" (click)="openUser(user)" [disabled]="submitting()">{{ user.username }}</button><span class="full-name">{{ user.fullName }}</span></td>
-          <td><button class="reports-link" type="button" (click)="openReports(user)" [attr.aria-label]="'Ver reportes de ' + user.username">{{ user.pendingReportCount }} reportes</button></td>
-          <td>{{ user.criticalReviewCount }}</td><td><span class="badge" [class.suspended]="user.status === 'SUSPENDED'" [class.banned]="user.status === 'BANNED'">{{ statusLabel(user.status) }}</span>
+          <td data-label="Reportes pendientes"><button class="reports-link" type="button" (click)="openReports(user)" [attr.aria-label]="'Ver reportes de ' + user.username">{{ user.pendingReportCount }} reportes</button></td>
+          <td data-label="Reseñas críticas">{{ user.criticalReviewCount }}</td><td data-label="Estado"><span class="badge" [class.suspended]="user.status === 'SUSPENDED'" [class.banned]="user.status === 'BANNED'">{{ statusLabel(user.status) }}</span>
             @if (user.status === 'SUSPENDED' && user.suspendedUntil) { <small>Hasta {{ user.suspendedUntil | date:'dd/MM/yyyy HH:mm' }}</small> }
           </td><td><button type="button" (click)="openUser(user)" [disabled]="submitting()">Gestionar</button></td></tr>
       } @empty { <tr><td colspan="5" class="status">No encontramos usuarios con esa búsqueda.</td></tr> }</tbody>

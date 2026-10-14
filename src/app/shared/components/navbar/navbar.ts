@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service.js';
@@ -24,7 +24,13 @@ import { SearchBox } from '../search-box/search-box';
   imports: [RouterLink, SearchBox],
   templateUrl: './navbar.html',
   styleUrl: './navbar-home.scss',
-  host: { class: 'home-nav', '[style.height.px]': 'headerHeight()' },
+  host: {
+    class: 'home-nav',
+    '[style.height.px]': 'headerHeight()',
+    '(document:click)': 'onDocumentClick($event)',
+    '(document:keydown.escape)': 'closeMenu(true)',
+    '(document:focusin)': 'onFocusChange($event)',
+  },
 })
 export class Navbar implements AfterViewInit {
   @Input() home = false;
@@ -46,6 +52,30 @@ export class Navbar implements AfterViewInit {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.query = params.get('q') ?? '';
     });
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event instanceof NavigationStart) this.closeMenu();
+    });
+  }
+
+  closeMenu(restoreFocus = false): void {
+    const menu = this.header?.nativeElement.querySelector<HTMLDetailsElement>('details[open]');
+    if (!menu) return;
+    menu.open = false;
+    if (restoreFocus) menu.querySelector('summary')?.focus();
+  }
+
+  onDocumentClick(event: MouseEvent): void {
+    const menu = this.header.nativeElement.querySelector<HTMLDetailsElement>('details[open]');
+    const target = event.target;
+    if (!menu || !(target instanceof Node)) return;
+    if (!menu.contains(target) || (target instanceof Element && target.closest('.dropdown a, .dropdown button'))) {
+      this.closeMenu();
+    }
+  }
+
+  onFocusChange(event: FocusEvent): void {
+    const menu = this.header.nativeElement.querySelector<HTMLDetailsElement>('details[open]');
+    if (menu && event.target instanceof Node && !menu.contains(event.target)) this.closeMenu();
   }
 
   ngAfterViewInit(): void {

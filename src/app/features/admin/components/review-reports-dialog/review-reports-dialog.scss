@@ -1,4 +1,11 @@
 :host { display: block; }
+:host { overflow-wrap: anywhere; }
+button { min-height: 44px; }
+@media (max-width: 600px) {
+  .user-review-group { padding: .75rem; }
+  .report-list { padding-left: 1rem; }
+  mat-dialog-content { padding-inline: 16px; }
+}
 .review-summary { padding: 1rem; background: #f3f4f6; border-radius: 8px; }
 .review-summary p, .report-details { white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-list { padding-left: 1.5rem; }

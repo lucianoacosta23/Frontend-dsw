@@ -1,4 +1,20 @@
 :host { display:block; color:var(--jb-text); }
+main { overflow-wrap:anywhere; }
+.sanction-form input { max-width:100%; width:100%; }
+.detail-panel { scroll-margin-top: 14rem; }
+@media(max-width:700px) {
+  input, textarea { font-size:16px; }
+  table, tbody { display:block; }
+  thead { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+  caption { display:block; }
+  tbody tr { display:block; padding:.75rem; border-top:1px solid var(--jb-border); }
+  tbody td { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; border:0; padding:.5rem; }
+  td[data-label]::before { content:attr(data-label); color:var(--jb-muted); font-size:.8rem; }
+  td:first-child, td:nth-child(4) { display:block; }
+  td:nth-child(4)::before { display:block; margin-bottom:.5rem; }
+  td:last-child button { width:100%; }
+  .account-actions > button, .search-controls > button { flex:1 1 auto; }
+}
 .admin-users-page { width:min(var(--jb-content), calc(100% - 3rem)); margin:auto; padding:2rem 0 4rem; }
 .back-link { display:inline-block; margin-bottom:1.5rem; text-decoration:none; }
 .eyebrow { color:var(--jb-gold); text-transform:uppercase; letter-spacing:.15em; font-size:.75rem; }

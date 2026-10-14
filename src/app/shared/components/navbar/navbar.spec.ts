@@ -78,4 +78,34 @@ describe('Navbar search', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('a[href="/admin"]')).toBeNull();
   });
+
+  it('closes on outside clicks and Escape, but keeps the menu open when its background is clicked', async () => {
+    currentUser.set({ id: 1, username: 'listener', category: 'USER' });
+    const fixture = TestBed.createComponent(Navbar);
+    await fixture.whenStable();
+    const menu: HTMLDetailsElement = fixture.nativeElement.querySelector('details');
+    menu.open = true;
+    menu.querySelector('.dropdown')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(menu.open).toBe(true);
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(menu.open).toBe(false);
+    menu.open = true;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(menu.open).toBe(false);
+    expect(document.activeElement).toBe(menu.querySelector('summary'));
+  });
+
+  it('closes when a menu action is selected or keyboard focus leaves the menu', async () => {
+    currentUser.set({ id: 1, username: 'listener', category: 'USER' });
+    const fixture = TestBed.createComponent(Navbar);
+    await fixture.whenStable();
+    const menu: HTMLDetailsElement = fixture.nativeElement.querySelector('details');
+    menu.open = true;
+    const action = menu.querySelector('button')!;
+    fixture.componentInstance.onDocumentClick({ target: action } as unknown as MouseEvent);
+    expect(menu.open).toBe(false);
+    menu.open = true;
+    fixture.nativeElement.querySelector('input').focus();
+    expect(menu.open).toBe(false);
+  });
 });
