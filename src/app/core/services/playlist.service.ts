@@ -131,6 +131,13 @@ export class PlaylistService {
     });
   }
 
+  getSaved(page = 1, pageSize = 4): Observable<OwnPlaylistsResponse> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<OwnPlaylistsResponse>(`${environment.apiBaseUrl}/playlist/saved`, {
+      params, withCredentials: true,
+    });
+  }
+
   getMine(page = 1, pageSize = 6): Observable<OwnPlaylistsResponse> {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http.get<OwnPlaylistsResponse>(`${environment.apiBaseUrl}/playlist/mine`, {

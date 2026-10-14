@@ -183,19 +183,46 @@
       } @else {
         <div class="playlist-grid">
           @for (playlist of playlists().slice(0, 4); track playlist.id) {
+            <ng-container [ngTemplateOutlet]="playlistCard" [ngTemplateOutletContext]="{ $implicit: playlist, covers: playlistCovers()[playlist.id] || [] }" />
+          }
+        </div>
+      }
+      @if (playlistsPages() > 1) {
+        <nav class="pagination" aria-label="Páginas de playlists">
+          <button
+            type="button"
+            (click)="loadPlaylists(playlistsPage() - 1)"
+            [disabled]="playlistsLoading() || playlistsPage() <= 1"
+            aria-label="Playlists anteriores"
+          >
+            ← Anterior
+          </button>
+          <span role="status">Página {{ playlistsPage() }} de {{ playlistsPages() }}</span>
+          <button
+            type="button"
+            (click)="loadPlaylists(playlistsPage() + 1)"
+            [disabled]="playlistsLoading() || playlistsPage() >= playlistsPages()"
+            aria-label="Playlists siguientes"
+          >
+            Siguiente →
+          </button>
+        </nav>
+      }
+    </section>
+    <ng-template #playlistCard let-playlist let-covers="covers">
           <article class="playlist-card">
             <!-- PARTE SUPERIOR: PORTADA COMPACTA Y TÍTULO -->
             <a class="playlist-main" [routerLink]="['/playlists', playlist.id]"
               [attr.aria-label]="'Ver playlist ' + playlist.name">
               <div class="playlist-cover-art">
                 @for (
-                cover of playlistCovers()[playlist.id] || [];
+                cover of covers;
                 track cover;
                 let position = $index
                 ) {
                 <img [src]="cover" alt="" loading="lazy" [style.--cover-index]="position" [style.z-index]="4 - position" />
                 }
-                @if (!playlistCovers()[playlist.id]?.length) {
+                @if (!covers.length) {
                 <span class="empty-cover" aria-hidden="true">♫</span>
                 }
               </div>
@@ -236,31 +263,38 @@
               </button>
             </div>
           </article>
-          }
+    </ng-template>
+
+    @if (publicUsername === null) {
+      <section class="collection" aria-labelledby="library-title" [attr.aria-busy]="savedLoading()">
+        <div class="section-heading">
+          <div><p class="eyebrow">Selecciones que querés volver a escuchar</p><h2 id="library-title">Tu biblioteca</h2></div>
+          <span class="section-note">Playlists guardadas</span>
         </div>
-      }
-      @if (playlistsPages() > 1) {
-        <nav class="pagination" aria-label="Páginas de playlists">
-          <button
-            type="button"
-            (click)="loadPlaylists(playlistsPage() - 1)"
-            [disabled]="playlistsLoading() || playlistsPage() <= 1"
-            aria-label="Playlists anteriores"
-          >
-            ← Anterior
-          </button>
-          <span role="status">Página {{ playlistsPage() }} de {{ playlistsPages() }}</span>
-          <button
-            type="button"
-            (click)="loadPlaylists(playlistsPage() + 1)"
-            [disabled]="playlistsLoading() || playlistsPage() >= playlistsPages()"
-            aria-label="Playlists siguientes"
-          >
-            Siguiente →
-          </button>
-        </nav>
-      }
-    </section>
+        @if (savedLoading()) {
+          <p class="status" role="status">Cargando tu biblioteca…</p>
+        } @else if (savedError(); as message) {
+          <div class="status error" role="alert"><p>{{ message }}</p>
+            <button type="button" (click)="loadSavedPlaylists()">Reintentar biblioteca</button>
+          </div>
+        } @else if (!savedPlaylists().length) {
+          <div class="status empty"><h3>Tu próxima selección te está esperando.</h3><p>Todavía no guardaste ninguna playlist.</p></div>
+        } @else {
+          <div class="playlist-grid">
+            @for (playlist of savedPlaylists(); track playlist.id) {
+              <ng-container [ngTemplateOutlet]="playlistCard" [ngTemplateOutletContext]="{ $implicit: playlist, covers: savedCovers()[playlist.id] || [] }" />
+            }
+          </div>
+        }
+        @if (savedPages() > 1) {
+          <nav class="pagination" aria-label="Páginas de tu biblioteca">
+            <button type="button" (click)="loadSavedPlaylists(savedPage() - 1)" [disabled]="savedLoading() || savedPage() <= 1">← Anterior</button>
+            <span role="status">Página {{ savedPage() }} de {{ savedPages() }}</span>
+            <button type="button" (click)="loadSavedPlaylists(savedPage() + 1)" [disabled]="savedLoading() || savedPage() >= savedPages()">Siguiente →</button>
+          </nav>
+        }
+      </section>
+    }
     <section class="collection" aria-labelledby="reviews-title" [attr.aria-busy]="reviewsLoading()">
       <div class="section-heading">
         <div>
