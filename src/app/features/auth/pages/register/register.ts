@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +28,7 @@ import { Navbar } from '../../../../shared/components/navbar/navbar';
 export class Register {
   private readonly formBuilder = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   // Estos estados permiten mostrar carga, éxito o error en la pantalla.
   readonly loading = signal(false);
@@ -44,6 +45,7 @@ export class Register {
 
   // Envía los datos al servicio de autenticación para crear la cuenta.
   submit(): void {
+    if (this.loading()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -58,10 +60,9 @@ export class Register {
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: () => {
-          this.successMessage.set(
-            'Tu cuenta quedó creada. Ya podés iniciar sesión.',
-          );
-          this.form.reset();
+          void this.router.navigate(['/login'], {
+            queryParamsHandling: 'preserve',
+          });
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.getErrorMessage(error));
