@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   computed,
@@ -48,7 +48,7 @@ interface ProfileReview {
 
 @Component({
   selector: 'app-own-profile',
-  imports: [AccountRestrictionNotice, Navbar, RouterLink, DatePipe, ProfileImage],
+  imports: [NgTemplateOutlet, AccountRestrictionNotice, Navbar, RouterLink, DatePipe, ProfileImage],
   templateUrl: './own-profile.html',
   styleUrls: ['./own-profile.scss', './profile-media.scss', './profile-restriction.scss'],
 })
@@ -61,6 +61,8 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   private readonly reviewService = inject(ReviewService);
   private request?: Subscription;
   private playlistRequest?: Subscription;
+  private savedRequest?: Subscription;
+  private savedCoverRequest?: Subscription;
   private reviewRequest?: Subscription;
   private detailRequest?: Subscription;
   private sessionRequest?: Subscription;
@@ -69,6 +71,13 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
 
   private readonly profileRestriction = signal<AccountRestriction | null>(null);
   readonly restriction = computed(() => this.profileRestriction() ?? this.auth.restriction());
+
+  readonly savedPlaylists = signal<OwnPlaylistItem[]>([]);
+  readonly savedLoading = signal(false);
+  readonly savedError = signal('');
+  readonly savedPage = signal(1);
+  readonly savedPages = signal(0);
+  readonly savedCovers = signal<Record<number, string[]>>({});
 
   readonly pageSize = 6;
   readonly favoriteSlots = [1, 2, 3, 4, 5];
@@ -134,6 +143,11 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   loadProfile(): void {
     this.cancelRequests();
     this.authorId = null;
+    this.savedPlaylists.set([]);
+    this.savedCovers.set({});
+    this.savedError.set('');
+    this.savedPage.set(1);
+    this.savedPages.set(0);
     this.profile.set(null);
     this.profileRestriction.set(null);
     this.errorMessage.set('');
@@ -157,6 +171,7 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
         this.authorId = response.data.id;
         this.profile.set(response.data);
         this.loadPlaylists(1);
+        if (this.publicUsername === null) this.loadSavedPlaylists(1);
         this.loadReviews(1);
       },
       error: (error: unknown) => {
@@ -291,6 +306,35 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  loadSavedPlaylists(page = this.savedPage()): void {
+    if (this.publicUsername !== null || this.authorId === null) return;
+    this.savedRequest?.unsubscribe();
+    this.savedCoverRequest?.unsubscribe();
+    this.savedPage.set(page);
+    this.savedLoading.set(true);
+    this.savedError.set('');
+    this.savedPlaylists.set([]);
+    this.savedCovers.set({});
+    this.savedRequest = this.playlistService.getSaved(page, 4)
+      .pipe(finalize(() => this.savedLoading.set(false)))
+      .subscribe({
+        next: response => {
+          this.savedPlaylists.set(response.data);
+          this.savedPage.set(response.pagination.page);
+          this.savedPages.set(response.pagination.totalPages);
+          this.savedCoverRequest = from(response.data).pipe(
+            mergeMap(playlist => this.playlistService.getDetail(playlist.id).pipe(
+              map(detail => ({ id: playlist.id, covers: [...new Set(detail.data.tracks
+                .map(track => track.release.imageUrl)
+                .filter((url): url is string => Boolean(url)))].slice(0, 3) })),
+              catchError(() => of({ id: playlist.id, covers: [] as string[] })),
+            ), 3),
+          ).subscribe(({ id, covers }) => this.savedCovers.update(current => ({ ...current, [id]: covers })));
+        },
+        error: () => this.savedError.set('No pudimos cargar tu biblioteca. Intentá nuevamente.'),
+      });
+  }
+
   loadReviews(page = this.reviewsPage()): void {
     if (this.authorId === null) return;
     this.reviewRequest?.unsubscribe();
@@ -389,6 +433,8 @@ export class OwnProfile implements OnInit, OnChanges, OnDestroy {
   private cancelRequests(): void {
     this.request?.unsubscribe();
     this.playlistRequest?.unsubscribe();
+    this.savedRequest?.unsubscribe();
+    this.savedCoverRequest?.unsubscribe();
     this.reviewRequest?.unsubscribe();
     this.detailRequest?.unsubscribe();
     this.followRequest?.unsubscribe();
