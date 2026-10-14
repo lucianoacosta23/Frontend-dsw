@@ -75,15 +75,6 @@
     <aside class="featured-reviews" aria-labelledby="featured-reviews-title">
       <div class="section-heading">
         <h2 id="featured-reviews-title" class="section-title">Reseñas destacadas</h2>
-        @if (featured(); as album) {
-          <a
-            [routerLink]="canAccess ? ['/releases', album.id] : ['/login']"
-            [queryParams]="canAccess ? null : { returnUrl: '/releases/' + album.id }"
-          >
-            Ver todas
-            <svg aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
-          </a>
-        }
       </div>
       @if (reviewsLoading()) {
         <p class="status" role="status">Cargando reseñas…</p>
@@ -107,13 +98,7 @@
   <section id="tendencias" class="popular" aria-labelledby="popular-title">
     <div class="section-heading">
       <h2 id="popular-title" class="section-title">Álbumes populares</h2>
-      <a
-        [routerLink]="canAccess ? '/search' : '/login'"
-        [queryParams]="canAccess ? null : { returnUrl: '/search' }"
-      >
-        Ver todos
-        <svg aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
-      </a>
+
     </div>
     @if (loading()) {
       <p class="status" role="status">Cargando álbumes…</p>
@@ -132,13 +117,7 @@
   <section class="popular" aria-labelledby="popular-tracks-title">
     <div class="section-heading">
       <h2 id="popular-tracks-title" class="section-title">Canciones populares</h2>
-      <a
-        [routerLink]="canAccess ? '/search' : '/login'"
-        [queryParams]="canAccess ? null : { returnUrl: '/search' }"
-      >
-        Ver todas
-        <svg aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
-      </a>
+
     </div>
     @if (tracksLoading()) {
       <p class="status" role="status">Cargando canciones…</p>
@@ -177,15 +156,7 @@
               >
                 {{ item.reviewCount }} {{ item.reviewCount === 1 ? 'reseña' : 'reseñas' }}
               </a>
-              <button
-                type="button"
-                class="icon-button"
-                disabled
-                [attr.aria-label]="'Me gusta: ' + item.track.name"
-                title="Disponible próximamente"
-              >
-                <svg aria-hidden="true"><use href="/icons.svg#heart" /></svg>
-              </button>
+              
               <button
                 type="button"
                 class="icon-button"
@@ -208,13 +179,7 @@
     <section class="popular" aria-labelledby="popular-playlists-title">
       <div class="section-heading">
         <h2 id="popular-playlists-title" class="section-title">Playlists populares</h2>
-        <a
-          [routerLink]="canAccess ? '/search' : '/login'"
-          [queryParams]="canAccess ? null : { returnUrl: '/search' }"
-        >
-          Ver todas
-          <svg aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
-        </a>
+
       </div>
       @if (playlistsLoading()) {
         <p class="status" role="status">Cargando playlists…</p>
@@ -273,15 +238,6 @@
                     <small>En tu biblioteca ✓</small>
                   }
                 </p>
-                <button
-                  class="play-button"
-                  type="button"
-                  disabled
-                  [attr.aria-label]="'Reproducir ' + playlist.name"
-                  title="Disponible próximamente"
-                >
-                  <svg aria-hidden="true"><use href="/icons.svg#play" /></svg>
-                </button>
               </div>
             </article>
           } @empty {
@@ -293,13 +249,6 @@
     <section class="popular" aria-labelledby="popular-reviews-title">
       <div class="section-heading">
         <h2 id="popular-reviews-title" class="section-title">Reseñas populares</h2>
-        <a
-          [routerLink]="canAccess ? '/search' : '/login'"
-          [queryParams]="canAccess ? null : { returnUrl: '/search' }"
-        >
-          Ver todas
-          <svg aria-hidden="true"><use href="/icons.svg#arrow" /></svg>
-        </a>
       </div>
       @if (popularReviewsLoading()) {
         <p class="status" role="status">Cargando reseñas…</p>
