@@ -46,13 +46,6 @@
         >
           <svg aria-hidden="true"><use href="/icons.svg#comment" /></svg>
         </a>
-        <a
-          class="compact-more"
-          [routerLink]="['/reviews', review.id]"
-          aria-label="Ver reseña completa"
-        >
-          ···
-        </a>
       </footer>
       @if (likeError(); as message) {
         <p class="action-error" role="alert">{{ message }}</p>
