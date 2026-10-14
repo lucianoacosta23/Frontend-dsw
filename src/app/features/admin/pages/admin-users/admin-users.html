@@ -48,7 +48,12 @@
             @if (chosen === 'BAN') { <p>El baneo conserva los datos y sigue vigente hasta que un administrador lo revierta.</p> }
             <label for="sanction-reason">Motivo obligatorio</label><textarea #reasonInput id="sanction-reason" rows="3" maxlength="1000" [value]="reason()" (input)="reason.set(reasonInput.value)" [disabled]="submitting()" required></textarea>
             <small>Hasta 500 caracteres. El motivo queda en el historial administrativo.</small>
-            @if (chosen === 'SUSPEND') { <label for="sanction-until">Finalización ({{ timezone }})</label><input #untilInput id="sanction-until" type="datetime-local" [value]="until()" (input)="until.set(untilInput.value)" [disabled]="submitting()" required /> }
+            @if (chosen === 'SUSPEND') {
+  <p>
+    La suspensión dura 7 días. La fecha de finalización
+    se calcula automáticamente al confirmar.
+  </p>
+}
             @if (actionError()) { <p class="error" role="alert">{{ actionError() }}</p> }
             <div class="account-actions"><button type="submit" class="primary-button" [disabled]="submitting()">{{ submitting() ? 'Aplicando…' : 'Confirmar ' + actionLabel(chosen).toLowerCase() }}</button><button type="button" (click)="cancelAction()" [disabled]="submitting()">Cancelar</button></div>
           </form>

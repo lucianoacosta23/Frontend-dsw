@@ -45,7 +45,6 @@ export class AdminUsers implements OnInit {
   readonly historyPages = signal(0);
   readonly action = signal<AccountAction | null>(null);
   readonly reason = signal('');
-  readonly until = signal('');
   readonly submitting = signal(false);
   readonly actionError = signal('');
   readonly success = signal('');
@@ -115,7 +114,10 @@ export class AdminUsers implements OnInit {
   }
   choose(action: AccountAction): void {
     if (this.submitting()) return;
-    this.action.set(action); this.reason.set(''); this.until.set(''); this.actionError.set(''); this.success.set('');
+    this.action.set(action);
+    this.reason.set('');
+    this.actionError.set('');
+    this.success.set('');
   }
   cancelAction(): void { if (!this.submitting()) this.action.set(null); }
   submitAction(): void {
@@ -125,15 +127,12 @@ export class AdminUsers implements OnInit {
     if (!reason || Array.from(reason).length > 500 || reason.includes('\0')) {
       this.actionError.set('Ingresá un motivo de entre 1 y 500 caracteres.'); return;
     }
+
     const input: UserActionRequest = { action, reason };
-    if (action === 'SUSPEND') {
-      const date = new Date(this.until());
-      if (!Number.isFinite(date.getTime()) || date.getTime() <= Date.now()) {
-        this.actionError.set('Elegí una fecha y hora de finalización futuras.'); return;
-      }
-      input.suspendedUntil = date.toISOString();
-    }
-    this.submitting.set(true); this.actionError.set(''); this.success.set('');
+
+    this.submitting.set(true);
+    this.actionError.set('');
+    this.success.set('');
     this.service.apply(user.id, input)
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.submitting.set(false)))
       .subscribe({ next: response => {
