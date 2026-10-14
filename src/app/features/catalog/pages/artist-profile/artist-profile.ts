@@ -10,12 +10,13 @@ import type { ArtistReleaseCard, SpotifyArtistReleasesResponse } from '../../../
 import { CatalogService } from '../../../../core/services/catalog.service';
 import type { ArtistDetail, ReleaseDetail } from '../../../../models/catalog-details.js';
 import { Navbar } from '../../../../shared/components/navbar/navbar';
+import { ReleaseCover } from '../../components/release-cover/release-cover';
 
 type ReleaseFilter = 'ALL' | ReleaseDetail['type'];
 type ReleaseOrder = 'newest' | 'oldest' | 'name';
 
 @Component({
-  imports: [RouterLink, Navbar, NgTemplateOutlet],
+  imports: [RouterLink, Navbar, NgTemplateOutlet, ReleaseCover],
   selector: 'app-artist-profile',
   styleUrl: './artist-profile.scss',
   templateUrl: './artist-profile.html',

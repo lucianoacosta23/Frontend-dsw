@@ -1,23 +1,131 @@
 :host {
-  display: block;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
 }
 
 .login-page {
   box-sizing: border-box;
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
   padding: 1rem;
 }
 
-.login-card {
+.login-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   width: 100%;
   max-width: 28rem;
-  padding: 1.25rem;
+  min-width: 0;
 }
 
-app-account-restriction-notice { margin-bottom: 1.25rem; }
+.login-home {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--jb-text);
+  text-decoration: none;
+  font: 800 1.25rem var(--jb-heading-font);
+  letter-spacing: -0.04em;
+}
+
+.login-home img {
+  width: 25px;
+  height: 30px;
+}
+
+.login-home:hover {
+  color: var(--jb-gold);
+}
+
+.login-card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1.25rem;
+  background: rgba(27, 29, 25, 0.97);
+  border: 1px solid color-mix(in srgb, var(--jb-gold) 12%, transparent);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.24),
+    0 1px 8px color-mix(in srgb, var(--jb-gold) 3%, transparent);
+}
+
+/* El centro queda libre; sin máscaras se conserva un contorno estático. */
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--jb-gold) 8%, transparent);
+  border-radius: inherit;
+  opacity: 0.36;
+  pointer-events: none;
+}
+
+@supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+  .login-card {
+    background: rgba(27, 29, 25, 0.9);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
+@supports (mask-composite: exclude) or (-webkit-mask-composite: xor) {
+  .login-card::before {
+    padding: 1px;
+    border: 0;
+    background:
+      radial-gradient(
+        ellipse at 18% 0%,
+        color-mix(in srgb, var(--jb-gold) 40%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse at 85% 100%,
+        color-mix(in srgb, var(--jb-gold) 28%, transparent),
+        transparent 50%
+      );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: login-edge-light 25s ease-in-out infinite;
+  }
+}
+
+@keyframes login-edge-light {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateY(0.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card::before {
+    animation: none;
+    transform: none;
+    opacity: 0.36;
+  }
+}
+
+app-account-restriction-notice {
+  margin-bottom: 1.25rem;
+}
 
 mat-card-header {
   margin-bottom: 1.5rem;
@@ -36,6 +144,8 @@ button {
 .feedback {
   margin: 0;
   font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .error {
@@ -57,7 +167,7 @@ button {
 }
 
 @media (min-width: 960px) {
-  .login-card {
+  .login-shell {
     max-width: 30rem;
   }
 }
@@ -72,6 +182,7 @@ button {
 
 .login-alternatives p {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .login-alternatives a {
@@ -83,13 +194,22 @@ button {
 }
 
 .spotify-button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   background: #1db954;
   color: #10131a !important;
   font-weight: 700;
   text-decoration: none;
+}
+
+.spotify-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .spotify-button:hover {

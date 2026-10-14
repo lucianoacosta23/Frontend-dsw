@@ -29,7 +29,11 @@
     @if (item.type === 'users') {
       <span class="initials" aria-hidden="true">{{ item.name.slice(0, 2).toUpperCase() }}</span>
     } @else {
-      <app-release-cover [src]="item.imageUrl" [alt]="item.name" />
+      <app-release-cover
+        [src]="item.imageUrl"
+        [alt]="item.name"
+        [effect]="item.type === 'artists' ? 'plain' : item.type === 'releases' && !row ? 'interactive' : 'static'"
+      />
     }
   </div>
   <div class="result-copy">

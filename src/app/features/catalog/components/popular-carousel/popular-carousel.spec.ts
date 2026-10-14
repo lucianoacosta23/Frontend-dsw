@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PopularCarousel } from './popular-carousel';
 
@@ -96,15 +96,50 @@ describe('PopularCarousel: motion and accessibility', () => {
     step(350);
     expect(rail.scrollLeft).toBeCloseTo(0.5);
   });
-  it('provides only one interactive, accessible set of links', () => {
+  it.each([false, true])('provides two equivalent, accessible lists with directNavigation=%s', (directNavigation) => {
     const { fixture } = render();
-    const copy = fixture.nativeElement.querySelector('.copy');
-    expect(copy.getAttribute('aria-hidden')).toBe('true');
-    expect(copy.hasAttribute('inert')).toBe(true);
-    expect(copy.querySelectorAll('a,button,[tabindex],[id]')).toHaveLength(0);
-    expect(fixture.nativeElement.querySelectorAll('a')).toHaveLength(10);
-    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
-    expect(fixture.nativeElement.querySelector('.group .item:last-child .rank').textContent).toContain('#10');
+    fixture.componentRef.setInput('directNavigation', directNavigation);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    const groups = element.querySelectorAll<HTMLElement>('.group');
+    expect(groups).toHaveLength(2);
+    const cards = [...groups].map(group => {
+      expect(group.getAttribute('role')).toBe('list');
+      expect(group.getAttribute('aria-hidden')).not.toBe('true');
+      expect(group.hasAttribute('inert')).toBe(false);
+      expect(group.querySelectorAll('[role="listitem"]')).toHaveLength(10);
+      const links = group.querySelectorAll<HTMLAnchorElement>('a.card');
+      expect(links).toHaveLength(10);
+      return [...links].map(link => ({
+        href: link.getAttribute('href'),
+        label: link.getAttribute('aria-label'),
+        text: link.textContent,
+        rank: link.querySelector('.rank')?.textContent,
+      }));
+    });
+    expect(cards[1]).toEqual(cards[0]);
+    expect(cards[0][0].href).toBe(directNavigation ? '/releases/1' : '/login?returnUrl=%2Freleases%2F1');
+    expect(cards[0][9].rank).toContain('#10');
+    expect(element.querySelectorAll('.cover-frame.interactive')).toHaveLength(20);
+    expect(element.querySelectorAll('a a, a button, button')).toHaveLength(0);
+  });
+  it.each([false, true])('navigates from either set with directNavigation=%s', (directNavigation) => {
+    const { fixture } = render();
+    fixture.componentRef.setInput('directNavigation', directNavigation);
+    fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const element: HTMLElement = fixture.nativeElement;
+    for (const group of element.querySelectorAll('.group')) {
+      const link = group.querySelector<HTMLAnchorElement>('a.card');
+      expect(link).not.toBeNull();
+      link?.click();
+    }
+    expect(navigate).toHaveBeenCalledTimes(2);
+    for (const [target] of navigate.mock.calls) {
+      const url = typeof target === 'string' ? target : router.serializeUrl(target);
+      expect(url).toBe(directNavigation ? '/releases/1' : '/login?returnUrl=%2Freleases%2F1');
+    }
   });
   it('pauses on hover and keyboard focus, then resumes', () => {
     const { component, rail, fixture } = render();
@@ -113,6 +148,13 @@ describe('PopularCarousel: motion and accessibility', () => {
     component.hover(false);
     expect(frames.size).toBe(1);
     component.focus();
+    expect(frames.size).toBe(0);
+    const copyLink = fixture.nativeElement.querySelector('.copy a.card');
+    expect(copyLink).not.toBeNull();
+    fixture.nativeElement
+      .querySelector('.carousel')
+      .dispatchEvent(new FocusEvent('focusout', { relatedTarget: copyLink, bubbles: true }));
+    fixture.detectChanges();
     expect(frames.size).toBe(0);
     fixture.nativeElement
       .querySelector('.carousel')

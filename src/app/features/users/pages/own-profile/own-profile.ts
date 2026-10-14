@@ -24,6 +24,7 @@ import {
 } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ProfileImage } from '../../../../shared/components/profile-image/profile-image';
+import { ReleaseCover } from '../../../catalog/components/release-cover/release-cover';
 import { AuthService } from '../../../../core/services/auth.service.js';
 import { UserService } from '../../../../core/services/user-service.js';
 import {
@@ -48,7 +49,7 @@ interface ProfileReview {
 
 @Component({
   selector: 'app-own-profile',
-  imports: [NgTemplateOutlet, AccountRestrictionNotice, Navbar, RouterLink, DatePipe, ProfileImage],
+  imports: [NgTemplateOutlet, AccountRestrictionNotice, Navbar, RouterLink, DatePipe, ProfileImage, ReleaseCover],
   templateUrl: './own-profile.html',
   styleUrls: ['./own-profile.scss', './profile-media.scss', './profile-restriction.scss'],
 })

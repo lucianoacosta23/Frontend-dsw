@@ -6,7 +6,9 @@
   overflow-x: auto;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
-  padding-block: 4px;
+  // Deja espacio para el crecimiento y el foco sin cambiar el ancho de los discos.
+  padding: 8px;
+  margin: -4px -8px;
 }
 .rail::-webkit-scrollbar {
   display: none;
@@ -31,9 +33,6 @@
 }
 .art {
   position: relative;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--jb-border);
 }
 .rank {
   position: absolute;
@@ -63,10 +62,6 @@ h3 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.copy {
-  pointer-events: none;
-  user-select: none;
 }
 @media (max-width: 960px) {
   .item {

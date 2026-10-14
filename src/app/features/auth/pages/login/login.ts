@@ -15,13 +15,11 @@ import { environment } from '../../../../../environments/environments.js';
 import { readAccountRestriction } from '../../../../models/account-restriction';
 import { AccountRestrictionNotice } from '../../../../shared/components/account-restriction-notice/account-restriction-notice';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Navbar } from '../../../../shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-login',
   imports: [
     AccountRestrictionNotice,
-    Navbar,
     RouterLink,
     ReactiveFormsModule,
     MatButtonModule,

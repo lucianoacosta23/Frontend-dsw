@@ -47,6 +47,7 @@
   border-radius: 8px;
 }
 .icon-button:hover,
+.login-link:hover,
 .trends {
   color: var(--jb-gold);
 }
@@ -71,17 +72,29 @@ svg {
   gap: 24px;
   min-width: 0;
 }
-.signup-link {
+.signup-link,
+.login-link {
+  border-radius: 8px;
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
   white-space: nowrap;
 }
 .signup-link {
   padding: 12px 20px;
   background: var(--jb-gold);
   color: var(--jb-on-gold);
-  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.login-link {
+  border: 1px solid var(--jb-border);
+}
+.nav-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--jb-surface-raised);
 }
 .user-menu {
   position: relative;
@@ -89,16 +102,19 @@ svg {
   min-width: 0;
   max-width: 180px;
 }
-summary {
+summary,
+.login-link {
   display: flex;
   align-items: center;
-  gap: 8px;
   min-height: 44px;
   box-sizing: border-box;
+  padding: 6px 0.65rem;
+  color: var(--jb-copy);
+}
+summary {
+  gap: 8px;
   list-style: none;
   cursor: pointer;
-  padding: 0.65rem;
-  color: var(--jb-copy);
   overflow-wrap: anywhere;
 }
 summary::-webkit-details-marker { display: none; }
@@ -184,9 +200,6 @@ button:disabled {
     grid-column: 2;
     grid-row: 2;
     width: 100%;
-    order: 4;
-    flex-basis: 100%;
-    max-width: none;
   }
   .nav-actions {
     grid-column: 2;
@@ -195,9 +208,6 @@ button:disabled {
     justify-content: flex-end;
     flex-wrap: wrap;
     position: relative;
-    min-width: 0;
-    max-width: 100%;
-    margin-left: auto;
     gap: 10px;
   }
   .user-menu {
@@ -238,9 +248,6 @@ button:disabled {
   background: linear-gradient(#101110f5, #101110b8 85%, transparent);
   border: 0;
 }
-.navbar {
-  width: 100%;
-}
 .nav-actions:has(.retry-session) {
   flex-wrap: wrap;
 }
@@ -257,14 +264,7 @@ button:disabled {
   .site-header {
     padding: 8px 12px;
   }
-  .navbar {
-    flex-wrap: wrap;
-  }
 }
 @media (max-width: 400px) {
   .brand span { display: none; }
-  .nav-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
 }

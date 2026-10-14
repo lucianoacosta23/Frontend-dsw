@@ -36,11 +36,7 @@
 .cover {
   min-width: 0;
   width: 100%;
-  border: 1px solid var(--jb-border);
-  border-radius: 8px;
-  overflow: hidden;
   box-sizing: border-box;
-  box-shadow: 0 16px 32px #0003;
 }
 .release-info, .track-info { min-width: 0; padding: 4px 0; }
 .eyebrow {

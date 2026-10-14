@@ -12,43 +12,43 @@
     <div class="track">
       <div #originals class="group" role="list">
         @for (album of albums; track album.id; let position = $index) {
-          <div class="item" role="listitem">
-            <a
-              class="card"
-              [routerLink]="directNavigation ? ['/releases', album.id] : ['/login']"
-              [queryParams]="directNavigation ? null : { returnUrl: '/releases/' + album.id }"
-              [attr.aria-label]="'Ver ' + album.name"
-            >
-              <ng-container
-                [ngTemplateOutlet]="content"
-                [ngTemplateOutletContext]="{ $implicit: album, position }"
-              />
-            </a>
-          </div>
+          <ng-container
+            [ngTemplateOutlet]="card"
+            [ngTemplateOutletContext]="{ $implicit: album, position }"
+          />
         }
       </div>
       @if (overflow()) {
-        <div class="group copy" aria-hidden="true" inert>
+        <div class="group copy" role="list">
           @for (album of albums; track album.id; let position = $index) {
-            <div class="item">
-              <div class="card">
-                <ng-container
-                  [ngTemplateOutlet]="content"
-                  [ngTemplateOutletContext]="{ $implicit: album, position }"
-                />
-              </div>
-            </div>
+            <ng-container
+              [ngTemplateOutlet]="card"
+              [ngTemplateOutletContext]="{ $implicit: album, position }"
+            />
           }
         </div>
       }
     </div>
   </div>
 </div>
-<ng-template #content let-album let-position="position">
-  <div class="art">
-    <app-release-cover [src]="album.imageUrl" [alt]="'Portada de ' + album.name" />
-    <span class="rank">#{{ position + 1 }}</span>
+<ng-template #card let-album let-position="position">
+  <div class="item" role="listitem">
+    <a
+      class="card"
+      [routerLink]="directNavigation ? ['/releases', album.id] : ['/login']"
+      [queryParams]="directNavigation ? null : { returnUrl: '/releases/' + album.id }"
+      [attr.aria-label]="'Ver ' + album.name"
+    >
+      <div class="art">
+        <app-release-cover
+          [src]="album.imageUrl"
+          [alt]="'Portada de ' + album.name"
+          effect="interactive"
+        />
+        <span class="rank">#{{ position + 1 }}</span>
+      </div>
+      <h3>{{ album.name }}</h3>
+      <p class="artist">{{ artists(album) }}</p>
+    </a>
   </div>
-  <h3>{{ album.name }}</h3>
-  <p class="artist">{{ artists(album) }}</p>
 </ng-template>

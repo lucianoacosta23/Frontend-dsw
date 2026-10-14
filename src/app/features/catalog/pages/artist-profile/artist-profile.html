@@ -93,13 +93,13 @@
           </div>
         }
         <ng-template #releaseContent let-release>
-          <div class="cover-wrap">
+          <app-release-cover class="cover-wrap" [projected]="true" effect="interactive">
             @if (release.imageUrl) {
               <img [src]="release.imageUrl" alt="" loading="lazy" width="300" height="300" />
             } @else {
               <span class="cover-placeholder" aria-hidden="true">♫</span>
             }
-          </div>
+          </app-release-cover>
           <h3>{{ release.name }}</h3>
           <p>{{ release.releaseDate.slice(0, 4) }} · {{ typeLabel(release.type) }}</p>
         </ng-template>

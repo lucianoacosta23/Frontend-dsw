@@ -6,6 +6,7 @@ import { Navbar } from '../../../../shared/components/navbar/navbar';
 import { ProfileImage } from '../../../../shared/components/profile-image/profile-image';
 import { FavoritePicker } from '../../components/favorite-picker/favorite-picker';
 import { UserService } from '../../../../core/services/user-service';
+import { ProfileAvatarService } from '../../../../core/services/profile-avatar.service';
 import { profileError } from '../../../../core/utils/profile-error';
 import type {
   UserProfile,
@@ -37,6 +38,7 @@ const emptyImage = (): DraftImage => ({
 })
 export class EditProfile implements OnInit, OnDestroy {
   private readonly users = inject(UserService);
+  private readonly avatar = inject(ProfileAvatarService);
   private readonly router = inject(Router);
   private loadRequest?: Subscription;
   private saveRequest?: Subscription;
@@ -273,6 +275,7 @@ export class EditProfile implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response) {
+            this.avatar.updateFromProfile(response.data);
             this.applyProfile(response.data);
             this.success.set('Perfil guardado.');
           } else this.success.set('No hay cambios para guardar.');

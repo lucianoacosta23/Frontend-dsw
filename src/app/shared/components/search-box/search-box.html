@@ -61,7 +61,11 @@
                 [class.artist]="item.type === 'artists' || item.type === 'users'"
               >
                 @if (item.imageUrl) {
-                  <app-release-cover [src]="item.imageUrl" [alt]="''" />
+                  <app-release-cover
+                    [src]="item.imageUrl"
+                    [alt]="''"
+                    [effect]="item.type === 'artists' || item.type === 'users' ? 'plain' : 'static'"
+                  />
                 } @else {
                   <span class="suggestion-initial" aria-hidden="true">
                     {{ item.name.slice(0, 2).toUpperCase() }}

@@ -85,9 +85,13 @@
         <div class="favorite-slots">
           @for (release of user.favoriteReleases; track release.id) {
             <a class="favorite-card" [routerLink]="['/releases', release.id]" [title]="release.name"
-              ><div class="favorite-cover">
+              ><app-release-cover
+                class="favorite-cover"
+                [projected]="true"
+                effect="interactive"
+              >
                 <app-profile-image [src]="release.imageUrl" alt="" />
-              </div>
+              </app-release-cover>
               <span>{{ release.name }}</span></a
             >
           }
@@ -113,9 +117,13 @@
         <div class="favorite-slots">
           @for (track of user.favoriteTracks; track track.id) {
             <a class="favorite-card" [routerLink]="['/tracks', track.id]" [title]="track.name"
-              ><div class="favorite-cover">
+              ><app-release-cover
+                class="favorite-cover"
+                [projected]="true"
+                effect="interactive"
+              >
                 <app-profile-image [src]="track.release.imageUrl" alt="" />
-              </div>
+              </app-release-cover>
               <span>{{ track.name }}</span></a
             >
           }
@@ -326,16 +334,18 @@
           @for (card of reviews(); track card.review.id) {
             <a class="review-tile" [routerLink]="['/reviews', card.review.id]">
               <div class="review-art">
-                @if (card.target?.imageUrl && !card.brokenImage) {
-                  <img
-                    [src]="card.target!.imageUrl"
-                    alt=""
-                    loading="lazy"
-                    (error)="imageFailed(card.review.id)"
-                  />
-                } @else {
-                  <span aria-hidden="true">♫</span>
-                }
+                <app-release-cover [projected]="true">
+                  @if (card.target?.imageUrl && !card.brokenImage) {
+                    <img
+                      [src]="card.target!.imageUrl"
+                      alt=""
+                      loading="lazy"
+                      (error)="imageFailed(card.review.id)"
+                    />
+                  } @else {
+                    <span aria-hidden="true">♫</span>
+                  }
+                </app-release-cover>
               </div>
               <div class="review-content">
                 <p class="target-kind">

@@ -34,12 +34,12 @@
 .artwork {
   width: 100%;
   aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 .artwork.artist,
 .artwork.person {
   border-radius: 50%;
+  overflow: hidden;
 }
 .initials {
   display: grid;

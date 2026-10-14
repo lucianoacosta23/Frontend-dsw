@@ -15,13 +15,14 @@ import { ActivatedRoute, NavigationStart, Router, RouterLink } from '@angular/ro
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service.js';
-import { environment } from '../../../../environments/environments';
+import { ProfileAvatarService } from '../../../core/services/profile-avatar.service';
+import { ProfileImage } from '../profile-image/profile-image';
 import { SearchBox } from '../search-box/search-box';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, SearchBox],
+  imports: [RouterLink, SearchBox, ProfileImage],
   templateUrl: './navbar.html',
   styleUrl: './navbar-home.scss',
   host: {
@@ -39,8 +40,8 @@ export class Navbar implements AfterViewInit {
   @Input() sessionLoading = false;
   @Input() sessionError: string | null = null;
   @Output() retrySession = new EventEmitter<void>();
-  readonly spotifyLoginUrl = `${environment.apiBaseUrl}/auth/spotify/login?returnUrl=${encodeURIComponent('/dashboard')}`;
   readonly auth = inject(AuthService);
+  readonly avatar = inject(ProfileAvatarService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);

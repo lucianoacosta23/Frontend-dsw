@@ -5,6 +5,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditProfile } from './edit-profile';
 import { UserService } from '../../../../core/services/user-service';
+import { ProfileAvatarService } from '../../../../core/services/profile-avatar.service';
 import type { UserProfile } from '../../../../models/user-profile';
 const release = (id: number) => ({
   id,
@@ -30,12 +31,14 @@ const profile: UserProfile = {
 };
 describe('Profile editor integration', () => {
   let component: EditProfile;
+  const updateFromProfile = vi.fn();
   let users: {
     getOwnProfile: ReturnType<typeof vi.fn>;
     updateOwnProfile: ReturnType<typeof vi.fn>;
     uploadProfileImage: ReturnType<typeof vi.fn>;
   };
   beforeEach(() => {
+    updateFromProfile.mockReset();
     users = {
       getOwnProfile: vi.fn(() => of({ data: profile })),
       updateOwnProfile: vi.fn(() => of({ data: profile })),
@@ -43,12 +46,36 @@ describe('Profile editor integration', () => {
     };
     TestBed.configureTestingModule({
       imports: [EditProfile],
-      providers: [provideRouter([]), { provide: UserService, useValue: users }],
+      providers: [
+        provideRouter([]), { provide: UserService, useValue: users },
+        { provide: ProfileAvatarService, useValue: { updateFromProfile } },
+      ],
     });
     TestBed.overrideComponent(EditProfile, { set: { template: '', imports: [] } });
     const fixture = TestBed.createComponent(EditProfile);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+  it('publishes changed and removed avatars only after a successful save', () => {
+    const saved = { ...profile, avatarUrl: '/media/saved.webp' };
+    users.updateOwnProfile.mockReturnValueOnce(of({ data: saved }));
+    component.images.update(images => ({
+      ...images, avatar: { ...images.avatar, imageId: 81, changed: true },
+    }));
+    component.save();
+    expect(updateFromProfile).toHaveBeenLastCalledWith(saved);
+    component.removeImage('avatar');
+    component.save();
+    expect(updateFromProfile).toHaveBeenLastCalledWith(profile);
+    expect(updateFromProfile).toHaveBeenCalledTimes(2);
+  });
+  it('does not publish a draft, failed save or unchanged profile to the navbar', () => {
+    component.save();
+    expect(updateFromProfile).not.toHaveBeenCalled();
+    component.removeImage('avatar');
+    users.updateOwnProfile.mockReturnValueOnce(throwError(() => new Error('offline')));
+    component.save();
+    expect(updateFromProfile).not.toHaveBeenCalled();
   });
   it('omits unchanged fields and preserves ordered IDs, null and empty arrays', () => {
     expect(component.buildPatch()).toEqual({});

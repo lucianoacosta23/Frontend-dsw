@@ -40,7 +40,16 @@
       }
       @if (auth.currentUser(); as user) {
         <details class="user-menu">
-          <summary [title]="user.username"><span class="menu-label">{{ user.username }}</span></summary>
+          <summary [title]="user.username">
+            <span class="nav-avatar" aria-hidden="true">
+              <app-profile-image
+                [src]="avatar.url()"
+                alt=""
+                [fallback]="user.username.slice(0, 1).toUpperCase()"
+              />
+            </span>
+            <span class="menu-label">{{ user.username }}</span>
+          </summary>
           <div class="dropdown">
             <a routerLink="/dashboard">Inicio</a>
             <a routerLink="/profile">Mi perfil</a>
@@ -54,13 +63,7 @@
           </div>
         </details>
       } @else {
-        <details class="guest-menu user-menu">
-          <summary>Iniciar sesión</summary>
-          <div class="dropdown">
-            <a routerLink="/login">Ingresar con email</a>
-            <a [href]="spotifyLoginUrl">Entrar con Spotify</a>
-          </div>
-        </details>
+        <a class="login-link" routerLink="/login">Iniciar sesión</a>
         <a class="signup-link" routerLink="/register">Crear cuenta</a>
       }
     </div>
